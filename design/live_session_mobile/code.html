@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Live Attendance Session - Mobile</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary-fixed": "#e2dfff",
+                        "on-tertiary": "#ffffff",
+                        "on-error": "#ffffff",
+                        "on-surface-variant": "#464555",
+                        "on-error-container": "#93000a",
+                        "surface-variant": "#e0e3e5",
+                        "on-tertiary-fixed": "#07006c",
+                        "inverse-primary": "#c3c0ff",
+                        "on-primary": "#ffffff",
+                        "outline": "#777587",
+                        "tertiary-container": "#4b4dd8",
+                        "on-background": "#191c1e",
+                        "on-tertiary-container": "#d9d8ff",
+                        "primary": "#3525cd",
+                        "surface-container-low": "#f2f4f6",
+                        "primary-fixed-dim": "#c3c0ff",
+                        "tertiary-fixed-dim": "#c0c1ff",
+                        "on-secondary-fixed-variant": "#3f465c",
+                        "surface-container-high": "#e6e8ea",
+                        "on-secondary-container": "#5c647a",
+                        "on-tertiary-fixed-variant": "#2f2ebe",
+                        "tertiary-fixed": "#e1e0ff",
+                        "on-primary-fixed-variant": "#3323cc",
+                        "on-surface": "#191c1e",
+                        "secondary-fixed": "#dae2fd",
+                        "tertiary": "#3130c0",
+                        "on-secondary": "#ffffff",
+                        "surface-container-highest": "#e0e3e5",
+                        "on-secondary-fixed": "#131b2e",
+                        "surface-container-lowest": "#ffffff",
+                        "primary-container": "#4f46e5",
+                        "outline-variant": "#c7c4d8",
+                        "inverse-surface": "#2d3133",
+                        "background": "#f7f9fb",
+                        "secondary-fixed-dim": "#bec6e0",
+                        "surface-bright": "#f7f9fb",
+                        "surface-dim": "#d8dadc",
+                        "secondary-container": "#dae2fd",
+                        "error-container": "#ffdad6",
+                        "inverse-on-surface": "#eff1f3",
+                        "on-primary-fixed": "#0f0069",
+                        "surface-container": "#eceef0",
+                        "on-primary-container": "#dad7ff",
+                        "secondary": "#565e74",
+                        "surface-tint": "#4d44e3",
+                        "surface": "#f7f9fb",
+                        "error": "#ba1a1a"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "stack-md": "16px",
+                        "stack-lg": "32px",
+                        "gutter": "16px",
+                        "container-padding": "24px",
+                        "unit": "4px",
+                        "stack-sm": "8px"
+                    },
+                    "fontFamily": {
+                        "body-md": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "headline-lg-mobile": ["Inter"],
+                        "display-lg": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "label-md": ["Inter"]
+                    },
+                    "fontSize": {
+                        "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "headline-lg": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "headline-md": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+                        "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "headline-lg-mobile": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+                        "display-lg": ["36px", { "lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "label-sm": ["11px", { "lineHeight": "14px", "fontWeight": "500" }],
+                        "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600" }]
+                    }
+                }
+            }
+        };
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .material-symbols-outlined.filled {
+            font-variation-settings: 'FILL' 1;
+        }
+        
+        /* QR Scanner Animation */
+        @keyframes scan {
+            0% { transform: translateY(0); }
+            50% { transform: translateY(200px); }
+            100% { transform: translateY(0); }
+        }
+        .scanner-line {
+            animation: scan 2s infinite linear;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background min-h-screen flex flex-col font-body-md overflow-x-hidden md:hidden">
+<!-- Top Navbar Mobile -->
+<header class="flex justify-between items-center w-full px-container-padding h-16 backdrop-blur-md bg-surface/80 border-b border-outline-variant sticky top-0 z-40">
+<div class="flex items-center gap-3">
+<button class="p-2 -ml-2 text-on-surface-variant hover:bg-surface-variant rounded-full transition-colors">
+<span class="material-symbols-outlined">arrow_back</span>
+</button>
+<div class="flex flex-col">
+<h1 class="font-headline-md text-headline-md text-primary font-bold">Operating Systems</h1>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Section B</span>
+</div>
+</div>
+<div class="flex gap-2">
+<button class="p-2 text-on-surface-variant hover:text-primary transition-all">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</div>
+</header>
+<!-- Main Content Area - Scrollable -->
+<main class="flex-1 flex flex-col p-container-padding gap-stack-lg pb-32">
+<!-- QR Code Focus Area -->
+<section class="flex flex-col items-center justify-center bg-surface-container-lowest rounded-xl border border-surface-variant p-stack-lg shadow-sm relative overflow-hidden">
+<div class="absolute top-4 right-4 flex items-center gap-2 bg-error-container/30 px-3 py-1 rounded-full">
+<div class="w-2 h-2 rounded-full bg-error animate-pulse"></div>
+<span class="font-label-sm text-label-sm text-error font-bold">LIVE</span>
+</div>
+<h2 class="font-headline-md text-headline-md text-on-surface text-center mb-2">Scan to mark attendance</h2>
+<p class="font-body-md text-body-md text-on-surface-variant text-center mb-6">Refreshing in <span class="font-bold text-primary">4s</span>...</p>
+<div class="relative w-64 h-64 bg-white p-4 rounded-xl shadow-inner border border-surface-variant mb-4 flex items-center justify-center">
+<!-- Scanner styling overlay -->
+<div class="absolute inset-0 border-2 border-primary/20 rounded-xl pointer-events-none"></div>
+<div class="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-primary rounded-tl-xl pointer-events-none"></div>
+<div class="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-primary rounded-tr-xl pointer-events-none"></div>
+<div class="absolute bottom-0 left-0 w-8 h-8 border-b-4 border-l-4 border-primary rounded-bl-xl pointer-events-none"></div>
+<div class="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-primary rounded-br-xl pointer-events-none"></div>
+<!-- Animated scan line -->
+<div class="absolute top-0 left-0 w-full h-[2px] bg-primary/50 scanner-line z-10 blur-[1px]"></div>
+<!-- Placeholder for actual QR -->
+<img class="w-full h-full object-contain" data-alt="A high contrast, intricate black and white QR code centered on a stark white background, designed for high-speed mobile scanning in an educational software interface. Crisp geometric patterns." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDE8Bg2pbE5ULpm5rpGgYDIVu7Fa7vz8jnsaWEmwqCgc7A4a3hG4uhhLCelr9TE-H_cI4bdqGroxZKv4WtznP6DHowIa6KOSwlxEkczumBOcFlK0zuWL1fpG2DYOTGMHCgKwZQiuCy8jZgLWnLC-Z9Tc0h8e0vCYT4viovmRfHWD-lHnD-7eA5NPOXhNJq-7PoVOFDULC39hjFdd0ivmh1gTqofTrx3aF-8l_rikJYAXws5zWsyGWc5LQ"/>
+</div>
+<div class="flex items-center gap-2 text-on-surface-variant bg-surface-container-low px-4 py-2 rounded-full mt-2">
+<span class="material-symbols-outlined text-lg">wifi</span>
+<span class="font-label-md text-label-md">Local network active</span>
+</div>
+</section>
+<!-- Progress Overview -->
+<section class="bg-surface-container-lowest rounded-xl border border-surface-variant p-stack-md shadow-sm">
+<div class="flex justify-between items-end mb-4">
+<div>
+<h3 class="font-headline-md text-headline-md text-on-surface">Attendance</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">48/62 Students</p>
+</div>
+<div class="text-right">
+<span class="font-display-lg text-display-lg text-primary">77%</span>
+</div>
+</div>
+<!-- Progress Bar -->
+<div class="w-full bg-surface-container-high rounded-full h-2.5 mb-2 overflow-hidden">
+<div class="bg-primary h-2.5 rounded-full" style="width: 77%"></div>
+</div>
+</section>
+<!-- Live Feed / Recent Scans -->
+<section class="flex flex-col gap-stack-sm">
+<div class="flex justify-between items-center mb-2 px-1">
+<h3 class="font-headline-md text-headline-md text-on-surface">Live Feed</h3>
+<button class="font-label-md text-label-md text-primary hover:underline">View All</button>
+</div>
+<!-- Feed List -->
+<div class="flex flex-col gap-2">
+<!-- Item 1 -->
+<div class="flex items-center gap-3 p-3 bg-surface-container-lowest rounded-lg border border-surface-variant shadow-sm relative overflow-hidden">
+<div class="absolute left-0 top-0 bottom-0 w-1 bg-tertiary-container"></div>
+<div class="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center overflow-hidden shrink-0 ml-1">
+<img class="w-full h-full object-cover" data-alt="Portrait photo of a young adult university student with short dark hair, wearing a neutral casual sweater, neutral studio lighting, high resolution." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAAf_6jvarnhZeRZbw9ezBqZBYxf0LRMXJyNWqjzdp7zAUofQygi_9jO5Oi6jm7Mcf3sCe2F6PjQUgkwnO6v_ylM4QZEdwg9Isr7ZvNbdxqrcqLx1JQflVA6Qozl4bz0bxHlsYhWC0grh4oxbpXvFbjm3CsTupfPai0JPjjSF3MjIVAMtHzxUpCpVdMnxj1yIG-JbhmHt5GGmeuDCGn_aFLg98hqYaKRWtHKye6ShwawNEisSWUdyTLFw"/>
+</div>
+<div class="flex-1">
+<p class="font-label-md text-label-md text-on-surface">Alex Mercer</p>
+<p class="font-body-md text-body-md text-on-surface-variant text-[12px]">ID: CS-2023-041</p>
+</div>
+<div class="flex items-center gap-1 text-tertiary">
+<span class="material-symbols-outlined filled text-sm">check_circle</span>
+<span class="font-label-sm text-label-sm">Just now</span>
+</div>
+</div>
+<!-- Item 2 -->
+<div class="flex items-center gap-3 p-3 bg-surface-container-lowest rounded-lg border border-surface-variant shadow-sm relative overflow-hidden opacity-80">
+<div class="absolute left-0 top-0 bottom-0 w-1 bg-tertiary-container"></div>
+<div class="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center overflow-hidden shrink-0 ml-1">
+<img class="w-full h-full object-cover" data-alt="Portrait photo of a female university student with glasses and medium length hair, wearing a dark jacket, soft lighting, professional student ID photo style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCbCWREpLo7sGOk-fiARrvKKSqD4SffZR5z6u4TBAlYzcdDOXwe8KrlF8pwGZspFXHqrAJmM3FjOGkpMywgbHcNVkjCTdhBvkeOIqZvhjasR6-BqSm50Tzd1gOpU-BxEbl4x3IyW5TgMz70F64_f-0LokKVFZo1qoMBOjMW0da1GEk1SOTDaLNaMLCQknwjLnuhUwZfP0HaznJNCSlc2nLRz1BsebqS47Xw881M-Q-AdqLNLkLJfNjl9g"/>
+</div>
+<div class="flex-1">
+<p class="font-label-md text-label-md text-on-surface">Sarah Jenkins</p>
+<p class="font-body-md text-body-md text-on-surface-variant text-[12px]">ID: CS-2023-088</p>
+</div>
+<div class="flex items-center gap-1 text-on-surface-variant">
+<span class="font-label-sm text-label-sm">1m ago</span>
+</div>
+</div>
+<!-- Item 3 -->
+<div class="flex items-center gap-3 p-3 bg-surface-container-lowest rounded-lg border border-surface-variant shadow-sm relative overflow-hidden opacity-60">
+<div class="absolute left-0 top-0 bottom-0 w-1 bg-tertiary-container"></div>
+<div class="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center overflow-hidden shrink-0 ml-1">
+<span class="material-symbols-outlined text-on-surface-variant">person</span>
+</div>
+<div class="flex-1">
+<p class="font-label-md text-label-md text-on-surface">Michael Chang</p>
+<p class="font-body-md text-body-md text-on-surface-variant text-[12px]">ID: CS-2023-112</p>
+</div>
+<div class="flex items-center gap-1 text-on-surface-variant">
+<span class="font-label-sm text-label-sm">3m ago</span>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Bottom Action Bar (Pinned) -->
+<div class="fixed bottom-0 left-0 right-0 bg-surface/90 backdrop-blur-md border-t border-outline-variant p-4 z-50 flex gap-4 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+<button class="flex-1 flex justify-center items-center gap-2 bg-surface-container-lowest border border-outline-variant text-on-surface font-label-md text-label-md py-3 rounded-lg hover:bg-surface-variant transition-colors">
+<span class="material-symbols-outlined">edit_square</span>
+            Manual Entry
+        </button>
+<button class="flex-1 flex justify-center items-center gap-2 bg-error text-on-error font-label-md text-label-md py-3 rounded-lg hover:bg-error/90 transition-colors shadow-sm">
+<span class="material-symbols-outlined filled">stop_circle</span>
+            Stop Session
+        </button>
+</div>
+</body></html>

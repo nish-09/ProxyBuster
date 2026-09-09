@@ -1,0 +1,56 @@
+name: proxy-busters
+
+# NOTE: the default values below (POSTGRES_PASSWORD, JWT_SECRET, QR_SIGNING_SECRET) are
+# throwaway development values only. Any real deployment MUST override every secret via a
+# real .env file or your orchestrator's secret store — never ship these defaults.
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: proxybusters
+      POSTGRES_USER: proxybusters
+      POSTGRES_PASSWORD: dev_only_change_me
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U proxybusters -d proxybusters"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: ./backend
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql+psycopg2://proxybusters:dev_only_change_me@postgres:5432/proxybusters
+      JWT_SECRET: dev_only_change_me_jwt_secret
+      JWT_ALGORITHM: HS256
+      ACCESS_TOKEN_EXPIRE_MINUTES: "480"
+      QR_SIGNING_SECRET: dev_only_change_me_qr_secret
+      QR_TOKEN_TTL_SECONDS: "10"
+      COOLDOWN_MINUTES: "60"
+      FRONTEND_ORIGIN: http://localhost:3000
+    ports:
+      - "8000:8000"
+    command: sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000"
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        # Must be the URL the *browser* can reach, not the docker-network service name —
+        # client-side fetches run in the user's browser, not inside the frontend container.
+        NEXT_PUBLIC_API_BASE_URL: http://localhost:8000
+    depends_on:
+      - backend
+    ports:
+      - "3000:3000"
+
+volumes:
+  pgdata:

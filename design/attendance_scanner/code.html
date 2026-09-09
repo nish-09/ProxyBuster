@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Attendance Scanner</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                            "on-secondary-container": "#5c647a",
+                            "secondary": "#565e74",
+                            "tertiary-fixed": "#e1e0ff",
+                            "outline-variant": "#c7c4d8",
+                            "inverse-primary": "#c3c0ff",
+                            "error-container": "#ffdad6",
+                            "surface": "#f7f9fb",
+                            "on-surface": "#191c1e",
+                            "on-tertiary-fixed": "#07006c",
+                            "secondary-fixed-dim": "#bec6e0",
+                            "on-error-container": "#93000a",
+                            "tertiary-container": "#4b4dd8",
+                            "on-secondary-fixed": "#131b2e",
+                            "surface-bright": "#f7f9fb",
+                            "on-secondary-fixed-variant": "#3f465c",
+                            "primary-fixed": "#e2dfff",
+                            "on-tertiary-fixed-variant": "#2f2ebe",
+                            "on-primary-fixed": "#0f0069",
+                            "error": "#ba1a1a",
+                            "inverse-on-surface": "#eff1f3",
+                            "primary": "#3525cd",
+                            "surface-container-high": "#e6e8ea",
+                            "on-tertiary-container": "#d9d8ff",
+                            "surface-container-highest": "#e0e3e5",
+                            "inverse-surface": "#2d3133",
+                            "secondary-fixed": "#dae2fd",
+                            "secondary-container": "#dae2fd",
+                            "outline": "#777587",
+                            "surface-container": "#eceef0",
+                            "on-primary-fixed-variant": "#3323cc",
+                            "background": "#f7f9fb",
+                            "on-tertiary": "#ffffff",
+                            "primary-fixed-dim": "#c3c0ff",
+                            "on-secondary": "#ffffff",
+                            "surface-container-lowest": "#ffffff",
+                            "tertiary-fixed-dim": "#c0c1ff",
+                            "on-primary-container": "#dad7ff",
+                            "tertiary": "#3130c0",
+                            "on-primary": "#ffffff",
+                            "surface-tint": "#4d44e3",
+                            "on-surface-variant": "#464555",
+                            "on-error": "#ffffff",
+                            "on-background": "#191c1e",
+                            "primary-container": "#4f46e5",
+                            "surface-container-low": "#f2f4f6",
+                            "surface-dim": "#d8dadc",
+                            "surface-variant": "#e0e3e5"
+                    },
+                    "borderRadius": {
+                            "DEFAULT": "0.25rem",
+                            "lg": "0.5rem",
+                            "xl": "0.75rem",
+                            "full": "9999px"
+                    },
+                    "spacing": {
+                            "container-padding": "24px",
+                            "unit": "4px",
+                            "stack-lg": "32px",
+                            "gutter": "16px",
+                            "stack-sm": "8px",
+                            "stack-md": "16px"
+                    },
+                    "fontFamily": {
+                            "body-lg": ["Inter"],
+                            "headline-lg-mobile": ["Inter"],
+                            "headline-md": ["Inter"],
+                            "display-lg": ["Inter"],
+                            "label-md": ["Inter"],
+                            "label-sm": ["Inter"],
+                            "headline-lg": ["Inter"],
+                            "body-md": ["Inter"]
+                    },
+                    "fontSize": {
+                            "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                            "headline-lg-mobile": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                            "headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                            "display-lg": ["36px", {"lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                            "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                            "label-sm": ["11px", {"lineHeight": "14px", "fontWeight": "500"}],
+                            "headline-lg": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                            "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .scanner-line {
+            animation: scan 2s linear infinite;
+        }
+        @keyframes scan {
+            0% { transform: translateY(0); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(100%); opacity: 0; }
+        }
+        
+        .toast-enter {
+            animation: slideUp 0.3s ease-out forwards;
+        }
+        @keyframes slideUp {
+            from { transform: translateY(100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+    </style>
+</head>
+<body class="bg-inverse-surface min-h-screen text-on-surface font-body-lg flex flex-col md:flex-row m-0 p-0 overflow-hidden">
+<!-- Top Navigation (Mobile / Web) -->
+<header class="docked full-width top-0 sticky z-40 backdrop-blur-md bg-inverse-surface/80 border-b border-outline hidden md:flex justify-between items-center w-full px-container-padding h-16 max-w-full">
+<div class="flex items-center gap-4">
+<span class="font-headline-md text-headline-md font-extrabold text-inverse-primary">Proxy Busters</span>
+</div>
+<nav class="flex gap-6 h-full items-center">
+<a class="text-surface-variant hover:text-inverse-on-surface hover:text-inverse-primary transition-all font-label-md text-label-md flex items-center h-full" href="#">Dashboard</a>
+<a class="text-inverse-primary border-b-2 border-inverse-primary pb-1 opacity-80 transition-opacity font-label-md text-label-md flex items-center h-full" href="#">Scanner</a>
+<a class="text-surface-variant hover:text-inverse-on-surface hover:text-inverse-primary transition-all font-label-md text-label-md flex items-center h-full" href="#">History</a>
+</nav>
+<div class="flex items-center gap-4 text-inverse-primary">
+<button class="material-symbols-outlined hover:text-inverse-on-surface transition-colors" data-icon="notifications">notifications</button>
+<button class="material-symbols-outlined hover:text-inverse-on-surface transition-colors" data-icon="history_edu">history_edu</button>
+<img alt="User Profile Avatar" class="w-8 h-8 rounded-full border border-outline bg-surface-container-highest" data-alt="A small circular avatar placeholder image showing a generic user silhouette icon in light slate gray against a darker slate background, suited for a dark mode interface." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAT3qeu2J0aRIufwOHOXmuXmJWFBFrC82YN0RLFkFa53HD5hPoUnSHHAf8EP5AUADyA3bbT5EIiZB6eIVHmxzqXP8PPkulDZnQsaU6yrR8fDva-QotWSqTJ8Hgt2wvpjFrTZwzw7OTyuU1KBqWwKnjCYAcOrTBMidBHJPBLaRGaaOLubgSdELVpAi852cWk6j3YOeKcoDGM5INQrOFiZHY2ZOK6RYy7vAfAEH3H_3K7pcZOkqAnpoY-qg"/>
+</div>
+</header>
+<!-- Mobile Top Bar (Simplified) -->
+<header class="md:hidden flex justify-between items-center p-4 bg-inverse-surface z-50 relative border-b border-outline">
+<button class="material-symbols-outlined text-inverse-primary" data-icon="arrow_back">arrow_back</button>
+<span class="font-headline-md text-headline-md font-extrabold text-inverse-primary">Scan Code</span>
+<div class="w-6"></div> <!-- Spacer for centering -->
+</header>
+<!-- Main Canvas -->
+<main class="flex-1 relative w-full h-full flex flex-col items-center justify-center bg-black/90">
+<!-- Instruction Overlay (Top) -->
+<div class="absolute top-8 left-0 right-0 z-10 flex flex-col items-center justify-center px-6 text-center">
+<div class="bg-inverse-surface/80 backdrop-blur-md rounded-xl p-4 border border-outline max-w-sm w-full">
+<span class="material-symbols-outlined text-inverse-primary mb-2 text-[32px]" data-icon="qr_code_scanner">qr_code_scanner</span>
+<p class="font-body-md text-body-md text-inverse-on-surface mb-1">Point your camera at the QR code on the professor's screen.</p>
+<p class="font-label-md text-label-md text-primary-fixed-dim animate-pulse">Scanning for Session...</p>
+</div>
+</div>
+<!-- Camera Viewfinder -->
+<div class="relative w-[300px] h-[300px] md:w-[400px] md:h-[400px] rounded-xl overflow-hidden shadow-[0_0_40px_rgba(53,37,205,0.2)]">
+<!-- Simulated Camera Feed Background -->
+<div class="absolute inset-0 bg-cover bg-center opacity-60" data-alt="A blurred, low-light image simulating a mobile phone camera feed pointing towards a brightly lit projector screen in a dark university lecture hall. The projector screen shows a faint outline of a QR code. The overall color palette is dark grays and blacks with a bright white/blue rectangular glow in the distance." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCitfFxplzeAWdl5ssXyjgCiqJEgJVtuwbTWpcnmucfxhU8HMFY71TfmKlma0dyqElCrb4-IaBUMa1LjaDvLMrTc3vgCKZLHvAecQocI3aPBJpP_ZZDGopIJnpxukAqBt5gd8uX8JpO9E1SSkRU4FZNoJ3vk3fD50-cMlzhrWeLCxw7s3q3TdlNsTauEOVhfSdpX-ZUOfU_pfZaZM86UfBOIbed72euqAm73YMVq3jTlCF12HXDpmcX6w')"></div>
+<!-- Viewfinder Frame Overlays -->
+<div class="absolute top-0 left-0 w-12 h-12 border-t-4 border-l-4 border-primary-fixed rounded-tl-xl m-4"></div>
+<div class="absolute top-0 right-0 w-12 h-12 border-t-4 border-r-4 border-primary-fixed rounded-tr-xl m-4"></div>
+<div class="absolute bottom-0 left-0 w-12 h-12 border-b-4 border-l-4 border-primary-fixed rounded-bl-xl m-4"></div>
+<div class="absolute bottom-0 right-0 w-12 h-12 border-b-4 border-r-4 border-primary-fixed rounded-br-xl m-4"></div>
+<!-- Scanning Animation Line -->
+<div class="absolute top-4 left-4 right-4 h-1 bg-primary-fixed shadow-[0_0_10px_#e2dfff] rounded-full scanner-line opacity-80 z-20"></div>
+<!-- Center Focus Box (Subtle) -->
+<div class="absolute inset-0 m-auto w-3/4 h-3/4 border border-white/20 rounded-lg"></div>
+</div>
+<!-- Tool Bar (Bottom) -->
+<div class="absolute bottom-24 md:bottom-8 left-0 right-0 z-10 flex justify-center gap-6 px-4">
+<button aria-label="Toggle Flashlight" class="bg-inverse-surface/80 backdrop-blur-md rounded-full w-14 h-14 flex items-center justify-center border border-outline text-inverse-on-surface hover:bg-surface-variant transition-colors">
+<span class="material-symbols-outlined" data-icon="flashlight_on">flashlight_on</span>
+</button>
+<button aria-label="Switch Camera" class="bg-inverse-surface/80 backdrop-blur-md rounded-full w-14 h-14 flex items-center justify-center border border-outline text-inverse-on-surface hover:bg-surface-variant transition-colors">
+<span class="material-symbols-outlined" data-icon="flip_camera_ios">flip_camera_ios</span>
+</button>
+</div>
+<!-- Floating Action Button (Mobile Only - Bottom Nav Area) -->
+<nav class="md:hidden fixed bottom-0 w-full bg-inverse-surface border-t border-outline flex justify-around p-3 pb-safe z-50">
+<a class="flex flex-col items-center justify-center text-surface-variant" href="#">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+<span class="font-label-sm text-label-sm mt-1">Home</span>
+</a>
+<a class="flex flex-col items-center justify-center text-inverse-primary bg-secondary/20 rounded-lg px-4 py-1" href="#">
+<span class="material-symbols-outlined" data-icon="qr_code_scanner" data-weight="fill">qr_code_scanner</span>
+<span class="font-label-sm text-label-sm mt-1 font-bold">Scan</span>
+</a>
+<a class="flex flex-col items-center justify-center text-surface-variant" href="#">
+<span class="material-symbols-outlined" data-icon="history">history</span>
+<span class="font-label-sm text-label-sm mt-1">History</span>
+</a>
+</nav>
+<!-- Mockup: Success Toast (Hidden by default, shown for demonstration) -->
+<div class="absolute bottom-40 md:bottom-24 left-1/2 -translate-x-1/2 bg-surface text-on-surface px-6 py-3 rounded-lg shadow-lg border border-outline-variant flex items-center gap-3 z-50 toast-enter opacity-0 pointer-events-none" id="successToast" style="display: none;">
+<span class="material-symbols-outlined text-primary" data-icon="check_circle" data-weight="fill">check_circle</span>
+<div>
+<p class="font-body-md text-body-md font-semibold">Attendance Marked</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Data Structures &amp; Algorithms</p>
+</div>
+</div>
+<!-- Mockup: Cooldown Warning (Hidden by default, shown for demonstration) -->
+<div class="absolute top-32 left-1/2 -translate-x-1/2 bg-error-container text-on-error-container px-4 py-2 rounded-lg shadow-sm border border-error/20 flex items-center gap-2 z-50 toast-enter opacity-0 pointer-events-none" id="cooldownWarning" style="display: none;">
+<span class="material-symbols-outlined text-[20px]" data-icon="timer">timer</span>
+<p class="font-label-md text-label-md">Cooldown Active: 45:00 remaining</p>
+</div>
+</main>
+<script>
+        // Simple script to toggle mock states for demonstration
+        setTimeout(() => {
+            const warning = document.getElementById('cooldownWarning');
+            warning.style.display = 'flex';
+            setTimeout(() => {
+                warning.style.display = 'none';
+                
+                setTimeout(() => {
+                    const toast = document.getElementById('successToast');
+                    toast.style.display = 'flex';
+                }, 2000);
+            }, 3000);
+        }, 1000);
+    </script>
+</body></html>

@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Student Profile - Proxy Busters</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "on-secondary-container": "#5c647a",
+                      "secondary": "#565e74",
+                      "tertiary-fixed": "#e1e0ff",
+                      "outline-variant": "#c7c4d8",
+                      "inverse-primary": "#c3c0ff",
+                      "error-container": "#ffdad6",
+                      "surface": "#f7f9fb",
+                      "on-surface": "#191c1e",
+                      "on-tertiary-fixed": "#07006c",
+                      "secondary-fixed-dim": "#bec6e0",
+                      "on-error-container": "#93000a",
+                      "tertiary-container": "#4b4dd8",
+                      "on-secondary-fixed": "#131b2e",
+                      "surface-bright": "#f7f9fb",
+                      "on-secondary-fixed-variant": "#3f465c",
+                      "primary-fixed": "#e2dfff",
+                      "on-tertiary-fixed-variant": "#2f2ebe",
+                      "on-primary-fixed": "#0f0069",
+                      "error": "#ba1a1a",
+                      "inverse-on-surface": "#eff1f3",
+                      "primary": "#3525cd",
+                      "surface-container-high": "#e6e8ea",
+                      "on-tertiary-container": "#d9d8ff",
+                      "surface-container-highest": "#e0e3e5",
+                      "inverse-surface": "#2d3133",
+                      "secondary-fixed": "#dae2fd",
+                      "secondary-container": "#dae2fd",
+                      "outline": "#777587",
+                      "surface-container": "#eceef0",
+                      "on-primary-fixed-variant": "#3323cc",
+                      "background": "#f7f9fb",
+                      "on-tertiary": "#ffffff",
+                      "primary-fixed-dim": "#c3c0ff",
+                      "on-secondary": "#ffffff",
+                      "surface-container-lowest": "#ffffff",
+                      "tertiary-fixed-dim": "#c0c1ff",
+                      "on-primary-container": "#dad7ff",
+                      "tertiary": "#3130c0",
+                      "on-primary": "#ffffff",
+                      "surface-tint": "#4d44e3",
+                      "on-surface-variant": "#464555",
+                      "on-error": "#ffffff",
+                      "on-background": "#191c1e",
+                      "primary-container": "#4f46e5",
+                      "surface-container-low": "#f2f4f6",
+                      "surface-dim": "#d8dadc",
+                      "surface-variant": "#e0e3e5"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "container-padding": "24px",
+                      "unit": "4px",
+                      "stack-lg": "32px",
+                      "gutter": "16px",
+                      "stack-sm": "8px",
+                      "stack-md": "16px"
+              },
+              "fontFamily": {
+                      "body-lg": [
+                              "Inter"
+                      ],
+                      "headline-lg-mobile": [
+                              "Inter"
+                      ],
+                      "headline-md": [
+                              "Inter"
+                      ],
+                      "display-lg": [
+                              "Inter"
+                      ],
+                      "label-md": [
+                              "Inter"
+                      ],
+                      "label-sm": [
+                              "Inter"
+                      ],
+                      "headline-lg": [
+                              "Inter"
+                      ],
+                      "body-md": [
+                              "Inter"
+                      ]
+              },
+              "fontSize": {
+                      "body-lg": [
+                              "16px",
+                              {
+                                      "lineHeight": "24px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "headline-lg-mobile": [
+                              "20px",
+                              {
+                                      "lineHeight": "28px",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "headline-md": [
+                              "20px",
+                              {
+                                      "lineHeight": "28px",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "display-lg": [
+                              "36px",
+                              {
+                                      "lineHeight": "44px",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "label-md": [
+                              "12px",
+                              {
+                                      "lineHeight": "16px",
+                                      "letterSpacing": "0.05em",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "label-sm": [
+                              "11px",
+                              {
+                                      "lineHeight": "14px",
+                                      "fontWeight": "500"
+                              }
+                      ],
+                      "headline-lg": [
+                              "24px",
+                              {
+                                      "lineHeight": "32px",
+                                      "letterSpacing": "-0.01em",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "body-md": [
+                              "14px",
+                              {
+                                      "lineHeight": "20px",
+                                      "fontWeight": "400"
+                              }
+                      ]
+              }
+      },
+          },
+        }
+      </script>
+<style>
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid rgba(229, 231, 235, 0.5);
+        }
+        .soft-shadow {
+            box-shadow: 0 4px 6px -1px rgba(15, 23, 42, 0.05), 0 2px 4px -2px rgba(15, 23, 42, 0.05);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-md min-h-screen flex antialiased">
+<!-- SideNavBar -->
+<nav class="hidden md:flex bg-surface border-r border-outline-variant fixed left-0 top-0 h-full w-[280px] flex-col p-stack-md z-50">
+<div class="flex items-center gap-3 mb-8 px-2">
+<div class="w-8 h-8 rounded bg-primary flex items-center justify-center text-on-primary">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">admin_panel_settings</span>
+</div>
+<div>
+<h1 class="font-headline-md text-headline-md font-bold text-primary">Proxy Busters</h1>
+<p class="font-label-md text-label-md text-on-surface-variant">College Admin Portal</p>
+</div>
+</div>
+<div class="flex-1 flex flex-col gap-1">
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-label-md text-label-md">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">event_upcoming</span>
+<span class="font-label-md text-label-md">Attendance Session</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">fact_check</span>
+<span class="font-label-md text-label-md">Attendance Sheet</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-primary font-bold bg-secondary-container/30 transition-transform duration-150 scale-95" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">group</span>
+<span class="font-label-md text-label-md">Students</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">analytics</span>
+<span class="font-label-md text-label-md">Analytics</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">security</span>
+<span class="font-label-md text-label-md">Security</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">timer</span>
+<span class="font-label-md text-label-md">Cooldown Monitor</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-label-md text-label-md">Settings</span>
+</a>
+</div>
+<div class="mt-auto flex flex-col gap-1 border-t border-outline-variant pt-4">
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">help</span>
+<span class="font-label-md text-label-md">Support</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">logout</span>
+<span class="font-label-md text-label-md">Logout</span>
+</a>
+</div>
+</nav>
+<!-- Main Canvas -->
+<main class="flex-1 md:ml-[280px] flex flex-col min-h-screen">
+<!-- TopNavBar -->
+<header class="docked full-width top-0 sticky z-40 backdrop-blur-md bg-surface/80 border-b border-outline-variant flex justify-between items-center w-full px-container-padding h-16">
+<div class="flex items-center gap-4">
+<!-- Mobile Menu Trigger (hidden on md) -->
+<button class="md:hidden text-on-surface-variant hover:text-primary transition-all">
+<span class="material-symbols-outlined">menu</span>
+</button>
+<div class="relative hidden sm:block">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[20px]">search</span>
+<input class="pl-10 pr-4 py-2 bg-surface-container border border-outline-variant rounded-full text-body-md font-body-md focus:ring-2 focus:ring-primary/15 focus:border-primary transition-all w-64" placeholder="Search student..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<div class="flex gap-4">
+<button class="text-on-surface-variant hover:text-primary transition-all relative">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-0 right-0 w-2 h-2 bg-error rounded-full"></span>
+</button>
+<button class="text-on-surface-variant hover:text-primary transition-all">
+<span class="material-symbols-outlined">history_edu</span>
+</button>
+</div>
+<div class="h-8 w-px bg-outline-variant"></div>
+<img alt="User Profile Avatar" class="w-8 h-8 rounded-full border border-outline-variant object-cover" data-alt="A small, circular avatar portrait of a modern college administrator in professional attire, highly detailed, well-lit, corporate modern aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDUuiRgppElhp1zmCmwXm3uN2aOQTiN0WJydqEXL8BcpWsXpmi34-alKbWBwljoCzB23TgsnYXBPGuaB_pc6jrAJXW7ax_dqSLu44nmPX3sAd2xCl62n7d8KVZp88aY67nCzdfAZdVAdi8GbNSmqXPQiXhFMjj3UsSuHcPAOlUrvEC2aaDmix6jeh_ZzP4kffRivwslSTkB9aMVlVsMyNAldnsvCOrmBY2oKqFstzgpratl0Fy7kAGeJA"/>
+</div>
+</header>
+<!-- Content Area -->
+<div class="flex-1 p-container-padding max-w-7xl mx-auto w-full">
+<!-- Page Header -->
+<div class="mb-stack-lg flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+<div>
+<div class="flex items-center gap-2 mb-1">
+<a class="text-on-surface-variant hover:text-primary text-label-sm font-label-sm transition-colors" href="#">Students</a>
+<span class="material-symbols-outlined text-[16px] text-outline">chevron_right</span>
+<span class="text-primary text-label-sm font-label-sm">Profile</span>
+</div>
+<h2 class="font-display-lg text-display-lg text-on-surface">Student Profile</h2>
+</div>
+<div class="flex gap-3">
+<button class="px-4 py-2 rounded border border-outline-variant text-on-surface-variant font-label-md text-label-md hover:bg-surface-container-high transition-colors">
+                        Suspend Access
+                    </button>
+<button class="px-4 py-2 rounded bg-primary text-on-primary font-label-md text-label-md hover:bg-primary-container transition-colors flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]">edit</span>
+                        Edit Details
+                    </button>
+</div>
+</div>
+<!-- Bento Grid Layout -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-gutter">
+<!-- Identity Card (Spans 2 cols on LG) -->
+<div class="lg:col-span-2 bg-surface-container-lowest border border-outline-variant rounded-xl p-6 soft-shadow relative overflow-hidden">
+<!-- Decorative Background Element -->
+<div class="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4 pointer-events-none"></div>
+<div class="flex flex-col sm:flex-row gap-6 items-start relative z-10">
+<img alt="Student Portrait" class="w-24 h-24 sm:w-32 sm:h-32 rounded-xl object-cover border-2 border-surface-container shadow-sm" data-alt="A professional, high-resolution portrait photograph of a young male college student, Arjun Sharma, wearing casual smart clothing, well-lit against a clean white background, modern corporate aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCW-LKLtHN-5N44Fcj9FNBPSRqk6JCoxn__-eJ3Rqmcnd_7ljBJ0wip6aBF4RWzE3b4raRx0bd9fkqQmIA8lNIp76QJw6NFn-zzS5BZLZCxLj0Y9-sg6hA_qHV9leJCJe1o-2E3jYo4xcCwAlQAbB97B70wWvg1Yo6XUwxkGGpM_mA-UF8jumEBcWq7owj3l9SK2z34HxFgcH7SqkxbE2_If8yU5_e0-839w4mfhord---maUbgsFl8DQ"/>
+<div class="flex-1 w-full">
+<div class="flex justify-between items-start mb-2">
+<div>
+<h3 class="font-headline-lg text-headline-lg text-on-surface">Arjun Sharma</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">B.Tech CSE • Semester 6</p>
+</div>
+<div class="bg-surface-container-low px-3 py-1 rounded-full border border-outline-variant flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-[#10b981]"></span>
+<span class="font-label-sm text-label-sm text-[#065f46] font-bold">Green Standing</span>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-4 mt-6 pt-4 border-t border-outline-variant">
+<div>
+<span class="block font-label-sm text-label-sm text-outline mb-1">ROLL NUMBER</span>
+<span class="font-body-md text-body-md text-on-surface font-medium">2021CS042</span>
+</div>
+<div>
+<span class="block font-label-sm text-label-sm text-outline mb-1">EMAIL</span>
+<span class="font-body-md text-body-md text-on-surface">arjun.s@college.edu</span>
+</div>
+<div>
+<span class="block font-label-sm text-label-sm text-outline mb-1">ATTENDANCE</span>
+<span class="font-body-md text-body-md text-on-surface font-medium">85% (Current Term)</span>
+</div>
+<div>
+<span class="block font-label-sm text-label-sm text-outline mb-1">JOINED</span>
+<span class="font-body-md text-body-md text-on-surface">Aug 2021</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Security Stats Card -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-6 soft-shadow flex flex-col">
+<h3 class="font-headline-md text-headline-md text-on-surface mb-4 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">shield_locked</span>
+                        Security Status
+                    </h3>
+<div class="flex-1 flex flex-col justify-center gap-5">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[20px]">check_circle</span>
+</div>
+<div>
+<div class="font-label-md text-label-md text-on-surface">Device Secured</div>
+<div class="font-label-sm text-label-sm text-outline">Biometric enforcement active</div>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined text-[20px]">history</span>
+</div>
+<div>
+<div class="font-label-md text-label-md text-on-surface">Last Login</div>
+<div class="font-label-sm text-label-sm text-outline">2 mins ago</div>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined text-[20px]">devices</span>
+</div>
+<div>
+<div class="font-label-md text-label-md text-on-surface">1 Trusted Device</div>
+<div class="font-label-sm text-label-sm text-outline">No secondary devices logged</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Active Session Card -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-0 soft-shadow overflow-hidden flex flex-col lg:col-span-1">
+<div class="p-4 border-b border-outline-variant bg-surface-container-low flex justify-between items-center">
+<h3 class="font-label-md text-label-md text-on-surface">Active Session</h3>
+<span class="relative flex h-2 w-2">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#10b981] opacity-75"></span>
+<span class="relative inline-flex rounded-full h-2 w-2 bg-[#10b981]"></span>
+</span>
+</div>
+<div class="p-6 flex flex-col items-center text-center">
+<span class="material-symbols-outlined text-[48px] text-primary mb-3" style="font-variation-settings: 'wght' 200;">smartphone</span>
+<h4 class="font-headline-md text-headline-md text-on-surface mb-1">iPhone 14</h4>
+<p class="font-body-md text-body-md text-on-surface-variant mb-4">iOS 17.2 • ProxyBusters App v2.1</p>
+<div class="w-full bg-surface-container rounded p-3 flex items-center justify-center gap-2 border border-outline-variant/50">
+<span class="material-symbols-outlined text-[16px] text-outline">wifi</span>
+<span class="font-label-sm text-label-sm text-on-surface">Campus Wi-Fi (CS_Block_02)</span>
+</div>
+<button class="mt-4 text-error font-label-sm text-label-sm hover:underline">Force Disconnect</button>
+</div>
+</div>
+<!-- Settings / Actions Card -->
+<div class="lg:col-span-2 bg-surface-container-lowest border border-outline-variant rounded-xl p-6 soft-shadow">
+<h3 class="font-headline-md text-headline-md text-on-surface mb-6">Account Settings</h3>
+<div class="space-y-4">
+<!-- Password Reset -->
+<div class="flex items-center justify-between p-4 border border-outline-variant rounded-lg hover:bg-surface-container-lowest transition-colors group cursor-pointer">
+<div class="flex items-center gap-4">
+<div class="w-8 h-8 rounded bg-surface-container-high flex items-center justify-center text-on-surface-variant group-hover:bg-primary/10 group-hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[18px]">password</span>
+</div>
+<div>
+<div class="font-label-md text-label-md text-on-surface">Password Reset</div>
+<div class="font-label-sm text-label-sm text-outline mt-0.5">Force a mandatory password change on next login</div>
+</div>
+</div>
+<button class="px-3 py-1.5 border border-outline-variant rounded text-on-surface font-label-sm text-label-sm hover:bg-surface-container-high transition-colors">Initiate</button>
+</div>
+<!-- Biometric Toggle -->
+<div class="flex items-center justify-between p-4 border border-outline-variant rounded-lg">
+<div class="flex items-center gap-4">
+<div class="w-8 h-8 rounded bg-primary/10 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[18px]">fingerprint</span>
+</div>
+<div>
+<div class="font-label-md text-label-md text-on-surface">Biometric Login Enforcement</div>
+<div class="font-label-sm text-label-sm text-outline mt-0.5">Require FaceID/TouchID for attendance marking</div>
+</div>
+</div>
+<!-- Custom Toggle -->
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox" value=""/>
+<div class="w-11 h-6 bg-surface-container-high peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+</label>
+</div>
+<!-- Notification Prefs -->
+<div class="flex items-center justify-between p-4 border border-outline-variant rounded-lg hover:bg-surface-container-lowest transition-colors group cursor-pointer">
+<div class="flex items-center gap-4">
+<div class="w-8 h-8 rounded bg-surface-container-high flex items-center justify-center text-on-surface-variant group-hover:bg-primary/10 group-hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[18px]">campaign</span>
+</div>
+<div>
+<div class="font-label-md text-label-md text-on-surface">Notification Preferences</div>
+<div class="font-label-sm text-label-sm text-outline mt-0.5">Manage alerts sent to this student's device</div>
+</div>
+</div>
+<span class="material-symbols-outlined text-outline">chevron_right</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</body></html>
