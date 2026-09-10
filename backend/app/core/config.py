@@ -20,7 +20,14 @@ class Settings(BaseSettings):
 
     cooldown_minutes: int = 60
 
-    frontend_origin: str = "http://localhost:3000"
+    cors_origins: str = "http://localhost:3000"
+
+    @property
+    def cors_origins_list(self) -> list[str]:
+        """CORS_ORIGINS is a comma-separated list of allowed origins, e.g.
+        'http://localhost:3000,https://proxy-buster.vercel.app'. Whitespace around
+        each entry is stripped and empty entries are dropped."""
+        return [origin.strip() for origin in self.cors_origins.split(",") if origin.strip()]
 
 
 @lru_cache

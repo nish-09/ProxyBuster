@@ -35,7 +35,7 @@ services:
       QR_SIGNING_SECRET: dev_only_change_me_qr_secret
       QR_TOKEN_TTL_SECONDS: "10"
       COOLDOWN_MINUTES: "60"
-      FRONTEND_ORIGIN: http://localhost:3000
+      CORS_ORIGINS: http://localhost:3000
     ports:
       - "8000:8000"
     command: sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000"

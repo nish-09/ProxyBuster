@@ -228,7 +228,7 @@ the seed script, to exercise that flow out of the box.)
 | `QR_SIGNING_SECRET` | HMAC secret for QR tokens — kept separate from `JWT_SECRET` |
 | `QR_TOKEN_TTL_SECONDS` | QR rotation interval, default 10 |
 | `COOLDOWN_MINUTES` | Post-logout lockout duration, default 60 |
-| `FRONTEND_ORIGIN` | Allowed CORS origin for the backend |
+| `CORS_ORIGINS` | Comma-separated list of allowed CORS origins for the backend, e.g. `http://localhost:3000,https://proxy-buster.vercel.app` |
 | `NEXT_PUBLIC_API_BASE_URL` | Backend base URL the frontend calls (build-time inlined, see Docker) |
 
 ## Migrations
