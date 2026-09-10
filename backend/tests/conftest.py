@@ -9,6 +9,9 @@ from sqlalchemy.orm import sessionmaker
 os.environ.setdefault("JWT_SECRET", "test-jwt-secret")
 os.environ.setdefault("QR_SIGNING_SECRET", "test-qr-signing-secret")
 os.environ.setdefault("DATABASE_URL", "sqlite:///./test_unused_placeholder.db")
+os.environ.setdefault("PROFESSOR_INVITE_CODE", "test-professor-invite-code")
+
+TEST_INVITE_CODE = os.environ["PROFESSOR_INVITE_CODE"]
 
 from app.core.db import Base, get_db  # noqa: E402
 from app.core.rate_limit import limiter  # noqa: E402
@@ -84,7 +87,7 @@ def register_student(client, *, email="student@college.edu", password="Password1
 
 
 def register_professor(client, *, email="prof@college.edu", password="Password123!", full_name="Test Professor",
-                        department="Computer Science"):
+                        department="Computer Science", invite_code=TEST_INVITE_CODE):
     resp = client.post(
         "/api/auth/register",
         json={
@@ -93,6 +96,7 @@ def register_professor(client, *, email="prof@college.edu", password="Password12
             "full_name": full_name,
             "role": "professor",
             "department": department,
+            "invite_code": invite_code,
         },
     )
     assert resp.status_code == 201, resp.text
@@ -120,6 +124,32 @@ def student_and_token(client):
 def professor_and_token(client):
     register_professor(client)
     resp = login(client, "prof@college.edu")
+    assert resp.status_code == 200, resp.text
+    return resp.json()
+
+
+def make_admin(db_session, *, email="admin@college.edu", password="Password123!", full_name="Test Admin"):
+    """Admins are never created via the public /auth/register endpoint (no invite-code-style
+    gate exists for admin — they're provisioned out-of-band, e.g. directly in the DB or by
+    another admin via the admin API). Tests create one directly."""
+    from app.core.security import hash_password
+    from app.models.user import User, UserRole
+
+    user = User(email=email, password_hash=hash_password(password), full_name=full_name, role=UserRole.ADMIN)
+    db_session.add(user)
+    db_session.commit()
+    db_session.refresh(user)
+    return user
+
+
+@pytest.fixture()
+def admin_and_token(client, db_session_factory):
+    db_session = db_session_factory()
+    try:
+        make_admin(db_session)
+    finally:
+        db_session.close()
+    resp = login(client, "admin@college.edu")
     assert resp.status_code == 200, resp.text
     return resp.json()
 

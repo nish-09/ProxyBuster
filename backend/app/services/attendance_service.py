@@ -85,7 +85,15 @@ def create_session(db: Session, professor_profile: ProfessorProfile, lecture_id:
         status=SessionStatus.ACTIVE,
     )
     db.add(session_obj)
-    db.commit()
+    try:
+        db.commit()
+    except IntegrityError as exc:
+        # The read-then-write check above is only a fast path / friendly error message.
+        # The actual guarantee is the partial unique index on (lecture_id) WHERE status =
+        # 'ACTIVE' (see migration 9ebaabdae366): if two requests race past the check above,
+        # only one INSERT can win at the database level and the loser lands here.
+        db.rollback()
+        raise HTTPException(status.HTTP_409_CONFLICT, "An attendance session is already active for this lecture") from exc
     db.refresh(session_obj)
 
     issue_token(db, session_obj)

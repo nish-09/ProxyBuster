@@ -31,7 +31,7 @@ class DeviceSession(Base):
     __tablename__ = "device_sessions"
 
     id: Mapped[uuid.UUID] = mapped_column(GUID(), primary_key=True, default=uuid.uuid4)
-    user_id: Mapped[uuid.UUID] = mapped_column(GUID(), ForeignKey("users.id"), nullable=False)
+    user_id: Mapped[uuid.UUID] = mapped_column(GUID(), ForeignKey("users.id"), nullable=False, index=True)
     session_id: Mapped[str] = mapped_column(String(64), unique=True, nullable=False)  # JWT jti
     device_id: Mapped[str] = mapped_column(String(255), nullable=True)
     ip_address: Mapped[str] = mapped_column(String(64), nullable=True)
@@ -48,7 +48,7 @@ class Cooldown(Base):
 
     id: Mapped[uuid.UUID] = mapped_column(GUID(), primary_key=True, default=uuid.uuid4)
     student_id: Mapped[uuid.UUID] = mapped_column(
-        GUID(), ForeignKey("student_profiles.id"), nullable=False
+        GUID(), ForeignKey("student_profiles.id"), nullable=False, index=True
     )
     started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
@@ -59,7 +59,7 @@ class SecurityEvent(Base):
     __tablename__ = "security_events"
 
     id: Mapped[uuid.UUID] = mapped_column(GUID(), primary_key=True, default=uuid.uuid4)
-    user_id: Mapped[uuid.UUID | None] = mapped_column(GUID(), ForeignKey("users.id"), nullable=True)
+    user_id: Mapped[uuid.UUID | None] = mapped_column(GUID(), ForeignKey("users.id"), nullable=True, index=True)
     event_type: Mapped[str] = mapped_column(String(100), nullable=False)
     description: Mapped[str] = mapped_column(String(1000), nullable=False)
     severity: Mapped[SecurityEventSeverity] = mapped_column(
@@ -77,7 +77,7 @@ class AnomalyScore(Base):
 
     id: Mapped[uuid.UUID] = mapped_column(GUID(), primary_key=True, default=uuid.uuid4)
     student_id: Mapped[uuid.UUID] = mapped_column(
-        GUID(), ForeignKey("student_profiles.id"), nullable=False
+        GUID(), ForeignKey("student_profiles.id"), nullable=False, index=True
     )
     score: Mapped[float] = mapped_column(Numeric(5, 2), nullable=False)  # 0-100
     reasons: Mapped[list] = mapped_column(JSON, default=list)

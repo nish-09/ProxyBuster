@@ -97,11 +97,12 @@ def dashboard(db: Session, professor_profile: ProfessorProfile) -> ProfessorDash
         cd_student_ids = [
             row[0] for row in db.query(Enrollment.student_id).filter(Enrollment.class_division_id == cd_id).all()
         ]
+        cd_stats = analytics_service.batch_subject_stats(db, cd_student_ids, cd_id, REQUIRED_PCT_DEFAULT)
         cd_pcts = []
         for sid in cd_student_ids:
-            stats = analytics_service.subject_stats(db, sid, cd_id, REQUIRED_PCT_DEFAULT)
-            cd_pcts.append(stats["percentage"])
-            if stats["percentage"] < REQUIRED_PCT_DEFAULT:
+            pct = cd_stats[sid]["percentage"]
+            cd_pcts.append(pct)
+            if pct < REQUIRED_PCT_DEFAULT:
                 below_threshold_students.add(sid)
         avg_pct = round(sum(cd_pcts) / len(cd_pcts), 2) if cd_pcts else 0.0
         percentages.append(avg_pct)
@@ -206,6 +207,7 @@ def list_students(
         raise HTTPException(status.HTTP_403_FORBIDDEN, "You do not teach this class")
 
     student_ids = _enrolled_student_ids(db, scope_ids)
+    overall_by_student = analytics_service.batch_overall_stats(db, student_ids, scope_ids, REQUIRED_PCT_DEFAULT)
     items: list[StudentListItem] = []
     for sid in student_ids:
         student_profile = db.get(StudentProfile, sid)
@@ -214,7 +216,7 @@ def list_students(
             needle = q.lower()
             if needle not in user.full_name.lower() and needle not in student_profile.roll_number.lower():
                 continue
-        overall = analytics_service.student_overall_stats(db, sid, REQUIRED_PCT_DEFAULT, scope_ids)
+        overall = overall_by_student[sid]
         pct = overall["percentage"]
         if min_pct is not None and pct < min_pct:
             continue
@@ -389,6 +391,8 @@ def attendance_sheet(
     for r in records:
         records_by_student.setdefault(r.student_id, {})[r.lecture_id] = r
 
+    stats_by_student = analytics_service.batch_subject_stats(db, student_ids, class_division_id, REQUIRED_PCT_DEFAULT)
+
     rows: list[AttendanceSheetRow] = []
     for sid in student_ids:
         student_profile = db.get(StudentProfile, sid)
@@ -403,7 +407,7 @@ def attendance_sheet(
                 else AttendanceSheetCell(status=None, method=None)
             )
 
-        stats = analytics_service.subject_stats(db, sid, class_division_id, REQUIRED_PCT_DEFAULT)
+        stats = stats_by_student[sid]
 
         latest_anomaly = (
             db.query(AnomalyScore).filter(AnomalyScore.student_id == sid).order_by(AnomalyScore.computed_at.desc()).first()

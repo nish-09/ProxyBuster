@@ -59,19 +59,38 @@ def get_me(student_profile: StudentProfile = Depends(get_student_profile), db: S
 def dashboard(student_profile: StudentProfile = Depends(get_student_profile), db: Session = Depends(get_db)):
     user = db.get(User, student_profile.user_id)
     enrollments = db.query(Enrollment).filter(Enrollment.student_id == student_profile.id).all()
+    class_division_ids = [e.class_division_id for e in enrollments]
+
+    class_divisions_by_id = {
+        cd.id: cd for cd in db.query(ClassDivision).filter(ClassDivision.id.in_(class_division_ids)).all()
+    } if class_division_ids else {}
+    subject_ids = [cd.subject_id for cd in class_divisions_by_id.values()]
+    subjects_by_id = {s.id: s for s in db.query(Subject).filter(Subject.id.in_(subject_ids)).all()} if subject_ids else {}
+    stats_by_division = (
+        {
+            cd_id: analytics_service.batch_subject_stats(db, [student_profile.id], cd_id, REQUIRED_PCT_DEFAULT)[
+                student_profile.id
+            ]
+            for cd_id in class_division_ids
+        }
+    )
+    next_lecture_by_division: dict[uuid.UUID, Lecture] = {}
+    if class_division_ids:
+        upcoming = (
+            db.query(Lecture)
+            .filter(Lecture.class_division_id.in_(class_division_ids), Lecture.scheduled_start > utcnow())
+            .order_by(Lecture.scheduled_start.asc())
+            .all()
+        )
+        for lecture in upcoming:
+            next_lecture_by_division.setdefault(lecture.class_division_id, lecture)
 
     subjects: list[SubjectAttendanceOut] = []
     for enrollment in enrollments:
-        class_division = db.get(ClassDivision, enrollment.class_division_id)
-        subject = db.get(Subject, class_division.subject_id)
-        stats = analytics_service.subject_stats(db, student_profile.id, class_division.id, REQUIRED_PCT_DEFAULT)
-
-        next_lecture = (
-            db.query(Lecture)
-            .filter(Lecture.class_division_id == class_division.id, Lecture.scheduled_start > utcnow())
-            .order_by(Lecture.scheduled_start.asc())
-            .first()
-        )
+        class_division = class_divisions_by_id[enrollment.class_division_id]
+        subject = subjects_by_id[class_division.subject_id]
+        stats = stats_by_division[class_division.id]
+        next_lecture = next_lecture_by_division.get(class_division.id)
         subjects.append(
             SubjectAttendanceOut(
                 class_division_id=class_division.id,
@@ -90,15 +109,24 @@ def dashboard(student_profile: StudentProfile = Depends(get_student_profile), db
             )
         )
 
-    overall = analytics_service.student_overall_stats(
-        db, student_profile.id, REQUIRED_PCT_DEFAULT, [e.class_division_id for e in enrollments]
-    )
+    # Aggregate overall stats from the per-division stats already computed for `subjects`
+    # above, instead of a second independent pass (student_overall_stats would otherwise
+    # re-query lectures/records per division a second time).
+    overall_totals = {"present": 0, "late": 0, "manual": 0, "absent": 0, "total": 0}
+    for s in stats_by_division.values():
+        for key in overall_totals:
+            overall_totals[key] += s[key]
+    overall = {
+        **overall_totals,
+        "percentage": analytics_service.attendance_percentage(
+            overall_totals["present"], overall_totals["late"], overall_totals["manual"], overall_totals["total"]
+        ),
+    }
     attended = overall["present"] + overall["late"] + overall["manual"]
 
     now = utcnow()
     day_start = datetime.combine(now.date(), time.min, tzinfo=now.tzinfo)
     day_end = day_start + timedelta(days=1)
-    class_division_ids = [e.class_division_id for e in enrollments]
     today_lectures = (
         db.query(Lecture)
         .filter(
@@ -113,8 +141,8 @@ def dashboard(student_profile: StudentProfile = Depends(get_student_profile), db
     )
     today_schedule = []
     for lecture in today_lectures:
-        class_division = db.get(ClassDivision, lecture.class_division_id)
-        subject = db.get(Subject, class_division.subject_id)
+        class_division = class_divisions_by_id[lecture.class_division_id]
+        subject = subjects_by_id[class_division.subject_id]
         start = ensure_utc(lecture.scheduled_start)
         end = ensure_utc(lecture.scheduled_end)
         if now < start:
@@ -189,13 +217,32 @@ def attendance_history(
     )
     record_by_lecture = {r.lecture_id: r for r in records}
 
+    # class_division_ids is small and bounded (the student's own enrollments) — batch these
+    # lookups once instead of 4 db.get() calls per lecture row in the loop below.
+    class_divisions_by_id = {
+        cd.id: cd for cd in db.query(ClassDivision).filter(ClassDivision.id.in_(class_division_ids)).all()
+    }
+    subjects_by_id = {
+        s.id: s for s in db.query(Subject).filter(Subject.id.in_([cd.subject_id for cd in class_divisions_by_id.values()])).all()
+    }
+    professor_profiles_by_id = {
+        p.id: p
+        for p in db.query(ProfessorProfile)
+        .filter(ProfessorProfile.id.in_([cd.professor_id for cd in class_divisions_by_id.values()]))
+        .all()
+    }
+    professor_users_by_id = {
+        u.id: u
+        for u in db.query(User).filter(User.id.in_([p.user_id for p in professor_profiles_by_id.values()])).all()
+    }
+
     present = late = manual = 0
     entries: list[AttendanceHistoryEntry] = []
     for lecture in lectures[offset : offset + limit]:
-        class_division = db.get(ClassDivision, lecture.class_division_id)
-        subject = db.get(Subject, class_division.subject_id)
-        professor_profile = db.get(ProfessorProfile, class_division.professor_id)
-        professor_user = db.get(User, professor_profile.user_id) if professor_profile else None
+        class_division = class_divisions_by_id[lecture.class_division_id]
+        subject = subjects_by_id[class_division.subject_id]
+        professor_profile = professor_profiles_by_id.get(class_division.professor_id)
+        professor_user = professor_users_by_id.get(professor_profile.user_id) if professor_profile else None
         record = record_by_lecture.get(lecture.id)
         entries.append(
             AttendanceHistoryEntry(

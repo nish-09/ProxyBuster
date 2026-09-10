@@ -16,7 +16,9 @@ export function RequireRole({ role, children }: { role: UserRole; children: Reac
       return;
     }
     if (user.role !== role) {
-      router.replace(user.role === "student" ? "/student/dashboard" : "/professor/dashboard");
+      router.replace(
+        user.role === "student" ? "/student/dashboard" : user.role === "admin" ? "/admin/dashboard" : "/professor/dashboard"
+      );
     }
   }, [loading, user, role, router]);
 

@@ -48,8 +48,10 @@ def _counts(db: Session, session_obj: AttendanceSession) -> tuple[int, int]:
 
 
 @router.post("/sessions", response_model=AttendanceSessionOut, status_code=201)
+@limiter.limit("20/minute")
 async def start_session(
     payload: AttendanceSessionCreate,
+    request: Request,
     professor_profile: ProfessorProfile = Depends(get_professor_profile),
     db: Session = Depends(get_db),
 ):
@@ -160,8 +162,10 @@ async def scan_qr(
 
 
 @router.post("/manual", response_model=ManualAttendanceOut)
+@limiter.limit("30/minute")
 async def manual_attendance(
     payload: ManualAttendanceRequest,
+    request: Request,
     professor_profile: ProfessorProfile = Depends(get_professor_profile),
     db: Session = Depends(get_db),
 ):

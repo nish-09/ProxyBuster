@@ -1,3 +1,4 @@
+import hmac
 from datetime import timedelta
 
 from fastapi import HTTPException, status
@@ -18,6 +19,17 @@ def register_user(db: Session, payload: RegisterRequest) -> User:
     existing = db.query(User).filter(User.email == payload.email).first()
     if existing:
         raise HTTPException(status.HTTP_409_CONFLICT, "Email already registered")
+
+    if payload.role == UserRole.PROFESSOR:
+        # Public self-registration as a professor requires a backend-only invite code
+        # (PROFESSOR_INVITE_CODE). An empty configured code means professor registration
+        # is disabled entirely, not "any code accepted". Comparison is constant-time to
+        # avoid leaking the code length/prefix via response timing. Never log the code or
+        # the submitted value — only the pass/fail outcome matters.
+        configured = settings.professor_invite_code
+        submitted = payload.invite_code or ""
+        if not configured or not hmac.compare_digest(submitted, configured):
+            raise HTTPException(status.HTTP_403_FORBIDDEN, "Invalid or missing professor invite code")
 
     user = User(
         email=payload.email,

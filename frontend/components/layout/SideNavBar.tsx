@@ -31,10 +31,19 @@ const PROFESSOR_ITEMS: NavItem[] = [
   { href: "/professor/cooldowns", label: "Cooldown Monitor", icon: "timer" },
 ];
 
-export function SideNavBar({ role }: { role: "student" | "professor" }) {
+const ADMIN_ITEMS: NavItem[] = [
+  { href: "/admin/dashboard", label: "Dashboard", icon: "dashboard" },
+  { href: "/admin/students", label: "Students", icon: "school" },
+  { href: "/admin/professors", label: "Professors", icon: "person" },
+  { href: "/admin/subjects", label: "Subjects", icon: "menu_book" },
+  { href: "/admin/divisions", label: "Divisions", icon: "groups" },
+  { href: "/admin/lectures", label: "Lectures", icon: "event" },
+];
+
+export function SideNavBar({ role }: { role: "student" | "professor" | "admin" }) {
   const pathname = usePathname();
   const { logout } = useAuth();
-  const items = role === "student" ? STUDENT_ITEMS : PROFESSOR_ITEMS;
+  const items = role === "student" ? STUDENT_ITEMS : role === "admin" ? ADMIN_ITEMS : PROFESSOR_ITEMS;
 
   return (
     <nav className="hidden md:flex flex-col h-full p-stack-md fixed left-0 top-0 h-full w-[280px] bg-surface border-r border-outline-variant shadow-sm z-50">
@@ -45,7 +54,7 @@ export function SideNavBar({ role }: { role: "student" | "professor" }) {
         <div>
           <h1 className="font-headline-lg text-headline-lg font-bold text-primary">Proxy Busters</h1>
           <p className="font-label-sm text-label-sm text-on-surface-variant">
-            {role === "student" ? "Student Portal" : "College Admin Portal"}
+            {role === "student" ? "Student Portal" : role === "admin" ? "Admin Portal" : "Faculty Portal"}
           </p>
         </div>
       </div>

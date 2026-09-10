@@ -1,7 +1,8 @@
 import uuid
 
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, Field
 
+from app.core.validation import EmailStr
 from app.models.user import UserRole
 
 
@@ -16,6 +17,7 @@ class RegisterRequest(BaseModel):
     semester: int | None = None
     # professor-only
     department: str | None = None
+    invite_code: str | None = Field(default=None, exclude=True, repr=False)
 
 
 class LoginRequest(BaseModel):

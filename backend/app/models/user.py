@@ -12,6 +12,7 @@ from app.core.types import GUID
 class UserRole(str, enum.Enum):
     STUDENT = "student"
     PROFESSOR = "professor"
+    ADMIN = "admin"
 
 
 class User(Base):

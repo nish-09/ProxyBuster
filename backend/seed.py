@@ -1,10 +1,19 @@
-"""Seed realistic development data: professors, students, subjects, divisions, enrollments, lectures.
+"""Seed realistic DEVELOPMENT/STAGING data: professors, students, subjects, divisions,
+enrollments, lectures. Never run this against production — see backend/scripts/reset_demo_data.py
+for the safe, explicit production-data reset instead.
 
-Run with: python seed.py   (from backend/, with .env configured)
+All identities use the RFC 2606 reserved @example.test domain and generic names/roll numbers
+so this data can never be mistaken for a real person — do not seed real names or real emails
+here, even for local testing.
+
+Run with: python seed.py   (from backend/, with .env pointed at a dev/staging database)
 """
 import random
+import sys
 from datetime import datetime, timedelta, timezone
+from urllib.parse import urlsplit
 
+from app.core.config import get_settings
 from app.core.db import SessionLocal
 from app.core.security import hash_password
 from app.core.time import ensure_utc
@@ -20,20 +29,35 @@ SUBJECTS = [
 ]
 
 PROFESSORS = [
-    ("Dr. Meera Nair", "meera.nair@college.edu", "Computer Science"),
-    ("Dr. Rohan Kapoor", "rohan.kapoor@college.edu", "Computer Science"),
-    ("Dr. Priya Iyer", "priya.iyer@college.edu", "Mathematics"),
+    ("Professor One", "professor001@example.test", "Computer Science"),
+    ("Professor Two", "professor002@example.test", "Computer Science"),
+    ("Professor Three", "professor003@example.test", "Mathematics"),
 ]
 
-STUDENT_NAMES = [
-    "Arjun Mehta", "Sara Khan", "Vikram Singh", "Ananya Rao", "Karan Patel",
-    "Divya Sharma", "Rahul Shah", "Ishita Gupta", "Aditya Verma", "Neha Joshi",
-    "Manish Kumar", "Priyanka Das", "Siddharth Bose", "Tanvi Malhotra", "Yash Agarwal",
-    "Riya Chatterjee", "Aman Tiwari", "Kavya Reddy", "Nikhil Jain", "Pooja Nayak",
-]
+STUDENT_NAMES = [f"Student {i:03d}" for i in range(1, 21)]
+
+
+def _confirm_target_database() -> None:
+    """Fake data must never silently land in a production database just because that's
+    what DATABASE_URL happens to point at. Anything that isn't obviously local requires
+    an explicit typed confirmation naming the actual host, unless --yes is passed."""
+    if "--yes" in sys.argv:
+        return
+    host = urlsplit(get_settings().database_url.replace("postgresql+psycopg2", "postgresql")).hostname or ""
+    if host in ("", "localhost", "127.0.0.1", "postgres"):
+        return  # local dev / docker-compose service name — no confirmation needed
+
+    print(f"DATABASE_URL points at host: {host!r}")
+    print("This does not look like a local database. Seeding fake data here could pollute")
+    print("a shared staging/production database.")
+    answer = input(f"Type the host ({host}) to confirm you want to seed fake data into it: ")
+    if answer.strip() != host:
+        print("Confirmation did not match — aborting. No data was written.")
+        sys.exit(1)
 
 
 def run():
+    _confirm_target_database()
     db = SessionLocal()
     try:
         if db.query(User).filter(User.email == PROFESSORS[0][1]).first():
@@ -72,7 +96,7 @@ def run():
 
         students = []
         for i, name in enumerate(STUDENT_NAMES):
-            email = f"{name.lower().replace(' ', '.')}@college.edu"
+            email = f"student{i + 1:03d}@example.test"
             user = User(email=email, password_hash=hash_password("Password123!"), full_name=name, role=UserRole.STUDENT)
             db.add(user)
             db.flush()
@@ -142,9 +166,9 @@ def run():
             SecurityEventStatus,
         )
 
-        flagged_student = students[0]  # Arjun Mehta
+        flagged_student = students[0]  # Student 001
         flagged_user = flagged_student.user
-        second_flagged = students[2]  # Vikram Singh
+        second_flagged = students[2]  # Student 003
 
         db.add_all(
             [
@@ -176,7 +200,7 @@ def run():
         )
 
         # --- Active cooldowns (for the Cooldown Monitor / student lock screen) ---
-        cooldown_students = students[-2:]  # Kavya Reddy, Nikhil Jain
+        cooldown_students = students[-2:]  # Student 019, Student 020
         for offset_minutes, student in zip((45, 22), cooldown_students):
             db.add(
                 Cooldown(
@@ -189,7 +213,7 @@ def run():
         # --- Deliberate synchronized-attendance pattern (anomaly detection demo) ---
         from app.models.attendance import AttendanceRecord as _AR
 
-        sync_pair = (students[3], students[4])  # Ananya Rao & Karan Patel
+        sync_pair = (students[3], students[4])  # Student 004 & Student 005
         sync_hits = 0
         for div in divisions:
             for lecture in lectures_by_division[div.id]:

@@ -35,6 +35,7 @@ services:
       QR_SIGNING_SECRET: dev_only_change_me_qr_secret
       QR_TOKEN_TTL_SECONDS: "10"
       COOLDOWN_MINUTES: "60"
+      PROFESSOR_INVITE_CODE: dev_only_change_me_invite_code
       CORS_ORIGINS: http://localhost:3000
     ports:
       - "8000:8000"

@@ -95,6 +95,85 @@ def subject_stats(
     }
 
 
+def batch_subject_stats(
+    db: Session, student_ids: list[uuid.UUID], class_division_id: uuid.UUID, required_pct: float = 75.0
+) -> dict[uuid.UUID, dict]:
+    """Same output shape as subject_stats, for many students in one class division at once —
+    one query for the lectures, one for all matching attendance records, instead of the
+    N-queries-per-student pattern subject_stats has when called in a loop."""
+    lectures = (
+        db.query(Lecture)
+        .filter(Lecture.class_division_id == class_division_id, Lecture.scheduled_start <= utcnow())
+        .all()
+    )
+    lecture_ids = [l.id for l in lectures]
+    total = len(lecture_ids)
+
+    counts = {sid: {"present": 0, "late": 0, "manual": 0} for sid in student_ids}
+    recorded_lectures = {sid: set() for sid in student_ids}
+
+    if lecture_ids and student_ids:
+        records = (
+            db.query(AttendanceRecord)
+            .filter(AttendanceRecord.student_id.in_(student_ids), AttendanceRecord.lecture_id.in_(lecture_ids))
+            .all()
+        )
+        for r in records:
+            if r.student_id not in counts:
+                continue
+            recorded_lectures[r.student_id].add(r.lecture_id)
+            if r.status == AttendanceStatus.PRESENT:
+                counts[r.student_id]["present"] += 1
+            elif r.status == AttendanceStatus.LATE:
+                counts[r.student_id]["late"] += 1
+            elif r.status == AttendanceStatus.MANUAL:
+                counts[r.student_id]["manual"] += 1
+
+    result: dict[uuid.UUID, dict] = {}
+    for sid in student_ids:
+        c = counts[sid]
+        absent = max(total - len(recorded_lectures[sid]), 0)
+        attended = c["present"] + c["late"] + c["manual"]
+        pct = attendance_percentage(c["present"], c["late"], c["manual"], total)
+        result[sid] = {
+            "class_division_id": class_division_id,
+            "present": c["present"],
+            "late": c["late"],
+            "manual": c["manual"],
+            "absent": absent,
+            "total": total,
+            "percentage": pct,
+            "classes_can_miss": classes_can_miss(attended, total, required_pct),
+            "classes_needed_to_recover": classes_needed_to_recover(attended, total, required_pct),
+        }
+    return result
+
+
+def batch_overall_stats(
+    db: Session, student_ids: list[uuid.UUID], class_division_ids: list[uuid.UUID], required_pct: float = 75.0
+) -> dict[uuid.UUID, dict]:
+    """Same output shape as student_overall_stats, for many students across many class
+    divisions at once — O(divisions) queries instead of O(students x divisions)."""
+    totals = {sid: {"present": 0, "late": 0, "manual": 0, "absent": 0, "total": 0} for sid in student_ids}
+    for cd_id in class_division_ids:
+        per_division = batch_subject_stats(db, student_ids, cd_id, required_pct)
+        for sid, s in per_division.items():
+            for key in ("present", "late", "manual", "absent", "total"):
+                totals[sid][key] += s[key]
+
+    result: dict[uuid.UUID, dict] = {}
+    for sid, t in totals.items():
+        attended = t["present"] + t["late"] + t["manual"]
+        pct = attendance_percentage(t["present"], t["late"], t["manual"], t["total"])
+        result[sid] = {
+            **t,
+            "percentage": pct,
+            "classes_can_miss": classes_can_miss(attended, t["total"], required_pct),
+            "classes_needed_to_recover": classes_needed_to_recover(attended, t["total"], required_pct),
+        }
+    return result
+
+
 def student_overall_stats(
     db: Session, student_id: uuid.UUID, required_pct: float = 75.0, class_division_ids: list[uuid.UUID] | None = None
 ) -> dict:

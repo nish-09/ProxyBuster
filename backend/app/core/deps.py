@@ -63,6 +63,7 @@ def require_role(*roles: UserRole):
 
 require_student = require_role(UserRole.STUDENT)
 require_professor = require_role(UserRole.PROFESSOR)
+require_admin = require_role(UserRole.ADMIN)
 
 
 def get_student_profile(current: CurrentUser = Depends(require_student), db: Session = Depends(get_db)) -> StudentProfile:

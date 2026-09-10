@@ -22,7 +22,7 @@ export default function LoginPage() {
     setSubmitting(true);
     try {
       const me = await login(email, password);
-      router.push(me.role === "student" ? "/student/dashboard" : "/professor/dashboard");
+      router.push(me.role === "student" ? "/student/dashboard" : me.role === "admin" ? "/admin/dashboard" : "/professor/dashboard");
     } catch (err) {
       if (err instanceof ApiError) {
         if (err.status === 423 && err.remainingSeconds !== undefined) {

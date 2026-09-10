@@ -22,6 +22,11 @@ class Settings(BaseSettings):
 
     cors_origins: str = "http://localhost:3000"
 
+    # Gates professor self-registration. Deliberately backend-only, never returned by any
+    # API response, never logged. Empty string means professor registration is disabled
+    # entirely (safe default) rather than silently accepting any/no code.
+    professor_invite_code: str = ""
+
     @property
     def cors_origins_list(self) -> list[str]:
         """CORS_ORIGINS is a comma-separated list of allowed origins, e.g.

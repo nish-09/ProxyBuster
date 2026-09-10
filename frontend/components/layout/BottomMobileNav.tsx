@@ -23,10 +23,17 @@ const PROFESSOR_ITEMS: NavItem[] = [
   { href: "/professor/cooldowns", label: "Cooldowns", icon: "timer" },
 ];
 
+const ADMIN_ITEMS: NavItem[] = [
+  { href: "/admin/dashboard", label: "Home", icon: "dashboard" },
+  { href: "/admin/students", label: "Students", icon: "school" },
+  { href: "/admin/divisions", label: "Divisions", icon: "groups" },
+  { href: "/admin/lectures", label: "Lectures", icon: "event" },
+];
+
 /** 4-tab bottom nav shown below md, mirroring the mobile Stitch exports. */
-export function BottomMobileNav({ role }: { role: "student" | "professor" }) {
+export function BottomMobileNav({ role }: { role: "student" | "professor" | "admin" }) {
   const pathname = usePathname();
-  const items = role === "student" ? STUDENT_ITEMS : PROFESSOR_ITEMS;
+  const items = role === "student" ? STUDENT_ITEMS : role === "admin" ? ADMIN_ITEMS : PROFESSOR_ITEMS;
 
   return (
     <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-surface/95 backdrop-blur-md border-t border-outline-variant flex justify-around items-center h-16">

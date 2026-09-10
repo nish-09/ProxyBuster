@@ -2,7 +2,7 @@ import enum
 import uuid
 from datetime import datetime
 
-from sqlalchemy import Boolean, DateTime, Enum, ForeignKey, String, UniqueConstraint, func
+from sqlalchemy import Boolean, DateTime, Enum, ForeignKey, Index, String, UniqueConstraint, func, text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.db import Base
@@ -29,6 +29,19 @@ class AttendanceMethod(str, enum.Enum):
 
 class AttendanceSession(Base):
     __tablename__ = "attendance_sessions"
+    __table_args__ = (
+        # Enforces "at most one active session per lecture" at the DB level (partial unique
+        # index on lecture_id, scoped to ACTIVE rows) so a race between two concurrent
+        # POST /attendance/sessions calls can't create two active sessions for one lecture —
+        # the loser gets an IntegrityError instead of silently succeeding.
+        Index(
+            "uq_active_session_per_lecture",
+            "lecture_id",
+            unique=True,
+            postgresql_where=text("status = 'ACTIVE'"),
+            sqlite_where=text("status = 'ACTIVE'"),
+        ),
+    )
 
     id: Mapped[uuid.UUID] = mapped_column(GUID(), primary_key=True, default=uuid.uuid4)
     lecture_id: Mapped[uuid.UUID] = mapped_column(GUID(), ForeignKey("lectures.id"), nullable=False)
@@ -52,7 +65,7 @@ class AttendanceToken(Base):
 
     id: Mapped[uuid.UUID] = mapped_column(GUID(), primary_key=True, default=uuid.uuid4)
     session_id: Mapped[uuid.UUID] = mapped_column(
-        GUID(), ForeignKey("attendance_sessions.id"), nullable=False
+        GUID(), ForeignKey("attendance_sessions.id"), nullable=False, index=True
     )
     nonce: Mapped[str] = mapped_column(String(64), unique=True, nullable=False)
     signature: Mapped[str] = mapped_column(String(128), nullable=False)
@@ -75,7 +88,7 @@ class AttendanceRecord(Base):
     student_id: Mapped[uuid.UUID] = mapped_column(
         GUID(), ForeignKey("student_profiles.id"), nullable=False
     )
-    lecture_id: Mapped[uuid.UUID] = mapped_column(GUID(), ForeignKey("lectures.id"), nullable=False)
+    lecture_id: Mapped[uuid.UUID] = mapped_column(GUID(), ForeignKey("lectures.id"), nullable=False, index=True)
     session_id: Mapped[uuid.UUID | None] = mapped_column(
         GUID(), ForeignKey("attendance_sessions.id"), nullable=True
     )

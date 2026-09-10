@@ -18,6 +18,7 @@ export default function RegisterPage() {
   const [program, setProgram] = useState("");
   const [semester, setSemester] = useState("1");
   const [department, setDepartment] = useState("");
+  const [inviteCode, setInviteCode] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -35,6 +36,7 @@ export default function RegisterPage() {
         program: role === "student" ? program : undefined,
         semester: role === "student" ? Number(semester) : undefined,
         department: role === "professor" ? department : undefined,
+        invite_code: role === "professor" ? inviteCode : undefined,
       });
       const me = await login(email, password);
       router.push(me.role === "student" ? "/student/dashboard" : "/professor/dashboard");
@@ -149,12 +151,27 @@ export default function RegisterPage() {
               </div>
             </>
           ) : (
-            <div>
-              <label className={labelClass} htmlFor="department">
-                DEPARTMENT
-              </label>
-              <input id="department" required value={department} onChange={(e) => setDepartment(e.target.value)} className={inputClass} />
-            </div>
+            <>
+              <div>
+                <label className={labelClass} htmlFor="department">
+                  DEPARTMENT
+                </label>
+                <input id="department" required value={department} onChange={(e) => setDepartment(e.target.value)} className={inputClass} />
+              </div>
+              <div>
+                <label className={labelClass} htmlFor="invite_code">
+                  PROFESSOR INVITE CODE
+                </label>
+                <input
+                  id="invite_code"
+                  required
+                  value={inviteCode}
+                  onChange={(e) => setInviteCode(e.target.value)}
+                  placeholder="Provided by your institution admin"
+                  className={inputClass}
+                />
+              </div>
+            </>
           )}
 
           <button

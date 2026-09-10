@@ -28,7 +28,7 @@ class ClassDivision(Base):
     id: Mapped[uuid.UUID] = mapped_column(GUID(), primary_key=True, default=uuid.uuid4)
     subject_id: Mapped[uuid.UUID] = mapped_column(GUID(), ForeignKey("subjects.id"), nullable=False)
     professor_id: Mapped[uuid.UUID] = mapped_column(
-        GUID(), ForeignKey("professor_profiles.id"), nullable=False
+        GUID(), ForeignKey("professor_profiles.id"), nullable=False, index=True
     )
     name: Mapped[str] = mapped_column(String(50), nullable=False)  # e.g. "Div A"
     semester: Mapped[int] = mapped_column(nullable=False)
@@ -49,7 +49,7 @@ class Enrollment(Base):
         GUID(), ForeignKey("student_profiles.id"), nullable=False
     )
     class_division_id: Mapped[uuid.UUID] = mapped_column(
-        GUID(), ForeignKey("class_divisions.id"), nullable=False
+        GUID(), ForeignKey("class_divisions.id"), nullable=False, index=True
     )
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
@@ -62,7 +62,7 @@ class Lecture(Base):
 
     id: Mapped[uuid.UUID] = mapped_column(GUID(), primary_key=True, default=uuid.uuid4)
     class_division_id: Mapped[uuid.UUID] = mapped_column(
-        GUID(), ForeignKey("class_divisions.id"), nullable=False
+        GUID(), ForeignKey("class_divisions.id"), nullable=False, index=True
     )
     topic: Mapped[str] = mapped_column(String(255), nullable=True)
     scheduled_start: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)

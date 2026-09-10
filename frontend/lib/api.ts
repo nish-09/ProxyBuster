@@ -102,7 +102,7 @@ async function request<T>(
 
 // ---------- Auth ----------
 
-export type UserRole = "student" | "professor";
+export type UserRole = "student" | "professor" | "admin";
 
 export interface RegisterRequest {
   email: string;
@@ -113,6 +113,7 @@ export interface RegisterRequest {
   program?: string;
   semester?: number;
   department?: string;
+  invite_code?: string;
 }
 
 export interface MeResponse {
@@ -443,6 +444,180 @@ export const attendanceApi = {
   scan: (token: string) => request<ScanResult>("/attendance/scan", { method: "POST", body: { token } }),
   manual: (payload: { student_id: string; lecture_id: string; status: "present" | "absent" | "late"; reason: string }) =>
     request<ManualAttendanceOut>("/attendance/manual", { method: "POST", body: payload }),
+};
+
+// ---------- Admin ----------
+
+export interface AdminStudentOut {
+  id: string;
+  user_id: string;
+  email: string;
+  full_name: string;
+  is_active: boolean;
+  roll_number: string;
+  program: string;
+  semester: number;
+  created_at: string;
+}
+
+export interface AdminCreateStudentRequest {
+  email: string;
+  password: string;
+  full_name: string;
+  roll_number: string;
+  program: string;
+  semester: number;
+}
+
+export interface AdminUpdateStudentRequest {
+  full_name?: string;
+  program?: string;
+  semester?: number;
+  is_active?: boolean;
+}
+
+export interface AdminProfessorOut {
+  id: string;
+  user_id: string;
+  email: string;
+  full_name: string;
+  is_active: boolean;
+  department: string;
+  created_at: string;
+}
+
+export interface AdminCreateProfessorRequest {
+  email: string;
+  password: string;
+  full_name: string;
+  department: string;
+}
+
+export interface AdminUpdateProfessorRequest {
+  full_name?: string;
+  department?: string;
+  is_active?: boolean;
+}
+
+export interface AdminSubjectOut {
+  id: string;
+  code: string;
+  name: string;
+  credits: number;
+}
+
+export interface AdminCreateSubjectRequest {
+  code: string;
+  name: string;
+  credits: number;
+}
+
+export interface AdminUpdateSubjectRequest {
+  name?: string;
+  credits?: number;
+}
+
+export interface AdminDivisionOut {
+  id: string;
+  subject_id: string;
+  subject_code: string;
+  subject_name: string;
+  professor_id: string;
+  professor_name: string;
+  name: string;
+  semester: number;
+  room: string | null;
+  enrolled_count: number;
+}
+
+export interface AdminCreateDivisionRequest {
+  subject_id: string;
+  professor_id: string;
+  name: string;
+  semester: number;
+  room?: string;
+}
+
+export interface AdminUpdateDivisionRequest {
+  professor_id?: string;
+  name?: string;
+  semester?: number;
+  room?: string;
+}
+
+export interface AdminEnrollmentOut {
+  id: string;
+  student_id: string;
+  student_name: string;
+  roll_number: string;
+  class_division_id: string;
+  created_at: string;
+}
+
+export interface AdminBulkEnrollResult {
+  enrolled: string[];
+  already_enrolled: string[];
+  not_found: string[];
+}
+
+export interface AdminLectureOut {
+  id: string;
+  class_division_id: string;
+  subject_name: string;
+  division_name: string;
+  topic: string | null;
+  scheduled_start: string;
+  scheduled_end: string;
+  room: string | null;
+}
+
+export interface AdminCreateLectureRequest {
+  class_division_id: string;
+  topic?: string;
+  scheduled_start: string;
+  scheduled_end: string;
+  room?: string;
+}
+
+export const adminApi = {
+  students: (q?: string) => request<AdminStudentOut[]>("/admin/students", { query: { q, limit: 500 } }),
+  createStudent: (payload: AdminCreateStudentRequest) =>
+    request<AdminStudentOut>("/admin/students", { method: "POST", body: payload }),
+  updateStudent: (id: string, payload: AdminUpdateStudentRequest) =>
+    request<AdminStudentOut>(`/admin/students/${id}`, { method: "PATCH", body: payload }),
+
+  professors: (q?: string) => request<AdminProfessorOut[]>("/admin/professors", { query: { q, limit: 500 } }),
+  createProfessor: (payload: AdminCreateProfessorRequest) =>
+    request<AdminProfessorOut>("/admin/professors", { method: "POST", body: payload }),
+  updateProfessor: (id: string, payload: AdminUpdateProfessorRequest) =>
+    request<AdminProfessorOut>(`/admin/professors/${id}`, { method: "PATCH", body: payload }),
+
+  subjects: () => request<AdminSubjectOut[]>("/admin/subjects"),
+  createSubject: (payload: AdminCreateSubjectRequest) =>
+    request<AdminSubjectOut>("/admin/subjects", { method: "POST", body: payload }),
+  updateSubject: (id: string, payload: AdminUpdateSubjectRequest) =>
+    request<AdminSubjectOut>(`/admin/subjects/${id}`, { method: "PATCH", body: payload }),
+  deleteSubject: (id: string) => request<void>(`/admin/subjects/${id}`, { method: "DELETE" }),
+
+  divisions: () => request<AdminDivisionOut[]>("/admin/divisions"),
+  createDivision: (payload: AdminCreateDivisionRequest) =>
+    request<AdminDivisionOut>("/admin/divisions", { method: "POST", body: payload }),
+  updateDivision: (id: string, payload: AdminUpdateDivisionRequest) =>
+    request<AdminDivisionOut>(`/admin/divisions/${id}`, { method: "PATCH", body: payload }),
+
+  enrollments: (classDivisionId: string) =>
+    request<AdminEnrollmentOut[]>("/admin/enrollments", { query: { class_division_id: classDivisionId } }),
+  createEnrollment: (student_id: string, class_division_id: string) =>
+    request<AdminEnrollmentOut>("/admin/enrollments", { method: "POST", body: { student_id, class_division_id } }),
+  deleteEnrollment: (id: string) => request<void>(`/admin/enrollments/${id}`, { method: "DELETE" }),
+  bulkEnroll: (student_ids: string[], class_division_id: string) =>
+    request<AdminBulkEnrollResult>("/admin/enrollments/bulk", { method: "POST", body: { student_ids, class_division_id } }),
+
+  lectures: (classDivisionId?: string) =>
+    request<AdminLectureOut[]>("/admin/lectures", { query: { class_division_id: classDivisionId } }),
+  createLecture: (payload: AdminCreateLectureRequest) =>
+    request<AdminLectureOut>("/admin/lectures", { method: "POST", body: payload }),
+  deleteLecture: (id: string) => request<void>(`/admin/lectures/${id}`, { method: "DELETE" }),
 };
 
 /** Builds the WebSocket URL for a session's live feed; token is passed as a query param (browsers can't set WS headers). */
