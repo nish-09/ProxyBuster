@@ -157,7 +157,7 @@ function SheetContent() {
               <>
                 <div className="flex-1 overflow-auto custom-scrollbar relative">
                   <table className="w-full text-left border-collapse min-w-[800px]">
-                    <thead className="sticky top-0 bg-surface-container-lowest border-b border-surface-variant z-10">
+                    <thead className="sticky top-0 bg-surface-container-lowest border-b border-outline z-10">
                       <tr>
                         <th className="py-3 px-4 font-label-md text-label-md text-on-surface-variant whitespace-nowrap bg-surface-container-lowest">
                           Student Information

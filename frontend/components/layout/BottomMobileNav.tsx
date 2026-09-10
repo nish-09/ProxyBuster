@@ -36,15 +36,15 @@ export function BottomMobileNav({ role }: { role: "student" | "professor" | "adm
   const items = role === "student" ? STUDENT_ITEMS : role === "admin" ? ADMIN_ITEMS : PROFESSOR_ITEMS;
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-surface/95 backdrop-blur-md border-t border-outline-variant flex justify-around items-center h-16">
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-surface border-t-2 border-outline flex justify-around items-center h-16">
       {items.map((item) => {
         const active = pathname?.startsWith(item.href);
         return (
           <Link
             key={item.href}
             href={item.href}
-            className={`flex flex-col items-center justify-center gap-0.5 flex-1 h-full ${
-              active ? "text-primary" : "text-on-surface-variant"
+            className={`flex flex-col items-center justify-center gap-0.5 flex-1 h-full border-t-4 transition-colors ${
+              active ? "text-on-surface font-bold border-secondary bg-secondary/20" : "text-on-surface-variant border-transparent"
             }`}
           >
             <span className={`material-symbols-outlined${active ? " filled" : ""}`}>{item.icon}</span>

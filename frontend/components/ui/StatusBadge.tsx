@@ -1,19 +1,17 @@
 /**
- * Attendance status pill. Color mapping ported from the exact classes used in
- * design/attendance_history_mobile/code.html and design/detailed_attendance_sheet/code.html:
- *   Present -> text-primary bg-primary-fixed/30
- *   Absent  -> text-error bg-error-container/30
- *   Late    -> text-secondary bg-secondary-container/30
- *   Manual  -> bg-surface-variant text-on-surface-variant
- * Suspicious has no badge example in the exports; extended consistently using the
- * tertiary (violet) token per DESIGN.md's status-color spec.
+ * Attendance status badge. Semantic color mapping (see design system):
+ *   Present    -> mint   (success)
+ *   Late       -> yellow (warning)
+ *   Absent     -> coral  (error/blocked)
+ *   Manual     -> blue   (active/professor-initiated)
+ *   Suspicious -> coral  (security alert)
  */
 const STYLES: Record<string, string> = {
-  present: "text-primary bg-primary-fixed/30",
-  absent: "text-error bg-error-container/30",
-  late: "text-secondary bg-secondary-container/30",
-  manual: "bg-surface-variant text-on-surface-variant",
-  suspicious: "text-tertiary bg-tertiary-fixed/30",
+  present: "text-on-tertiary-container bg-tertiary-container border-outline",
+  absent: "text-on-error-container bg-error-container border-outline",
+  late: "text-on-secondary-container bg-secondary-container border-outline",
+  manual: "text-on-primary-container bg-primary-container border-outline",
+  suspicious: "text-on-error bg-error border-outline",
 };
 
 const LABELS: Record<string, string> = {
@@ -26,10 +24,12 @@ const LABELS: Record<string, string> = {
 
 export function StatusBadge({ status, className = "" }: { status: string; className?: string }) {
   const key = status.toLowerCase();
-  const style = STYLES[key] ?? "bg-surface-variant text-on-surface-variant";
+  const style = STYLES[key] ?? "bg-surface-variant text-on-surface-variant border-outline";
   const label = LABELS[key] ?? status;
   return (
-    <span className={`inline-flex items-center font-label-sm text-label-sm px-2 py-0.5 rounded ${style} ${className}`}>
+    <span
+      className={`inline-flex items-center font-label-sm text-label-sm font-bold uppercase tracking-wide px-2 py-0.5 rounded border-2 ${style} ${className}`}
+    >
       {label}
     </span>
   );

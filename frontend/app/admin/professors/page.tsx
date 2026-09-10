@@ -162,7 +162,7 @@ function ProfessorsContent() {
                       <td className="p-4">
                         <span
                           className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                            p.is_active ? "bg-green-100 text-green-800" : "bg-error-container text-error"
+                            p.is_active ? "bg-tertiary-container text-on-tertiary-container border border-outline" : "bg-error-container text-error"
                           }`}
                         >
                           {p.is_active ? "Active" : "Inactive"}

@@ -234,7 +234,7 @@ function DashboardContent() {
                               </div>
                               <span
                                 className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                                  subj.has_active_session ? "bg-green-100 text-green-800" : "bg-surface-dim text-on-surface-variant"
+                                  subj.has_active_session ? "bg-tertiary-container text-on-tertiary-container border border-outline" : "bg-surface-dim text-on-surface-variant"
                                 }`}
                               >
                                 {subj.has_active_session ? "Active" : "Paused"}

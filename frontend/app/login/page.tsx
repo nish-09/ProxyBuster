@@ -39,30 +39,30 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-surface p-6">
-      <div className="w-full max-w-md bg-surface-container-lowest border border-outline-variant rounded-xl card-shadow p-stack-lg">
+    <div className="min-h-screen flex items-center justify-center bg-background p-6">
+      <div className="w-full max-w-md bg-surface border-2 border-outline rounded-lg shadow-[6px_6px_0_#111111] p-stack-lg">
         <div className="flex items-center gap-3 mb-stack-lg">
-          <div className="w-10 h-10 rounded-lg bg-primary-container flex items-center justify-center text-on-primary-container">
+          <div className="w-11 h-11 rounded-md bg-primary border-2 border-outline flex items-center justify-center text-on-primary">
             <span className="material-symbols-outlined filled">security</span>
           </div>
           <div>
-            <h1 className="font-headline-lg text-headline-lg font-bold text-primary">Proxy Busters</h1>
-            <p className="font-label-sm text-label-sm text-on-surface-variant">Sign in to continue</p>
+            <h1 className="font-headline-lg text-headline-lg font-extrabold text-on-surface">Proxy Busters</h1>
+            <p className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Sign in to continue</p>
           </div>
         </div>
 
         {cooldownSeconds !== null && (
-          <div className="mb-stack-md rounded-lg border border-primary/20 bg-primary-fixed/20 p-4 text-center">
+          <div className="mb-stack-md rounded-md border-2 border-outline bg-secondary-container p-4 text-center">
             <p className="font-body-md text-body-md text-on-surface">
               Session Lock Active — for security, you can&apos;t sign back in for{" "}
-              <span className="font-bold text-primary">{Math.ceil(cooldownSeconds / 60)} more minute(s)</span> after logging out.
+              <span className="font-extrabold">{Math.ceil(cooldownSeconds / 60)} more minute(s)</span> after logging out.
             </p>
           </div>
         )}
 
         {error && (
-          <div className="mb-stack-md rounded-lg border border-error/20 bg-error-container/30 p-3">
-            <p className="font-body-md text-body-md text-error">{error}</p>
+          <div className="mb-stack-md rounded-md border-2 border-outline bg-error-container p-3">
+            <p className="font-body-md text-body-md text-on-error-container font-semibold">{error}</p>
           </div>
         )}
 
@@ -77,7 +77,7 @@ export default function LoginPage() {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full h-10 px-3 bg-surface-container border border-outline-variant rounded-md text-body-md font-body-md focus:ring-2 focus:ring-primary/15 focus:border-primary transition-all"
+              className="w-full h-11 px-3 bg-white border-2 border-outline rounded-md text-body-md font-body-md focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
               placeholder="you@college.edu"
             />
           </div>
@@ -91,14 +91,14 @@ export default function LoginPage() {
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full h-10 px-3 bg-surface-container border border-outline-variant rounded-md text-body-md font-body-md focus:ring-2 focus:ring-primary/15 focus:border-primary transition-all"
+              className="w-full h-11 px-3 bg-white border-2 border-outline rounded-md text-body-md font-body-md focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
               placeholder="••••••••"
             />
           </div>
           <button
             type="submit"
             disabled={submitting}
-            className="w-full h-10 rounded-md bg-primary text-on-primary font-body-md font-bold hover:bg-primary/90 transition-colors disabled:opacity-60"
+            className="w-full h-11 rounded-md bg-primary text-on-primary font-label-md text-label-md font-bold border-2 border-outline transition-colors disabled:opacity-60"
           >
             {submitting ? "Signing in..." : "Sign In"}
           </button>

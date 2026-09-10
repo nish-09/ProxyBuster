@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Inter, Space_Grotesk } from "next/font/google";
 import { AuthProvider } from "@/lib/auth-context";
 import "./globals.css";
 
@@ -9,6 +9,15 @@ const inter = Inter({
   weight: ["400", "500", "600", "700"],
 });
 
+// Bold, geometric grotesque for headings/labels/buttons — the "confident, modern" register
+// the neo-brutalist redesign calls for. Inter stays for dense body/table text where a more
+// neutral, highly-legible face wins.
+const spaceGrotesk = Space_Grotesk({
+  variable: "--font-space-grotesk",
+  subsets: ["latin"],
+  weight: ["500", "600", "700"],
+});
+
 export const metadata: Metadata = {
   title: "Proxy Busters",
   description: "Proxy-resistant college attendance platform",
@@ -16,7 +25,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${inter.variable} h-full`}>
+    <html lang="en" className={`${inter.variable} ${spaceGrotesk.variable} h-full`}>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
@@ -26,7 +35,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           rel="stylesheet"
         />
       </head>
-      <body className="min-h-full bg-surface text-on-surface font-body-lg antialiased">
+      <body className="min-h-full bg-background text-on-background font-body-lg antialiased">
         <AuthProvider>{children}</AuthProvider>
       </body>
     </html>

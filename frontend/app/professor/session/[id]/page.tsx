@@ -217,7 +217,7 @@ function SessionContent({ sessionId }: { sessionId: string }) {
 
   return (
     <div className="bg-background text-on-background font-body-md min-h-screen">
-      <header className="sticky top-0 z-40 backdrop-blur-md bg-surface/80 border-b border-outline-variant flex justify-between items-center w-full px-container-padding h-16">
+      <header className="sticky top-0 z-40 bg-surface border-b-2 border-outline flex justify-between items-center w-full px-container-padding h-16">
         <button onClick={() => router.push("/professor/dashboard")} className="flex items-center gap-2 text-on-surface-variant hover:text-primary transition-colors">
           <span className="material-symbols-outlined">arrow_back</span>
           <span className="font-label-md text-label-md hidden sm:inline">Dashboard</span>
@@ -227,11 +227,11 @@ function SessionContent({ sessionId }: { sessionId: string }) {
       </header>
 
       <div className="flex-1 p-container-padding flex flex-col gap-gutter max-w-5xl mx-auto w-full">
-        <div className="bg-surface rounded-xl border border-outline-variant shadow-sm p-stack-md flex flex-col sm:flex-row justify-between items-start sm:items-center gap-stack-sm">
+        <div className="bg-surface rounded-lg border-2 border-outline shadow-[4px_4px_0_#111111] p-stack-md flex flex-col sm:flex-row justify-between items-start sm:items-center gap-stack-sm">
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <span className={`w-2 h-2 rounded-full ${status === "active" ? "bg-primary pulse-ring" : "bg-outline"}`} />
-              <span className="font-label-sm text-label-sm text-primary uppercase tracking-widest">
+              <span className={`w-2.5 h-2.5 rounded-full border border-outline ${status === "active" ? "bg-primary pulse-ring" : "bg-outline"}`} />
+              <span className="font-label-sm text-label-sm text-primary uppercase tracking-widest font-bold">
                 {status === "active" ? "Live Session" : status === "closed" ? "Session Closed" : "Loading..."}
               </span>
             </div>
@@ -244,14 +244,14 @@ function SessionContent({ sessionId }: { sessionId: string }) {
               {connection === "live" ? "Live updates" : connection === "polling" ? "Reconnecting (polling)" : "Connecting..."}
             </p>
           </div>
-          <div className="bg-primary-container/10 border border-primary/20 px-3 py-1 rounded-full flex items-center gap-2">
-            <span className="material-symbols-outlined text-primary text-sm filled">shield_locked</span>
-            <span className="font-label-md text-label-md text-primary">Secure Mode Enabled</span>
+          <div className="bg-primary text-on-primary border-2 border-outline px-3 py-1.5 rounded-md flex items-center gap-2">
+            <span className="material-symbols-outlined text-sm filled">shield_locked</span>
+            <span className="font-label-md text-label-md font-bold">Secure Mode Enabled</span>
           </div>
         </div>
 
         {status === "closed" ? (
-          <div className="bg-surface rounded-xl border border-outline-variant shadow-sm p-stack-lg text-center">
+          <div className="bg-surface rounded-lg border-2 border-outline shadow-[4px_4px_0_#111111] p-stack-lg text-center">
             <span className="material-symbols-outlined text-5xl text-primary mb-3">task_alt</span>
             <h3 className="font-headline-lg text-headline-lg text-on-surface mb-1">Session Closed</h3>
             <p className="font-body-md text-body-md text-on-surface-variant mb-4">
@@ -259,20 +259,20 @@ function SessionContent({ sessionId }: { sessionId: string }) {
             </p>
             <button
               onClick={() => router.push("/professor/dashboard")}
-              className="px-5 py-2 bg-primary text-on-primary rounded-lg font-label-md text-label-md hover:bg-primary/90 transition-colors"
+              className="px-5 py-2 bg-primary text-on-primary border-2 border-outline rounded-md font-label-md text-label-md transition-colors"
             >
               Back to Dashboard
             </button>
           </div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-gutter flex-1">
-            <div className="lg:col-span-2 bg-inverse-surface rounded-xl border border-outline-variant shadow-sm flex flex-col relative overflow-hidden min-h-[420px]">
-              <div className="p-stack-md flex justify-between items-center z-10">
-                <h3 className="font-headline-md text-headline-md text-on-primary">Scan to Mark Attendance</h3>
+            <div className="lg:col-span-2 bg-surface rounded-lg border-2 border-outline shadow-[6px_6px_0_#111111] flex flex-col relative overflow-hidden min-h-[420px]">
+              <div className="p-stack-md flex justify-between items-center z-10 border-b-2 border-outline">
+                <h3 className="font-headline-md text-headline-md text-on-surface">Scan to Mark Attendance</h3>
               </div>
-              <div className="flex-1 flex flex-col items-center justify-center p-stack-lg z-10">
-                <div className="bg-surface p-4 rounded-xl shadow-lg relative">
-                  <div className="w-64 h-64 bg-surface-container-lowest border-2 border-primary rounded-lg flex items-center justify-center relative overflow-hidden">
+              <div className="flex-1 flex flex-col items-center justify-center p-stack-lg z-10 bg-surface-container-low">
+                <div className="bg-surface p-4 rounded-lg border-2 border-outline shadow-[4px_4px_0_#111111] relative">
+                  <div className="w-64 h-64 bg-white border-2 border-outline rounded-md flex items-center justify-center relative overflow-hidden">
                     {qrDataUrl ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img src={qrDataUrl} alt="Attendance QR code" className="w-full h-full object-contain" />
@@ -280,35 +280,35 @@ function SessionContent({ sessionId }: { sessionId: string }) {
                       <span className="material-symbols-outlined text-6xl text-primary opacity-50 animate-pulse">qr_code_2</span>
                     )}
                   </div>
-                  <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 bg-surface border border-outline-variant shadow-sm rounded-full px-4 py-1.5 flex items-center gap-2 whitespace-nowrap">
-                    <span className="material-symbols-outlined text-primary text-sm animate-spin" style={{ animationDuration: "3s" }}>
+                  <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 bg-secondary border-2 border-outline shadow-[2px_2px_0_#111111] rounded-md px-4 py-1.5 flex items-center gap-2 whitespace-nowrap">
+                    <span className="material-symbols-outlined text-on-secondary text-sm animate-spin" style={{ animationDuration: "3s" }}>
                       refresh
                     </span>
-                    <span className="font-label-sm text-label-sm text-on-surface-variant">
+                    <span className="font-label-sm text-label-sm text-on-secondary font-bold">
                       Refreshing in <span>{secondsLeft}</span>s
                     </span>
                   </div>
                 </div>
               </div>
-              <div className="h-1.5 w-full bg-inverse-surface/50 z-10 absolute bottom-0 left-0">
-                <div className="h-full bg-primary progress-bar-animated rounded-r-full" />
+              <div className="h-2 w-full bg-surface-container-high z-10 relative border-t-2 border-outline">
+                <div className="h-full bg-primary progress-bar-animated" style={{ width: `${(secondsLeft / QR_TTL_SECONDS) * 100}%` }} />
               </div>
             </div>
 
             <div className="flex flex-col gap-gutter h-full">
-              <div className="bg-surface rounded-xl border border-outline-variant shadow-sm p-stack-md flex-shrink-0">
-                <h4 className="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider mb-2">Attendance Status</h4>
+              <div className="bg-tertiary-container rounded-lg border-2 border-outline shadow-[4px_4px_0_#111111] p-stack-md flex-shrink-0">
+                <h4 className="font-label-md text-label-md text-on-tertiary-container uppercase tracking-wider mb-2">Attendance Status</h4>
                 <div className="flex items-baseline gap-2">
-                  <span className="font-display-lg text-display-lg text-on-surface">{presentCount}</span>
-                  <span className="font-headline-md text-headline-md text-on-surface-variant">/ {totalEnrolled}</span>
+                  <span className="font-display-lg text-display-lg text-on-tertiary-container">{presentCount}</span>
+                  <span className="font-headline-md text-headline-md text-on-tertiary-container">/ {totalEnrolled}</span>
                 </div>
-                <div className="mt-4 w-full bg-surface-container rounded-full h-2 overflow-hidden">
-                  <div className="bg-primary h-full rounded-full" style={{ width: `${percent}%` }} />
+                <div className="mt-4 w-full bg-surface border-2 border-outline rounded-md h-3 overflow-hidden">
+                  <div className="bg-primary h-full" style={{ width: `${percent}%` }} />
                 </div>
-                <p className="font-label-sm text-label-sm text-on-surface-variant mt-2 text-right">{percent}% Present</p>
+                <p className="font-label-sm text-label-sm text-on-tertiary-container mt-2 text-right font-bold">{percent}% Present</p>
               </div>
 
-              <div className="bg-surface rounded-xl border border-outline-variant shadow-sm p-stack-md flex-1 flex flex-col min-h-[200px]">
+              <div className="bg-surface rounded-lg border-2 border-outline shadow-[4px_4px_0_#111111] p-stack-md flex-1 flex flex-col min-h-[200px]">
                 <div className="flex justify-between items-center mb-stack-sm">
                   <h4 className="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Live Feed</h4>
                   <span className="flex h-2 w-2 relative">

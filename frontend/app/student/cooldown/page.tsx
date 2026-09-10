@@ -87,21 +87,14 @@ function CooldownContent() {
   const progressPct = Math.max(0, Math.min(100, (remaining / 3600) * 100));
 
   return (
-    <main className="flex-1 flex flex-col justify-center items-center w-full min-h-screen p-container-padding relative overflow-hidden bg-slate-50">
-      <div
-        className="absolute inset-0 z-0 pointer-events-none opacity-20"
-        style={{
-          background:
-            "radial-gradient(circle at top right, #e2dfff 0%, transparent 40%), radial-gradient(circle at bottom left, #ffdad6 0%, transparent 40%)",
-        }}
-      />
+    <main className="flex-1 flex flex-col justify-center items-center w-full min-h-screen p-container-padding relative overflow-hidden bg-background">
       <div className="w-full max-w-lg z-10 flex flex-col items-center justify-center animate-fade-in-up">
-        <div className="bg-surface-container-lowest border border-outline-variant rounded-xl shadow-sm p-stack-lg w-full flex flex-col items-center text-center relative overflow-hidden glass-card">
-          <div className="absolute top-0 left-0 w-full h-1 bg-surface-container-high">
-            <div className="h-full bg-primary" style={{ width: `${progressPct}%` }} />
+        <div className="bg-surface border-2 border-outline rounded-lg shadow-[6px_6px_0_#111111] p-stack-lg w-full flex flex-col items-center text-center relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-2 bg-surface-container-high border-b-2 border-outline">
+            <div className="h-full bg-error" style={{ width: `${progressPct}%` }} />
           </div>
-          <div className="w-16 h-16 rounded-full bg-error-container/30 flex items-center justify-center mb-stack-md">
-            <span className="material-symbols-outlined filled text-error" style={{ fontSize: 32 }}>
+          <div className="w-16 h-16 rounded-md bg-error-container border-2 border-outline flex items-center justify-center mb-stack-md mt-2">
+            <span className="material-symbols-outlined filled text-on-error-container" style={{ fontSize: 32 }}>
               lock_clock
             </span>
           </div>
@@ -109,10 +102,10 @@ function CooldownContent() {
           <p className="font-body-md text-body-md text-on-surface-variant mb-stack-lg max-w-sm">
             For security, attendance can only be marked once per 60-minute window from a single device.
           </p>
-          <div className="bg-surface-container py-6 px-10 rounded-xl border border-outline-variant/50 shadow-inner mb-stack-lg w-full flex flex-col items-center">
-            <div className="font-display-lg text-display-lg text-primary tracking-tight font-extrabold flex items-center gap-1">
+          <div className="bg-surface-container-low py-6 px-10 rounded-md border-2 border-outline mb-stack-lg w-full flex flex-col items-center">
+            <div className="font-display-lg text-display-lg text-on-surface tracking-tight font-extrabold flex items-center gap-1">
               <span>{m}</span>
-              <span style={{ opacity: blink ? 1 : 0 }} className="text-primary-fixed-dim">
+              <span style={{ opacity: blink ? 1 : 0 }} className="text-primary">
                 :
               </span>
               <span>{s}</span>
@@ -123,18 +116,18 @@ function CooldownContent() {
               </div>
             )}
           </div>
-          <div className="flex items-start gap-3 bg-secondary-container/20 p-4 rounded-lg border border-secondary-container/50 w-full text-left">
-            <span className="material-symbols-outlined text-secondary mt-0.5" style={{ fontSize: 20 }}>
+          <div className="flex items-start gap-3 bg-secondary-container p-4 rounded-md border-2 border-outline w-full text-left">
+            <span className="material-symbols-outlined text-on-secondary-container mt-0.5" style={{ fontSize: 20 }}>
               security
             </span>
-            <p className="font-label-sm text-label-sm text-on-secondary-container leading-relaxed">
+            <p className="font-label-sm text-label-sm text-on-secondary-container leading-relaxed font-semibold">
               Multiple device logins or frequent logouts trigger this protective state. Please wait for the timer to expire before
               attempting to mark attendance again.
             </p>
           </div>
           <button
             onClick={() => router.push("/student/dashboard")}
-            className="mt-stack-lg font-label-md text-label-md text-secondary border border-outline-variant rounded-lg px-6 py-2.5 hover:bg-surface-container-high transition-colors flex items-center gap-2"
+            className="mt-stack-lg font-label-md text-label-md text-on-surface border border-outline-variant bg-white rounded-md px-6 py-2.5 transition-colors flex items-center gap-2"
           >
             <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
               arrow_back
@@ -142,7 +135,7 @@ function CooldownContent() {
             Return to Dashboard
           </button>
         </div>
-        <div className="mt-stack-lg font-label-sm text-label-sm text-on-surface-variant/50 tracking-wider">PROXY BUSTERS SECURITY</div>
+        <div className="mt-stack-lg font-label-sm text-label-sm text-on-surface-variant tracking-wider">PROXY BUSTERS SECURITY</div>
       </div>
     </main>
   );

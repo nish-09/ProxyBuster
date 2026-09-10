@@ -174,7 +174,7 @@ function AttendanceContent() {
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-gutter">
           <Card className="lg:col-span-8 flex flex-col justify-center">
-            <h3 className="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider mb-6 border-b border-surface-variant pb-2">
+            <h3 className="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider mb-6 border-b border-outline pb-2">
               Overview
             </h3>
             <div className="grid grid-cols-4 gap-4 divide-x divide-surface-variant">
@@ -196,7 +196,7 @@ function AttendanceContent() {
           </Card>
 
           <Card className="lg:col-span-4 flex flex-col relative overflow-hidden">
-            <h3 className="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider mb-4 border-b border-surface-variant pb-2 relative z-10">
+            <h3 className="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider mb-4 border-b border-outline pb-2 relative z-10">
               Status
             </h3>
             <div className="flex-1 flex flex-col justify-center items-center relative z-10">
@@ -228,7 +228,7 @@ function AttendanceContent() {
           </Card>
 
           <Card className="lg:col-span-4">
-            <div className="flex items-center justify-between border-b border-surface-variant pb-2 mb-4">
+            <div className="flex items-center justify-between border-b border-outline pb-2 mb-4">
               <h3 className="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">{monthLabel}</h3>
               <div className="flex gap-1">
                 <button
@@ -282,7 +282,7 @@ function AttendanceContent() {
           </Card>
 
           <Card className="lg:col-span-8 !p-0 flex flex-col overflow-hidden">
-            <div className="p-6 border-b border-surface-variant flex justify-between items-center bg-surface/50">
+            <div className="p-6 border-b border-outline flex justify-between items-center bg-surface/50">
               <h3 className="font-headline-md text-headline-md text-on-surface">Recent Lectures</h3>
               <button
                 onClick={() => downloadCsv(sortedEntries)}
@@ -328,7 +328,7 @@ function AttendanceContent() {
               )}
             </div>
             {visibleCount < sortedEntries.length && (
-              <div className="p-4 border-t border-surface-variant bg-surface/30 flex justify-center">
+              <div className="p-4 border-t border-outline bg-surface/30 flex justify-center">
                 <button
                   onClick={() => setVisibleCount((c) => c + 10)}
                   className="font-label-md text-label-md text-primary hover:text-on-primary-fixed-variant transition-colors flex items-center gap-1 uppercase tracking-wider"

@@ -49,27 +49,15 @@ function SubjectCard({ subject }: { subject: SubjectAttendanceOut }) {
     <div
       className={
         warning
-          ? "rounded-xl border-2 border-amber-300 bg-gradient-to-br from-white to-amber-50 p-5 flex flex-col relative overflow-hidden"
-          : "bg-surface-container-lowest rounded-xl border border-surface-variant card-shadow p-5 flex flex-col"
+          ? "rounded-lg border-2 border-outline bg-secondary-container shadow-[4px_4px_0_#111111] p-5 flex flex-col relative overflow-hidden"
+          : "bg-tertiary-container rounded-lg border-2 border-outline shadow-[4px_4px_0_#111111] p-5 flex flex-col"
       }
     >
       <div className="flex justify-between items-start mb-4">
-        <div
-          className={
-            warning
-              ? "w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center text-amber-700"
-              : "w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center text-on-surface-variant"
-          }
-        >
+        <div className="w-10 h-10 rounded-md bg-white border-2 border-outline flex items-center justify-center text-on-surface">
           <span className="material-symbols-outlined">menu_book</span>
         </div>
-        <span
-          className={
-            warning
-              ? "font-label-md text-label-md text-amber-700 bg-amber-100 px-2 py-1 rounded border border-amber-200 flex items-center gap-1"
-              : "font-label-md text-label-md text-emerald-600 bg-emerald-50 px-2 py-1 rounded"
-          }
-        >
+        <span className="font-label-md text-label-md font-bold text-on-surface bg-white px-2 py-1 rounded border-2 border-outline flex items-center gap-1">
           {warning && <span className="material-symbols-outlined text-[14px]">warning</span>}
           {warning ? "Action Req" : "Safe"}
         </span>
@@ -80,7 +68,7 @@ function SubjectCard({ subject }: { subject: SubjectAttendanceOut }) {
       <p className="font-body-md text-body-md text-on-surface-variant mb-4">{subject.subject_code}</p>
       <div className="mt-auto">
         <div className="flex justify-between items-end mb-2">
-          <span className={`font-display-lg text-display-lg leading-none ${warning ? "text-amber-700" : "text-on-surface"}`}>
+          <span className="font-display-lg text-display-lg leading-none text-on-surface">
             {subject.percentage.toFixed(0)}
             <span className="text-xl">%</span>
           </span>
@@ -88,11 +76,8 @@ function SubjectCard({ subject }: { subject: SubjectAttendanceOut }) {
             {subject.present + subject.late + subject.manual}/{subject.total}
           </span>
         </div>
-        <div className={`w-full rounded-full h-1.5 ${warning ? "bg-amber-100" : "bg-surface-variant"}`}>
-          <div
-            className={`h-1.5 rounded-full ${warning ? "bg-amber-500" : "bg-emerald-500"}`}
-            style={{ width: `${Math.min(subject.percentage, 100)}%` }}
-          />
+        <div className="w-full rounded-md h-2 bg-white border-2 border-outline overflow-hidden">
+          <div className="h-full bg-on-surface" style={{ width: `${Math.min(subject.percentage, 100)}%` }} />
         </div>
       </div>
     </div>
@@ -183,13 +168,11 @@ function DashboardContent() {
         </div>
         <div className="mt-4 md:mt-0 flex items-center gap-4">
           <span
-            className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full font-label-md text-label-md border ${
-              data.standing === "good"
-                ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                : "bg-amber-50 text-amber-700 border-amber-200"
+            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md font-label-md text-label-md font-bold border-2 border-outline shadow-[2px_2px_0_#111111] ${
+              data.standing === "good" ? "bg-tertiary-container text-on-tertiary-container" : "bg-secondary-container text-on-secondary-container"
             }`}
           >
-            <span className={`w-2 h-2 rounded-full ${data.standing === "good" ? "bg-emerald-500" : "bg-amber-500"}`} />
+            <span className={`w-2 h-2 rounded-full border border-outline ${data.standing === "good" ? "bg-tertiary" : "bg-secondary"}`} />
             {data.standing === "good" ? "Good Standing" : "Needs Attention"}
           </span>
         </div>
@@ -204,7 +187,7 @@ function DashboardContent() {
           <div className="flex-1 flex items-center justify-center py-6">
             <Donut pct={data.overall_percentage} />
           </div>
-          <div className="grid grid-cols-2 gap-4 pt-4 border-t border-surface-variant">
+          <div className="grid grid-cols-2 gap-4 pt-4 border-t border-outline">
             <div>
               <p className="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Total Classes</p>
               <p className="font-headline-md text-headline-md text-on-surface">{data.total_classes}</p>
@@ -228,22 +211,22 @@ function DashboardContent() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-12 gap-gutter mt-gutter">
-        <div className="md:col-span-5 bg-primary rounded-xl card-shadow p-6 relative overflow-hidden text-on-primary">
+        <div className="md:col-span-5 bg-primary rounded-lg border-2 border-outline shadow-[4px_4px_0_#111111] p-6 relative overflow-hidden text-on-primary">
           <div className="relative z-10 h-full flex flex-col">
             <div className="flex items-center gap-2 mb-2">
-              <span className="material-symbols-outlined text-tertiary-fixed-dim">calculate</span>
+              <span className="material-symbols-outlined text-on-primary">calculate</span>
               <h3 className="font-headline-md text-headline-md">Bunk Calculator</h3>
             </div>
-            <p className="font-body-md text-body-md text-primary-fixed-dim mb-6">
+            <p className="font-body-md text-body-md text-primary-fixed mb-6">
               &ldquo;Can I miss the next class without dropping below 75%?&rdquo;
             </p>
-            <div className="bg-surface/10 rounded-lg p-4 backdrop-blur-sm border border-surface/20 mt-auto">
+            <div className="bg-white rounded-md p-4 border-2 border-outline mt-auto">
               <div className="flex justify-between items-center mb-3">
-                <span className="font-label-md text-label-md text-primary-fixed uppercase tracking-wider">Target Subject</span>
+                <span className="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Target Subject</span>
                 <select
                   value={calcSubject}
                   onChange={(e) => setCalcSubject(e.target.value)}
-                  className="bg-transparent border-b border-primary-fixed-dim text-on-primary text-sm focus:outline-none focus:border-white py-1"
+                  className="bg-transparent border-b-2 border-outline text-on-surface text-sm focus:outline-none py-1"
                 >
                   {data.subjects.map((s) => (
                     <option className="text-on-surface" key={s.class_division_id} value={s.class_division_id}>
@@ -252,17 +235,17 @@ function DashboardContent() {
                   ))}
                 </select>
               </div>
-              <div className="flex items-end justify-between border-t border-surface/20 pt-3">
+              <div className="flex items-end justify-between border-t-2 border-outline pt-3">
                 <div>
-                  <p className="font-label-sm text-label-sm text-primary-fixed-dim mb-1">If you miss the next class</p>
-                  <p className="font-headline-lg text-headline-lg font-bold">
+                  <p className="font-label-sm text-label-sm text-on-surface-variant mb-1">If you miss the next class</p>
+                  <p className="font-headline-lg text-headline-lg font-bold text-on-surface">
                     {calcLoading || !calcResult ? "—" : `${calcResult.projected_after_missing_1.toFixed(1)}%`}
                   </p>
                 </div>
                 {calcResult && (
                   <div
-                    className={`flex items-center gap-1 px-2 py-1 rounded ${
-                      calcResult.classes_can_miss > 0 ? "text-emerald-300 bg-emerald-900/30" : "text-amber-200 bg-amber-900/30"
+                    className={`flex items-center gap-1 px-2 py-1 rounded border-2 border-outline font-bold ${
+                      calcResult.classes_can_miss > 0 ? "text-on-tertiary-container bg-tertiary-container" : "text-on-secondary-container bg-secondary-container"
                     }`}
                   >
                     <span className="material-symbols-outlined text-[16px]">
@@ -280,8 +263,8 @@ function DashboardContent() {
           </div>
         </div>
 
-        <div className="md:col-span-7 bg-surface-container-lowest rounded-xl border border-surface-variant card-shadow flex flex-col overflow-hidden">
-          <div className="border-b border-surface-variant px-6 py-4 flex justify-between items-center bg-surface/50">
+        <div className="md:col-span-7 bg-surface-container-lowest rounded-xl border border-outline card-shadow flex flex-col overflow-hidden">
+          <div className="border-b border-outline px-6 py-4 flex justify-between items-center bg-surface/50">
             <h3 className="font-headline-md text-headline-md text-on-surface">Today&apos;s Schedule</h3>
           </div>
           <div className="divide-y divide-surface-variant flex-1 overflow-y-auto">

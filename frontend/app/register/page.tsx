@@ -48,30 +48,30 @@ export default function RegisterPage() {
   }
 
   const inputClass =
-    "w-full h-10 px-3 bg-surface-container border border-outline-variant rounded-md text-body-md font-body-md focus:ring-2 focus:ring-primary/15 focus:border-primary transition-all";
+    "w-full h-10 px-3 bg-white border-2 border-outline rounded-md text-body-md font-body-md focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all";
   const labelClass = "block font-label-md text-label-md text-on-surface-variant mb-1";
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-surface p-6 py-12">
-      <div className="w-full max-w-md bg-surface-container-lowest border border-outline-variant rounded-xl card-shadow p-stack-lg">
+    <div className="min-h-screen flex items-center justify-center bg-background p-6 py-12">
+      <div className="w-full max-w-md bg-surface border-2 border-outline rounded-lg shadow-[6px_6px_0_#111111] p-stack-lg">
         <div className="flex items-center gap-3 mb-stack-lg">
-          <div className="w-10 h-10 rounded-lg bg-primary-container flex items-center justify-center text-on-primary-container">
+          <div className="w-11 h-11 rounded-md bg-primary border-2 border-outline flex items-center justify-center text-on-primary">
             <span className="material-symbols-outlined filled">security</span>
           </div>
           <div>
-            <h1 className="font-headline-lg text-headline-lg font-bold text-primary">Proxy Busters</h1>
-            <p className="font-label-sm text-label-sm text-on-surface-variant">Create your account</p>
+            <h1 className="font-headline-lg text-headline-lg font-extrabold text-on-surface">Proxy Busters</h1>
+            <p className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Create your account</p>
           </div>
         </div>
 
-        <div className="mb-stack-md flex rounded-full bg-surface-container p-1">
+        <div className="mb-stack-md grid grid-cols-2 gap-2 rounded-md bg-surface-container p-1 border-2 border-outline">
           {(["student", "professor"] as UserRole[]).map((r) => (
             <button
               key={r}
               type="button"
               onClick={() => setRole(r)}
-              className={`flex-1 py-2 rounded-full font-body-md text-body-md capitalize transition-colors ${
-                role === r ? "bg-primary text-on-primary font-bold" : "text-on-surface-variant"
+              className={`py-2 rounded font-label-md text-label-md uppercase tracking-wide transition-colors ${
+                role === r ? "bg-secondary text-on-secondary font-bold border-2 border-outline" : "text-on-surface-variant border-2 border-transparent"
               }`}
             >
               {r}
@@ -80,8 +80,8 @@ export default function RegisterPage() {
         </div>
 
         {error && (
-          <div className="mb-stack-md rounded-lg border border-error/20 bg-error-container/30 p-3">
-            <p className="font-body-md text-body-md text-error">{error}</p>
+          <div className="mb-stack-md rounded-md border-2 border-outline bg-error-container p-3">
+            <p className="font-body-md text-body-md text-on-error-container font-semibold">{error}</p>
           </div>
         )}
 
@@ -177,7 +177,7 @@ export default function RegisterPage() {
           <button
             type="submit"
             disabled={submitting}
-            className="w-full h-10 rounded-md bg-primary text-on-primary font-body-md font-bold hover:bg-primary/90 transition-colors disabled:opacity-60"
+            className="w-full h-10 rounded-md bg-primary text-on-primary font-label-md text-label-md font-bold border-2 border-outline transition-colors disabled:opacity-60"
           >
             {submitting ? "Creating account..." : "Create Account"}
           </button>

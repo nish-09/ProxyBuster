@@ -46,19 +46,19 @@ export function SideNavBar({ role }: { role: "student" | "professor" | "admin" }
   const items = role === "student" ? STUDENT_ITEMS : role === "admin" ? ADMIN_ITEMS : PROFESSOR_ITEMS;
 
   return (
-    <nav className="hidden md:flex flex-col h-full p-stack-md fixed left-0 top-0 h-full w-[280px] bg-surface border-r border-outline-variant shadow-sm z-50">
+    <nav className="hidden md:flex flex-col h-full p-stack-md fixed left-0 top-0 h-full w-[280px] bg-surface border-r-2 border-outline z-50">
       <div className="mb-stack-lg flex items-center gap-3 px-3">
-        <div className="w-10 h-10 rounded-lg bg-primary-container flex items-center justify-center text-on-primary-container">
+        <div className="w-10 h-10 rounded-md bg-primary border-2 border-outline shadow-[3px_3px_0_#111111] flex items-center justify-center text-on-primary">
           <span className="material-symbols-outlined filled">security</span>
         </div>
         <div>
-          <h1 className="font-headline-lg text-headline-lg font-bold text-primary">Proxy Busters</h1>
-          <p className="font-label-sm text-label-sm text-on-surface-variant">
+          <h1 className="font-headline-lg text-headline-lg font-extrabold text-on-surface">Proxy Busters</h1>
+          <p className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">
             {role === "student" ? "Student Portal" : role === "admin" ? "Admin Portal" : "Faculty Portal"}
           </p>
         </div>
       </div>
-      <ul className="flex-1 space-y-1">
+      <ul className="flex-1 space-y-2">
         {items.map((item) => {
           const active = pathname?.startsWith(item.href);
           return (
@@ -67,32 +67,32 @@ export function SideNavBar({ role }: { role: "student" | "professor" | "admin" }
                 href={item.href}
                 className={
                   active
-                    ? "flex items-center gap-3 px-4 py-3 text-primary font-bold bg-secondary-container/30 rounded-lg transition-transform duration-150"
-                    : "flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors duration-200 rounded-lg"
+                    ? "flex items-center gap-3 px-4 py-3 text-on-secondary font-bold bg-secondary border-2 border-outline rounded-md shadow-[3px_3px_0_#111111] transition-transform duration-150"
+                    : "flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high border-2 border-transparent rounded-md transition-colors duration-200"
                 }
               >
                 <span className={`material-symbols-outlined${active ? " filled" : ""}`}>{item.icon}</span>
-                <span className="font-body-md text-body-md">{item.label}</span>
+                <span className="font-body-md text-body-md font-semibold">{item.label}</span>
               </Link>
             </li>
           );
         })}
       </ul>
-      <div className="mt-auto pt-4 border-t border-surface-variant">
+      <div className="mt-auto pt-4 border-t-2 border-outline">
         <ul className="space-y-1">
           <li>
             <a
-              className="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors duration-200 rounded-lg cursor-pointer"
+              className="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors duration-200 rounded-md cursor-pointer"
               href="#"
             >
               <span className="material-symbols-outlined">help</span>
-              <span className="font-body-md text-body-md">Support</span>
+              <span className="font-body-md text-body-md font-semibold">Support</span>
             </a>
           </li>
           <li>
             <button
               onClick={() => logout()}
-              className="w-full flex items-center gap-3 px-4 py-3 text-error hover:bg-error-container/20 transition-colors duration-200 rounded-lg"
+              className="w-full flex items-center gap-3 px-4 py-3 text-error hover:bg-error-container/40 transition-colors duration-200 rounded-md font-semibold"
             >
               <span className="material-symbols-outlined">logout</span>
               <span className="font-body-md text-body-md">Logout</span>

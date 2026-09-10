@@ -124,7 +124,7 @@ function StudentsContent() {
               <div className="p-8 text-center font-body-md text-body-md text-on-surface-variant">No students match these filters.</div>
             ) : (
               <table className="w-full text-left border-collapse">
-                <thead className="bg-surface-container-lowest border-b border-surface-variant">
+                <thead className="bg-surface-container-lowest border-b border-outline">
                   <tr>
                     <th className="py-3 px-4 font-label-md text-label-md text-on-surface-variant">Student</th>
                     <th className="py-3 px-4 font-label-md text-label-md text-on-surface-variant">Program</th>
