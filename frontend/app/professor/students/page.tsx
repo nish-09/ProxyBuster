@@ -74,7 +74,7 @@ function StudentsContent() {
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
                 placeholder="Search name or roll..."
-                className="h-10 pl-9 pr-3 bg-surface-container border border-outline-variant rounded-md font-body-md text-body-md focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none w-56"
+                className="h-10 pl-9 pr-3 bg-surface-container border border-outline-variant rounded-md font-body-md text-body-md focus:outline-none focus:border-primary outline-none w-56"
               />
             </div>
             <select

@@ -215,6 +215,7 @@ export interface CooldownStatusOut {
   active: boolean;
   remaining_seconds: number;
   expires_at: string | null;
+  reason: string | null;
 }
 
 export interface DeviceSessionOut {
@@ -335,6 +336,12 @@ export interface AttendanceSheetCell {
   method: string | null;
 }
 
+export interface AttendanceSheetColumn {
+  lecture_id: string;
+  date: string;
+  label: string;
+}
+
 export interface AttendanceSheetRow {
   student_id: string;
   full_name: string;
@@ -346,7 +353,7 @@ export interface AttendanceSheetRow {
 }
 
 export interface AttendanceSheetOut {
-  dates: string[];
+  columns: AttendanceSheetColumn[];
   rows: AttendanceSheetRow[];
 }
 
@@ -415,6 +422,7 @@ export interface LiveSessionState {
   present_count: number;
   total_enrolled: number;
   current_token_expires_at: string | null;
+  session_expires_at: string | null;
   qr_payload: string | null;
   feed: LiveFeedEntry[];
 }
@@ -423,6 +431,12 @@ export interface ScanResult {
   status: "marked" | "rejected";
   attendance_status: string | null;
   message: string;
+  subject_code: string | null;
+  subject_name: string | null;
+  division_name: string | null;
+  session_topic: string | null;
+  marked_at: string | null;
+  cooldown_seconds: number | null;
 }
 
 export interface ManualAttendanceOut {
@@ -438,6 +452,8 @@ export interface ManualAttendanceOut {
 export const attendanceApi = {
   createSession: (lecture_id: string) =>
     request<AttendanceSessionOut>("/attendance/sessions", { method: "POST", body: { lecture_id } }),
+  createAdhocSession: (payload: { class_division_id: string; duration_minutes: number; topic?: string }) =>
+    request<AttendanceSessionOut>("/attendance/sessions/adhoc", { method: "POST", body: payload }),
   getSession: (sessionId: string) => request<AttendanceSessionOut>(`/attendance/sessions/${sessionId}`),
   closeSession: (sessionId: string) => request<AttendanceSessionOut>(`/attendance/sessions/${sessionId}/close`, { method: "POST" }),
   liveSession: (sessionId: string) => request<LiveSessionState>(`/attendance/sessions/${sessionId}/live`),

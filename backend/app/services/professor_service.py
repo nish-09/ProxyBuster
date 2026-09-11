@@ -375,7 +375,16 @@ def attendance_sheet(
         .all()
     )
     lecture_dates = [ensure_utc(l.scheduled_start).date().isoformat() for l in lectures]
-    date_by_lecture = dict(zip([l.id for l in lectures], lecture_dates))
+    date_counts: dict[str, int] = {}
+    for d in lecture_dates:
+        date_counts[d] = date_counts.get(d, 0) + 1
+    columns = []
+    for lecture, iso_date in zip(lectures, lecture_dates):
+        if date_counts[iso_date] > 1:
+            label = ensure_utc(lecture.scheduled_start).strftime("%b %d %I:%M %p")
+        else:
+            label = iso_date
+        columns.append({"lecture_id": lecture.id, "date": iso_date, "label": label})
 
     enrollments = db.query(Enrollment).filter(Enrollment.class_division_id == class_division_id).all()
     student_ids = [e.student_id for e in enrollments]
@@ -400,8 +409,7 @@ def attendance_sheet(
         cells: dict[str, AttendanceSheetCell] = {}
         for lecture in lectures:
             record = records_by_student.get(sid, {}).get(lecture.id)
-            iso_date = date_by_lecture[lecture.id]
-            cells[iso_date] = (
+            cells[str(lecture.id)] = (
                 AttendanceSheetCell(status=record.status.value, method=record.method.value)
                 if record
                 else AttendanceSheetCell(status=None, method=None)
@@ -427,7 +435,7 @@ def attendance_sheet(
             )
         )
 
-    return AttendanceSheetOut(dates=sorted(set(lecture_dates)), rows=rows)
+    return AttendanceSheetOut(columns=columns, rows=rows)
 
 
 def security_events(

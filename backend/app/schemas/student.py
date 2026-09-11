@@ -70,6 +70,7 @@ class CooldownStatusOut(BaseModel):
     active: bool
     remaining_seconds: int
     expires_at: datetime | None = None
+    reason: str | None = None
 
 
 class DeviceSessionOut(BaseModel):

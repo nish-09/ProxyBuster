@@ -48,30 +48,32 @@ export default function RegisterPage() {
   }
 
   const inputClass =
-    "w-full h-10 px-3 bg-white border-2 border-outline rounded-md text-body-md font-body-md focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all";
+    "w-full h-10 px-3 bg-surface-container-low border border-outline rounded-md text-body-md font-body-md text-on-surface focus:outline-none focus:border-primary transition-all";
   const labelClass = "block font-label-md text-label-md text-on-surface-variant mb-1";
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-6 py-12">
-      <div className="w-full max-w-md bg-surface border-2 border-outline rounded-lg shadow-[6px_6px_0_#111111] p-stack-lg">
+      <div className="w-full max-w-md bg-surface border border-outline rounded-lg card-shadow p-stack-lg">
         <div className="flex items-center gap-3 mb-stack-lg">
-          <div className="w-11 h-11 rounded-md bg-primary border-2 border-outline flex items-center justify-center text-on-primary">
+          <div className="w-11 h-11 rounded-md bg-primary border border-outline shadow-[inset_0_1px_0_rgba(255,255,255,0.2),0_2px_5px_rgba(0,0,0,0.4)] flex items-center justify-center text-on-primary">
             <span className="material-symbols-outlined filled">security</span>
           </div>
           <div>
-            <h1 className="font-headline-lg text-headline-lg font-extrabold text-on-surface">Proxy Busters</h1>
-            <p className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Create your account</p>
+            <h1 className="font-headline-lg text-headline-lg font-bold text-on-surface">Proxy Busters</h1>
+            <p className="font-label-sm text-label-sm text-on-surface-variant">Create your account</p>
           </div>
         </div>
 
-        <div className="mb-stack-md grid grid-cols-2 gap-2 rounded-md bg-surface-container p-1 border-2 border-outline">
+        <div className="mb-stack-md grid grid-cols-2 gap-2 rounded-md bg-surface-container-low p-1 border border-outline shadow-[inset_0_1px_3px_rgba(0,0,0,0.3)]">
           {(["student", "professor"] as UserRole[]).map((r) => (
             <button
               key={r}
               type="button"
               onClick={() => setRole(r)}
-              className={`py-2 rounded font-label-md text-label-md uppercase tracking-wide transition-colors ${
-                role === r ? "bg-secondary text-on-secondary font-bold border-2 border-outline" : "text-on-surface-variant border-2 border-transparent"
+              className={`py-2 rounded font-label-md text-label-md capitalize transition-all ${
+                role === r
+                  ? "bg-surface-container-high text-on-surface font-semibold border border-outline shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]"
+                  : "text-on-surface-variant border border-transparent"
               }`}
             >
               {r}
@@ -80,27 +82,27 @@ export default function RegisterPage() {
         </div>
 
         {error && (
-          <div className="mb-stack-md rounded-md border-2 border-outline bg-error-container p-3">
-            <p className="font-body-md text-body-md text-on-error-container font-semibold">{error}</p>
+          <div className="mb-stack-md rounded-md border border-outline bg-error-container p-3 shadow-[inset_0_1px_3px_rgba(0,0,0,0.3)]">
+            <p className="font-body-md text-body-md text-on-error-container font-medium">{error}</p>
           </div>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className={labelClass} htmlFor="full_name">
-              FULL NAME
+              Full name
             </label>
             <input id="full_name" required value={fullName} onChange={(e) => setFullName(e.target.value)} className={inputClass} />
           </div>
           <div>
             <label className={labelClass} htmlFor="email">
-              EMAIL
+              Email
             </label>
             <input id="email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} className={inputClass} />
           </div>
           <div>
             <label className={labelClass} htmlFor="password">
-              PASSWORD
+              Password
             </label>
             <input
               id="password"
@@ -117,13 +119,13 @@ export default function RegisterPage() {
             <>
               <div>
                 <label className={labelClass} htmlFor="roll_number">
-                  ROLL NUMBER
+                  Roll number
                 </label>
                 <input id="roll_number" required value={rollNumber} onChange={(e) => setRollNumber(e.target.value)} className={inputClass} />
               </div>
               <div>
                 <label className={labelClass} htmlFor="program">
-                  PROGRAM
+                  Program
                 </label>
                 <input
                   id="program"
@@ -136,7 +138,7 @@ export default function RegisterPage() {
               </div>
               <div>
                 <label className={labelClass} htmlFor="semester">
-                  SEMESTER
+                  Semester
                 </label>
                 <input
                   id="semester"
@@ -154,13 +156,13 @@ export default function RegisterPage() {
             <>
               <div>
                 <label className={labelClass} htmlFor="department">
-                  DEPARTMENT
+                  Department
                 </label>
                 <input id="department" required value={department} onChange={(e) => setDepartment(e.target.value)} className={inputClass} />
               </div>
               <div>
                 <label className={labelClass} htmlFor="invite_code">
-                  PROFESSOR INVITE CODE
+                  Professor invite code
                 </label>
                 <input
                   id="invite_code"
@@ -177,7 +179,7 @@ export default function RegisterPage() {
           <button
             type="submit"
             disabled={submitting}
-            className="w-full h-10 rounded-md bg-primary text-on-primary font-label-md text-label-md font-bold border-2 border-outline transition-colors disabled:opacity-60"
+            className="w-full h-10 rounded-md bg-primary text-on-primary font-label-md text-label-md font-semibold border border-outline transition-colors disabled:opacity-60"
           >
             {submitting ? "Creating account..." : "Create Account"}
           </button>
@@ -185,7 +187,7 @@ export default function RegisterPage() {
 
         <p className="mt-stack-md text-center font-body-md text-body-md text-on-surface-variant">
           Already have an account?{" "}
-          <Link href="/login" className="text-primary font-bold hover:underline">
+          <Link href="/login" className="text-tertiary font-semibold hover:underline">
             Sign in
           </Link>
         </p>

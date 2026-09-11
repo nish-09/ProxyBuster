@@ -48,7 +48,7 @@ export function ManualEntryModal({ students, onClose, onSubmit }: ManualEntryMod
             <select
               value={studentId}
               onChange={(e) => setStudentId(e.target.value)}
-              className="w-full h-10 px-3 bg-surface-container border border-outline-variant rounded-md font-body-md text-body-md focus:ring-2 focus:ring-primary/15 focus:border-primary outline-none"
+              className="w-full h-10 px-3 bg-surface-container border border-outline-variant rounded-md font-body-md text-body-md focus:outline-none focus:border-primary outline-none"
             >
               {students.map((s) => (
                 <option key={s.student_id} value={s.student_id}>
@@ -62,7 +62,7 @@ export function ManualEntryModal({ students, onClose, onSubmit }: ManualEntryMod
             <select
               value={status}
               onChange={(e) => setStatus(e.target.value as "present" | "absent" | "late")}
-              className="w-full h-10 px-3 bg-surface-container border border-outline-variant rounded-md font-body-md text-body-md focus:ring-2 focus:ring-primary/15 focus:border-primary outline-none"
+              className="w-full h-10 px-3 bg-surface-container border border-outline-variant rounded-md font-body-md text-body-md focus:outline-none focus:border-primary outline-none"
             >
               <option value="present">Present</option>
               <option value="late">Late</option>
@@ -76,7 +76,7 @@ export function ManualEntryModal({ students, onClose, onSubmit }: ManualEntryMod
               onChange={(e) => setReason(e.target.value)}
               rows={2}
               placeholder="e.g. Phone dead, QR scan failed"
-              className="w-full px-3 py-2 bg-surface-container border border-outline-variant rounded-md font-body-md text-body-md focus:ring-2 focus:ring-primary/15 focus:border-primary outline-none resize-none"
+              className="w-full px-3 py-2 bg-surface-container border border-outline-variant rounded-md font-body-md text-body-md focus:outline-none focus:border-primary outline-none resize-none"
             />
           </div>
         </div>

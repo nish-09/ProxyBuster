@@ -309,7 +309,9 @@ def cooldown_status(student_profile: StudentProfile = Depends(get_student_profil
     if cooldown is None:
         return CooldownStatusOut(active=False, remaining_seconds=0, expires_at=None)
     remaining = int((ensure_utc(cooldown.expires_at) - utcnow()).total_seconds())
-    return CooldownStatusOut(active=True, remaining_seconds=max(remaining, 0), expires_at=cooldown.expires_at)
+    return CooldownStatusOut(
+        active=True, remaining_seconds=max(remaining, 0), expires_at=cooldown.expires_at, reason=cooldown.reason
+    )
 
 
 @router.get("/me/sessions", response_model=list[DeviceSessionOut])

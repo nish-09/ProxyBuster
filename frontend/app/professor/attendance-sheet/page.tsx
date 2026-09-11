@@ -13,14 +13,14 @@ function initials(name: string) {
 }
 
 function isoDaysAgo(days: number) {
+  // Built from local Y/M/D (not toISOString, which converts to UTC and can shift the
+  // calendar date backwards for timezones ahead of UTC in the early-morning hours).
   const d = new Date();
   d.setDate(d.getDate() - days);
-  return d.toISOString().slice(0, 10);
-}
-
-function formatDateLabel(iso: string) {
-  const d = new Date(iso + "T00:00:00");
-  return d.toLocaleDateString([], { month: "short", day: "numeric" });
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
 }
 
 const STATUS_LETTER: Record<string, string> = { present: "P", absent: "A", late: "L", manual: "M", suspicious: "S" };
@@ -77,10 +77,10 @@ function SheetContent() {
 
   function exportCsv() {
     if (!sheet) return;
-    const header = ["Student", "Roll Number", ...sheet.dates.map(formatDateLabel), "Avg %"];
+    const header = ["Student", "Roll Number", ...sheet.columns.map((c) => c.label), "Avg %"];
     const lines = [header.join(",")];
     for (const row of filteredRows) {
-      const cells = sheet.dates.map((d) => STATUS_LETTER[row.cells[d]?.status ?? ""] ?? "");
+      const cells = sheet.columns.map((c) => STATUS_LETTER[row.cells[c.lecture_id]?.status ?? ""] ?? "");
       lines.push([`"${row.full_name}"`, row.roll_number, ...cells, row.avg_pct.toFixed(0)].join(","));
     }
     const blob = new Blob([lines.join("\n")], { type: "text/csv" });
@@ -110,7 +110,7 @@ function SheetContent() {
               <select
                 value={classDivisionId}
                 onChange={(e) => setClassDivisionId(e.target.value)}
-                className="h-10 px-3 bg-surface-container-lowest border border-outline-variant rounded-md font-body-md text-body-md focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none min-w-[160px]"
+                className="h-10 px-3 bg-surface-container-lowest border border-outline-variant rounded-md font-body-md text-body-md focus:outline-none focus:border-primary outline-none min-w-[160px]"
               >
                 {subjects.map((s) => (
                   <option key={s.class_division_id} value={s.class_division_id}>
@@ -136,7 +136,7 @@ function SheetContent() {
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   placeholder="Search student..."
-                  className="h-10 pl-9 pr-3 bg-surface-container-lowest border border-outline-variant rounded-md font-body-md text-body-md focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none w-full md:w-56"
+                  className="h-10 pl-9 pr-3 bg-surface-container-lowest border border-outline-variant rounded-md font-body-md text-body-md focus:outline-none focus:border-primary outline-none w-full md:w-56"
                 />
               </div>
               <button
@@ -162,9 +162,9 @@ function SheetContent() {
                         <th className="py-3 px-4 font-label-md text-label-md text-on-surface-variant whitespace-nowrap bg-surface-container-lowest">
                           Student Information
                         </th>
-                        {sheet.dates.map((d) => (
-                          <th key={d} className="py-3 px-4 font-label-md text-label-md text-on-surface-variant whitespace-nowrap text-center">
-                            {formatDateLabel(d)}
+                        {sheet.columns.map((c) => (
+                          <th key={c.lecture_id} className="py-3 px-4 font-label-md text-label-md text-on-surface-variant whitespace-nowrap text-center">
+                            {c.label}
                           </th>
                         ))}
                         <th className="py-3 px-4 font-label-md text-label-md text-on-surface-variant whitespace-nowrap text-right">Avg %</th>
@@ -192,11 +192,11 @@ function SheetContent() {
                               <div className="font-label-sm text-outline">Roll: {row.roll_number}</div>
                             </div>
                           </td>
-                          {sheet.dates.map((d) => {
-                            const cell = row.cells[d];
+                          {sheet.columns.map((c) => {
+                            const cell = row.cells[c.lecture_id];
                             const status = cell?.status ?? null;
                             return (
-                              <td key={d} className="py-3 px-4 text-center">
+                              <td key={c.lecture_id} className="py-3 px-4 text-center">
                                 {status ? (
                                   <span
                                     className={`inline-flex items-center justify-center w-6 h-6 rounded font-label-md ${CELL_STYLE[status] ?? "bg-surface-variant text-on-surface-variant"}`}
@@ -215,7 +215,7 @@ function SheetContent() {
                       ))}
                       {filteredRows.length === 0 && (
                         <tr>
-                          <td colSpan={sheet.dates.length + 2} className="py-10 text-center text-on-surface-variant">
+                          <td colSpan={sheet.columns.length + 2} className="py-10 text-center text-on-surface-variant">
                             No students match your search.
                           </td>
                         </tr>

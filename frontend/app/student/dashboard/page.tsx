@@ -49,35 +49,39 @@ function SubjectCard({ subject }: { subject: SubjectAttendanceOut }) {
     <div
       className={
         warning
-          ? "rounded-lg border-2 border-outline bg-secondary-container shadow-[4px_4px_0_#111111] p-5 flex flex-col relative overflow-hidden"
-          : "bg-tertiary-container rounded-lg border-2 border-outline shadow-[4px_4px_0_#111111] p-5 flex flex-col"
+          ? "rounded-lg border border-outline bg-secondary-container card-shadow p-5 flex flex-col relative overflow-hidden"
+          : "bg-tertiary-container rounded-lg border border-outline card-shadow p-5 flex flex-col"
       }
     >
       <div className="flex justify-between items-start mb-4">
-        <div className="w-10 h-10 rounded-md bg-white border-2 border-outline flex items-center justify-center text-on-surface">
+        <div className="w-10 h-10 rounded-md bg-surface-container-high border border-outline flex items-center justify-center text-on-surface shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
           <span className="material-symbols-outlined">menu_book</span>
         </div>
-        <span className="font-label-md text-label-md font-bold text-on-surface bg-white px-2 py-1 rounded border-2 border-outline flex items-center gap-1">
+        <span
+          className={`font-label-md text-label-md font-semibold px-2 py-1 rounded border border-outline flex items-center gap-1 ${
+            warning ? "bg-secondary text-on-secondary" : "bg-tertiary text-on-tertiary"
+          }`}
+        >
           {warning && <span className="material-symbols-outlined text-[14px]">warning</span>}
           {warning ? "Action Req" : "Safe"}
         </span>
       </div>
-      <h4 className="font-headline-md text-headline-md-mobile text-on-surface mb-1 truncate" title={subject.subject_name}>
+      <h4 className={`font-headline-md text-headline-md-mobile mb-1 truncate ${warning ? "text-on-secondary-container" : "text-on-tertiary-container"}`} title={subject.subject_name}>
         {subject.subject_name}
       </h4>
-      <p className="font-body-md text-body-md text-on-surface-variant mb-4">{subject.subject_code}</p>
+      <p className={`font-body-md text-body-md mb-4 ${warning ? "text-on-secondary-container" : "text-on-tertiary-container"} opacity-80`}>{subject.subject_code}</p>
       <div className="mt-auto">
         <div className="flex justify-between items-end mb-2">
-          <span className="font-display-lg text-display-lg leading-none text-on-surface">
+          <span className={`font-display-lg text-display-lg leading-none ${warning ? "text-on-secondary-container" : "text-on-tertiary-container"}`}>
             {subject.percentage.toFixed(0)}
             <span className="text-xl">%</span>
           </span>
-          <span className="font-label-sm text-label-sm text-on-surface-variant">
+          <span className={`font-label-sm text-label-sm ${warning ? "text-on-secondary-container" : "text-on-tertiary-container"} opacity-80`}>
             {subject.present + subject.late + subject.manual}/{subject.total}
           </span>
         </div>
-        <div className="w-full rounded-md h-2 bg-white border-2 border-outline overflow-hidden">
-          <div className="h-full bg-on-surface" style={{ width: `${Math.min(subject.percentage, 100)}%` }} />
+        <div className="w-full rounded-md h-2 bg-surface-dim border border-outline overflow-hidden shadow-[inset_0_1px_2px_rgba(0,0,0,0.4)]">
+          <div className={`h-full ${warning ? "bg-secondary" : "bg-tertiary"}`} style={{ width: `${Math.min(subject.percentage, 100)}%` }} />
         </div>
       </div>
     </div>
@@ -168,7 +172,7 @@ function DashboardContent() {
         </div>
         <div className="mt-4 md:mt-0 flex items-center gap-4">
           <span
-            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md font-label-md text-label-md font-bold border-2 border-outline shadow-[2px_2px_0_#111111] ${
+            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md font-label-md text-label-md font-semibold border border-outline card-shadow ${
               data.standing === "good" ? "bg-tertiary-container text-on-tertiary-container" : "bg-secondary-container text-on-secondary-container"
             }`}
           >
@@ -211,7 +215,7 @@ function DashboardContent() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-12 gap-gutter mt-gutter">
-        <div className="md:col-span-5 bg-primary rounded-lg border-2 border-outline shadow-[4px_4px_0_#111111] p-6 relative overflow-hidden text-on-primary">
+        <div className="md:col-span-5 bg-primary rounded-lg border border-outline card-shadow p-6 relative overflow-hidden text-on-primary">
           <div className="relative z-10 h-full flex flex-col">
             <div className="flex items-center gap-2 mb-2">
               <span className="material-symbols-outlined text-on-primary">calculate</span>
@@ -220,22 +224,22 @@ function DashboardContent() {
             <p className="font-body-md text-body-md text-primary-fixed mb-6">
               &ldquo;Can I miss the next class without dropping below 75%?&rdquo;
             </p>
-            <div className="bg-white rounded-md p-4 border-2 border-outline mt-auto">
+            <div className="bg-surface-dim rounded-md p-4 border border-outline mt-auto shadow-[inset_0_2px_6px_rgba(0,0,0,0.4)]">
               <div className="flex justify-between items-center mb-3">
-                <span className="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Target Subject</span>
+                <span className="font-label-md text-label-md text-on-surface-variant">Target Subject</span>
                 <select
                   value={calcSubject}
                   onChange={(e) => setCalcSubject(e.target.value)}
-                  className="bg-transparent border-b-2 border-outline text-on-surface text-sm focus:outline-none py-1"
+                  className="bg-transparent border-b border-outline text-on-surface text-sm focus:outline-none py-1"
                 >
                   {data.subjects.map((s) => (
-                    <option className="text-on-surface" key={s.class_division_id} value={s.class_division_id}>
+                    <option className="text-on-surface bg-surface" key={s.class_division_id} value={s.class_division_id}>
                       {s.subject_name}
                     </option>
                   ))}
                 </select>
               </div>
-              <div className="flex items-end justify-between border-t-2 border-outline pt-3">
+              <div className="flex items-end justify-between border-t border-outline pt-3">
                 <div>
                   <p className="font-label-sm text-label-sm text-on-surface-variant mb-1">If you miss the next class</p>
                   <p className="font-headline-lg text-headline-lg font-bold text-on-surface">
@@ -244,7 +248,7 @@ function DashboardContent() {
                 </div>
                 {calcResult && (
                   <div
-                    className={`flex items-center gap-1 px-2 py-1 rounded border-2 border-outline font-bold ${
+                    className={`flex items-center gap-1 px-2 py-1 rounded border border-outline font-semibold ${
                       calcResult.classes_can_miss > 0 ? "text-on-tertiary-container bg-tertiary-container" : "text-on-secondary-container bg-secondary-container"
                     }`}
                   >

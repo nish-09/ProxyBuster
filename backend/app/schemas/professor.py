@@ -94,18 +94,29 @@ class AttendanceSheetCell(BaseModel):
     method: str | None = None
 
 
+class AttendanceSheetColumn(BaseModel):
+    """One column per Lecture (not per calendar date): a class_division can have more than
+    one lecture/session on the same date (e.g. a scheduled lecture plus an ad-hoc session),
+    and collapsing them into a single date-keyed column would silently overwrite one
+    lecture's attendance with another's."""
+
+    lecture_id: uuid.UUID
+    date: str
+    label: str
+
+
 class AttendanceSheetRow(BaseModel):
     student_id: uuid.UUID
     full_name: str
     roll_number: str
-    cells: dict[str, AttendanceSheetCell]
+    cells: dict[str, AttendanceSheetCell]  # keyed by AttendanceSheetColumn.lecture_id (str)
     avg_pct: float
     suspicious: bool
     suspicious_reason: str | None = None
 
 
 class AttendanceSheetOut(BaseModel):
-    dates: list[str]
+    columns: list[AttendanceSheetColumn]
     rows: list[AttendanceSheetRow]
 
 

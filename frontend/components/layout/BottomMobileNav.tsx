@@ -36,18 +36,20 @@ export function BottomMobileNav({ role }: { role: "student" | "professor" | "adm
   const items = role === "student" ? STUDENT_ITEMS : role === "admin" ? ADMIN_ITEMS : PROFESSOR_ITEMS;
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-surface border-t-2 border-outline flex justify-around items-center h-16">
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-surface border-t border-outline shadow-[0_-2px_10px_rgba(0,0,0,0.35)] flex justify-around items-center h-16">
       {items.map((item) => {
         const active = pathname?.startsWith(item.href);
         return (
           <Link
             key={item.href}
             href={item.href}
-            className={`flex flex-col items-center justify-center gap-0.5 flex-1 h-full border-t-4 transition-colors ${
-              active ? "text-on-surface font-bold border-secondary bg-secondary/20" : "text-on-surface-variant border-transparent"
+            className={`flex flex-col items-center justify-center gap-0.5 flex-1 h-full mx-1 my-2 rounded-md border transition-all ${
+              active
+                ? "text-on-surface font-semibold border-outline bg-surface-container-high shadow-[inset_0_2px_4px_rgba(0,0,0,0.4)]"
+                : "text-on-surface-variant border-transparent"
             }`}
           >
-            <span className={`material-symbols-outlined${active ? " filled" : ""}`}>{item.icon}</span>
+            <span className={`material-symbols-outlined${active ? " filled text-tertiary" : ""}`}>{item.icon}</span>
             <span className="font-label-sm text-label-sm">{item.label}</span>
           </Link>
         );

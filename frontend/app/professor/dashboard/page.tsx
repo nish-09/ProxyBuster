@@ -79,6 +79,16 @@ function DashboardContent() {
     router.push(`/professor/session/${session.id}${qs}`);
   }
 
+  async function startAdhocSession(classDivisionId: string, durationMinutes: number) {
+    const session = await attendanceApi.createAdhocSession({ class_division_id: classDivisionId, duration_minutes: durationMinutes });
+    setShowNewSession(false);
+    const meta = data?.active_subjects.find((s) => s.class_division_id === classDivisionId);
+    const qs = meta
+      ? `?subject=${encodeURIComponent(meta.subject_name)}&division=${encodeURIComponent(meta.division_name)}&cd=${encodeURIComponent(meta.class_division_id)}`
+      : "";
+    router.push(`/professor/session/${session.id}${qs}`);
+  }
+
   async function handleFlag(id: string) {
     setBusyEventId(id);
     try {
@@ -119,7 +129,7 @@ function DashboardContent() {
                 className="flex items-center gap-2 bg-primary text-on-primary px-5 py-2 rounded-lg shadow-sm hover:bg-primary/90 transition-colors"
               >
                 <span className="material-symbols-outlined text-sm">add</span>
-                <span className="font-label-md text-label-md">New Session</span>
+                <span className="font-label-md text-label-md">Start Attendance</span>
               </button>
             </div>
           </header>
@@ -387,8 +397,10 @@ function DashboardContent() {
       {showNewSession && data && (
         <NewSessionModal
           sessions={data.upcoming_sessions}
+          subjects={data.active_subjects}
           onClose={() => setShowNewSession(false)}
           onStart={startSession}
+          onStartAdhoc={startAdhocSession}
         />
       )}
     </div>

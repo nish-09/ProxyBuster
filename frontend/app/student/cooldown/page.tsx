@@ -15,6 +15,8 @@ function formatMMSS(totalSeconds: number) {
 function CooldownContent() {
   const router = useRouter();
   const [remaining, setRemaining] = useState<number | null>(null);
+  const [totalSeconds, setTotalSeconds] = useState(3600);
+  const [reason, setReason] = useState<string | null>(null);
   const [reactivatesAt, setReactivatesAt] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -31,6 +33,12 @@ function CooldownContent() {
           return;
         }
         setRemaining(status.remaining_seconds);
+        setReason(status.reason);
+        // The progress bar's starting length should match however long this particular
+        // cooldown actually runs (a 60s post-scan cooldown vs. a 60min logout penalty —
+        // see settings.scan_cooldown_seconds / cooldown_minutes on the backend), not a
+        // hardcoded 60-minute assumption.
+        setTotalSeconds(Math.max(status.remaining_seconds, 1));
         if (status.expires_at) {
           setReactivatesAt(
             new Date(status.expires_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
@@ -84,50 +92,54 @@ function CooldownContent() {
   }
 
   const { m, s } = formatMMSS(remaining);
-  const progressPct = Math.max(0, Math.min(100, (remaining / 3600) * 100));
+  const progressPct = Math.max(0, Math.min(100, (remaining / totalSeconds) * 100));
 
   return (
     <main className="flex-1 flex flex-col justify-center items-center w-full min-h-screen p-container-padding relative overflow-hidden bg-background">
       <div className="w-full max-w-lg z-10 flex flex-col items-center justify-center animate-fade-in-up">
-        <div className="bg-surface border-2 border-outline rounded-lg shadow-[6px_6px_0_#111111] p-stack-lg w-full flex flex-col items-center text-center relative overflow-hidden">
-          <div className="absolute top-0 left-0 w-full h-2 bg-surface-container-high border-b-2 border-outline">
+        <div className="bg-surface border border-outline rounded-lg card-shadow p-stack-lg w-full flex flex-col items-center text-center relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-2 bg-surface-container-high border-b border-outline">
             <div className="h-full bg-error" style={{ width: `${progressPct}%` }} />
           </div>
-          <div className="w-16 h-16 rounded-md bg-error-container border-2 border-outline flex items-center justify-center mb-stack-md mt-2">
+          <div className="w-16 h-16 rounded-md bg-error-container border border-outline flex items-center justify-center mb-stack-md mt-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
             <span className="material-symbols-outlined filled text-on-error-container" style={{ fontSize: 32 }}>
               lock_clock
             </span>
           </div>
-          <h1 className="font-headline-lg text-headline-lg text-on-surface mb-stack-sm">Session Lock Active</h1>
+          <h1 className="font-headline-lg text-headline-lg text-on-surface mb-stack-sm">
+            {reason === "attendance_marked" ? "Cooldown Active" : "Session Lock Active"}
+          </h1>
           <p className="font-body-md text-body-md text-on-surface-variant mb-stack-lg max-w-sm">
-            For security, attendance can only be marked once per 60-minute window from a single device.
+            {reason === "attendance_marked"
+              ? "Attendance already marked. Please wait before scanning again."
+              : "For security, logging out triggers a cooldown before you can log back in."}
           </p>
-          <div className="bg-surface-container-low py-6 px-10 rounded-md border-2 border-outline mb-stack-lg w-full flex flex-col items-center">
-            <div className="font-display-lg text-display-lg text-on-surface tracking-tight font-extrabold flex items-center gap-1">
+          <div className="bg-surface-dim py-6 px-10 rounded-md border border-outline mb-stack-lg w-full flex flex-col items-center shadow-[inset_0_2px_6px_rgba(0,0,0,0.4)]">
+            <div className="font-display-lg text-display-lg text-on-surface tracking-tight font-bold flex items-center gap-1">
               <span>{m}</span>
-              <span style={{ opacity: blink ? 1 : 0 }} className="text-primary">
+              <span style={{ opacity: blink ? 1 : 0 }} className="text-tertiary">
                 :
               </span>
               <span>{s}</span>
             </div>
             {reactivatesAt && (
-              <div className="font-label-md text-label-md text-on-surface-variant mt-2 uppercase tracking-widest">
+              <div className="font-label-md text-label-md text-on-surface-variant mt-2">
                 Re-activates at {reactivatesAt}
               </div>
             )}
           </div>
-          <div className="flex items-start gap-3 bg-secondary-container p-4 rounded-md border-2 border-outline w-full text-left">
+          <div className="flex items-start gap-3 bg-secondary-container p-4 rounded-md border border-outline w-full text-left shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
             <span className="material-symbols-outlined text-on-secondary-container mt-0.5" style={{ fontSize: 20 }}>
               security
             </span>
-            <p className="font-label-sm text-label-sm text-on-secondary-container leading-relaxed font-semibold">
+            <p className="font-label-sm text-label-sm text-on-secondary-container leading-relaxed font-medium">
               Multiple device logins or frequent logouts trigger this protective state. Please wait for the timer to expire before
               attempting to mark attendance again.
             </p>
           </div>
           <button
             onClick={() => router.push("/student/dashboard")}
-            className="mt-stack-lg font-label-md text-label-md text-on-surface border border-outline-variant bg-white rounded-md px-6 py-2.5 transition-colors flex items-center gap-2"
+            className="mt-stack-lg font-label-md text-label-md text-on-surface border border-outline-variant bg-surface-container-high rounded-md px-6 py-2.5 transition-colors flex items-center gap-2"
           >
             <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
               arrow_back
@@ -135,7 +147,7 @@ function CooldownContent() {
             Return to Dashboard
           </button>
         </div>
-        <div className="mt-stack-lg font-label-sm text-label-sm text-on-surface-variant tracking-wider">PROXY BUSTERS SECURITY</div>
+        <div className="mt-stack-lg font-label-sm text-label-sm text-on-surface-variant">Proxy Busters Security</div>
       </div>
     </main>
   );

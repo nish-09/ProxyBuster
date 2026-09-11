@@ -11,6 +11,15 @@ class AttendanceSessionCreate(BaseModel):
     lecture_id: uuid.UUID
 
 
+class AdhocSessionCreate(BaseModel):
+    """Starts attendance for a subject/division that has no pre-scheduled lecture yet
+    (see attendance_service.create_adhoc_session)."""
+
+    class_division_id: uuid.UUID
+    duration_minutes: int = Field(default=30, ge=5, le=240)
+    topic: str | None = Field(default=None, max_length=255)
+
+
 class AttendanceSessionOut(BaseModel):
     id: uuid.UUID
     lecture_id: uuid.UUID
@@ -30,6 +39,12 @@ class ScanResult(BaseModel):
     status: Literal["marked", "rejected"]
     attendance_status: str | None = None
     message: str
+    subject_code: str | None = None
+    subject_name: str | None = None
+    division_name: str | None = None
+    session_topic: str | None = None
+    marked_at: datetime | None = None
+    cooldown_seconds: int | None = None
 
 
 class ManualAttendanceRequest(BaseModel):
@@ -65,5 +80,6 @@ class LiveSessionState(BaseModel):
     present_count: int
     total_enrolled: int
     current_token_expires_at: datetime | None
+    session_expires_at: datetime | None = None
     qr_payload: str | None = None
     feed: list[LiveFeedEntry] = []

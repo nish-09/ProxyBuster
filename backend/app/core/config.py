@@ -20,6 +20,11 @@ class Settings(BaseSettings):
 
     cooldown_minutes: int = 60
 
+    # Short server-enforced cooldown applied after every successful QR scan (distinct from
+    # cooldown_minutes, which is a longer penalty for voluntary logout). Prevents a student
+    # from immediately marking attendance again in a different ad-hoc session.
+    scan_cooldown_seconds: int = 60
+
     cors_origins: str = "http://localhost:3000"
 
     # Gates professor self-registration. Deliberately backend-only, never returned by any

@@ -3,9 +3,18 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { RequireRole } from "@/components/route-guard";
-import { attendanceApi, studentApi, ApiError } from "@/lib/api";
+import { attendanceApi, studentApi, ApiError, type ScanResult } from "@/lib/api";
 
-type ToastState = { kind: "success" | "cooldown" | "error"; title: string; subtitle?: string } | null;
+type ToastState = { kind: "error"; title: string; subtitle?: string } | null;
+
+function formatMarkedAt(iso: string | null) {
+  if (!iso) return { date: "", time: "" };
+  const d = new Date(iso);
+  return {
+    date: d.toLocaleDateString([], { day: "numeric", month: "long", year: "numeric" }),
+    time: d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }),
+  };
+}
 
 function ScannerContent() {
   const router = useRouter();
@@ -17,6 +26,7 @@ function ScannerContent() {
 
   const [checkingCooldown, setCheckingCooldown] = useState(true);
   const [toast, setToast] = useState<ToastState>(null);
+  const [successResult, setSuccessResult] = useState<ScanResult | null>(null);
   const [torchOn, setTorchOn] = useState(false);
   const [torchSupported, setTorchSupported] = useState(false);
   const [cameraError, setCameraError] = useState<string | null>(null);
@@ -49,25 +59,31 @@ function ScannerContent() {
           }
           try {
             const result = await attendanceApi.scan(decodedText);
-            showToast({ kind: "success", title: "Attendance Marked", subtitle: result.message });
             try {
               await scanner.stop();
             } catch {
               /* ignore */
             }
             setScanning(false);
+            setSuccessResult(result);
           } catch (err) {
             if (err instanceof ApiError) {
               if (err.status === 423) {
-                showToast({
-                  kind: "cooldown",
-                  title: "Cooldown Active",
-                  subtitle: err.remainingSeconds !== undefined ? `${Math.ceil(err.remainingSeconds / 60)} min remaining` : undefined,
-                });
+                // Cooldown is server-enforced (see settings.scan_cooldown_seconds) — hand off
+                // to the dedicated cooldown screen, which fetches the authoritative remaining
+                // time from the server rather than trusting a client-guessed duration.
+                router.replace("/student/cooldown");
+                return;
               } else if (err.status === 409) {
                 showToast({ kind: "error", title: "Already marked", subtitle: err.message });
               } else if (err.status === 410) {
-                showToast({ kind: "error", title: "QR expired — rescan", subtitle: undefined });
+                // Both an expired 10s QR rotation and an expired attendance session return 410;
+                // the backend's message text (see attendance_service) tells them apart.
+                if (/session/i.test(err.message)) {
+                  showToast({ kind: "error", title: "Attendance session has expired", subtitle: "Ask your professor to start a new session." });
+                } else {
+                  showToast({ kind: "error", title: "QR expired — rescan", subtitle: undefined });
+                }
               } else if (err.status === 403) {
                 showToast({ kind: "error", title: "Not enrolled in this class" });
               } else {
@@ -100,7 +116,7 @@ function ScannerContent() {
     } catch (err) {
       setCameraError(err instanceof Error ? err.message : "Unable to access camera.");
     }
-  }, [showToast]);
+  }, [showToast, router]);
 
   useEffect(() => {
     let cancelled = false;
@@ -190,42 +206,102 @@ function ScannerContent() {
   if (checkingCooldown) {
     return (
       <main className="flex-1 relative w-full h-screen flex items-center justify-center bg-black/90">
-        <span className="material-symbols-outlined animate-spin text-inverse-primary text-4xl">progress_activity</span>
+        <span className="material-symbols-outlined animate-spin text-tertiary text-4xl">progress_activity</span>
+      </main>
+    );
+  }
+
+  if (successResult) {
+    const { date, time } = formatMarkedAt(successResult.marked_at);
+    return (
+      <main className="flex-1 w-full min-h-screen flex items-center justify-center bg-surface p-container-padding">
+        <div className="w-full max-w-md bg-surface-container-lowest border border-outline-variant rounded-xl card-shadow p-stack-lg flex flex-col items-center text-center">
+          <div className="w-16 h-16 rounded-full bg-tertiary-container border border-outline flex items-center justify-center mb-stack-md">
+            <span className="material-symbols-outlined filled text-on-tertiary-container" style={{ fontSize: 36 }}>
+              check_circle
+            </span>
+          </div>
+          <h1 className="font-headline-lg text-headline-lg text-on-surface mb-1">Attendance Marked Successfully</h1>
+          <p className="font-body-md text-body-md text-on-surface-variant mb-stack-lg">{successResult.message}</p>
+
+          <div className="w-full bg-surface-container border border-outline-variant rounded-md divide-y divide-outline-variant text-left">
+            {successResult.subject_name && (
+              <div className="flex justify-between items-center px-4 py-3">
+                <span className="font-label-md text-label-md text-on-surface-variant">Subject</span>
+                <span className="font-body-md text-body-md font-semibold text-on-surface">
+                  {successResult.subject_name}
+                  {successResult.division_name ? ` (${successResult.division_name})` : ""}
+                </span>
+              </div>
+            )}
+            {date && (
+              <div className="flex justify-between items-center px-4 py-3">
+                <span className="font-label-md text-label-md text-on-surface-variant">Date</span>
+                <span className="font-body-md text-body-md font-semibold text-on-surface">{date}</span>
+              </div>
+            )}
+            {time && (
+              <div className="flex justify-between items-center px-4 py-3">
+                <span className="font-label-md text-label-md text-on-surface-variant">Time</span>
+                <span className="font-body-md text-body-md font-semibold text-on-surface">{time}</span>
+              </div>
+            )}
+            <div className="flex justify-between items-center px-4 py-3">
+              <span className="font-label-md text-label-md text-on-surface-variant">Status</span>
+              <span className="font-body-md text-body-md font-semibold text-tertiary capitalize">
+                {successResult.attendance_status ?? "Present"}
+              </span>
+            </div>
+            {successResult.session_topic && (
+              <div className="flex justify-between items-center px-4 py-3">
+                <span className="font-label-md text-label-md text-on-surface-variant">Session</span>
+                <span className="font-body-md text-body-md font-semibold text-on-surface">{successResult.session_topic}</span>
+              </div>
+            )}
+          </div>
+
+          <button
+            onClick={() => router.push("/student/dashboard")}
+            className="mt-stack-lg w-full px-6 py-3 rounded-lg bg-primary text-on-primary font-label-md text-label-md hover:bg-primary/90 transition-colors"
+          >
+            Back to Dashboard
+          </button>
+        </div>
       </main>
     );
   }
 
   return (
-    <div className="bg-inverse-surface min-h-screen text-on-surface flex flex-col md:flex-row m-0 p-0 overflow-hidden">
-      <header className="hidden md:flex justify-between items-center w-full px-container-padding h-16 backdrop-blur-md bg-inverse-surface/80 border-b border-outline sticky top-0 z-40">
-        <span className="font-headline-md text-headline-md font-extrabold text-inverse-primary">Proxy Busters</span>
-        <span className="font-label-md text-label-md text-inverse-primary">Scanner</span>
+    <div className="bg-surface min-h-screen text-on-surface flex flex-col md:flex-row m-0 p-0 overflow-hidden">
+      <header className="hidden md:flex justify-between items-center w-full px-container-padding h-16 bg-surface border-b border-outline sticky top-0 z-40">
+        <span className="font-headline-md text-headline-md font-bold text-on-surface">Proxy Busters</span>
+        <span className="font-label-md text-label-md text-on-surface-variant">Scanner</span>
       </header>
-      <header className="md:hidden flex justify-between items-center p-4 bg-inverse-surface border-b border-outline">
-        <button onClick={() => router.back()} className="material-symbols-outlined text-inverse-primary">
+      <header className="md:hidden flex justify-between items-center p-4 bg-surface border-b border-outline">
+        <button onClick={() => router.back()} className="material-symbols-outlined text-on-surface">
           arrow_back
         </button>
-        <span className="font-headline-md text-headline-md font-extrabold text-inverse-primary">Scan Code</span>
+        <span className="font-headline-md text-headline-md font-bold text-on-surface">Scan Code</span>
         <div className="w-6" />
       </header>
 
-      <main className="flex-1 relative w-full flex flex-col items-center justify-center bg-black/90 min-h-[calc(100vh-64px)]">
+      <main className="flex-1 relative w-full flex flex-col items-center justify-center bg-black min-h-[calc(100vh-64px)]">
         <div className="absolute top-8 left-0 right-0 z-10 flex flex-col items-center justify-center px-6 text-center">
-          <div className="bg-inverse-surface/80 backdrop-blur-md rounded-xl p-4 border border-outline max-w-sm w-full">
-            <span className="material-symbols-outlined text-inverse-primary mb-2 text-[32px]">qr_code_scanner</span>
-            <p className="font-body-md text-body-md text-inverse-on-surface mb-1">Point your camera at the QR code on the professor&apos;s screen.</p>
-            <p className="font-label-md text-label-md text-primary-fixed-dim animate-pulse">
+          <div className="bg-surface/90 backdrop-blur-sm rounded-xl p-4 border border-outline card-shadow max-w-sm w-full">
+            <span className="material-symbols-outlined text-tertiary mb-2 text-[32px]">qr_code_scanner</span>
+            <p className="font-body-md text-body-md text-on-surface mb-1">Point your camera at the QR code on the professor&apos;s screen.</p>
+            <p className="font-label-md text-label-md text-tertiary animate-pulse">
               {cameraError ? cameraError : scanning ? "Scanning for Session..." : "Starting camera..."}
             </p>
           </div>
         </div>
 
-        <div className="relative w-[300px] h-[300px] md:w-[400px] md:h-[400px] rounded-xl overflow-hidden shadow-[0_0_40px_rgba(53,37,205,0.2)] bg-black">
+        <div className="relative w-[300px] h-[300px] md:w-[400px] md:h-[400px] rounded-xl overflow-hidden shadow-[0_8px_28px_rgba(0,0,0,0.6)] bg-black border border-outline">
           <div id="qr-reader" ref={containerRef} className="absolute inset-0 [&_video]:object-cover [&_video]:w-full [&_video]:h-full" />
-          <div className="absolute top-0 left-0 w-12 h-12 border-t-4 border-l-4 border-primary-fixed rounded-tl-xl m-4 pointer-events-none" />
-          <div className="absolute top-0 right-0 w-12 h-12 border-t-4 border-r-4 border-primary-fixed rounded-tr-xl m-4 pointer-events-none" />
-          <div className="absolute bottom-0 left-0 w-12 h-12 border-b-4 border-l-4 border-primary-fixed rounded-bl-xl m-4 pointer-events-none" />
-          <div className="absolute bottom-0 right-0 w-12 h-12 border-b-4 border-r-4 border-primary-fixed rounded-br-xl m-4 pointer-events-none" />
+          <div className="absolute top-0 left-0 w-12 h-12 border-t-4 border-l-4 border-tertiary rounded-tl-xl m-4 pointer-events-none" />
+          <div className="absolute top-0 right-0 w-12 h-12 border-t-4 border-r-4 border-tertiary rounded-tr-xl m-4 pointer-events-none" />
+          <div className="absolute bottom-0 left-0 w-12 h-12 border-b-4 border-l-4 border-tertiary rounded-bl-xl m-4 pointer-events-none" />
+          <div className="absolute bottom-0 right-0 w-12 h-12 border-b-4 border-r-4 border-tertiary rounded-br-xl m-4 pointer-events-none" />
           {scanning && <div className="scanner-line z-20" />}
         </div>
 
@@ -234,7 +310,7 @@ function ScannerContent() {
             aria-label="Toggle Flashlight"
             onClick={toggleFlashlight}
             disabled={!torchSupported}
-            className="bg-inverse-surface/80 backdrop-blur-md rounded-full w-14 h-14 flex items-center justify-center border border-outline text-inverse-on-surface hover:bg-surface-variant transition-colors disabled:opacity-30"
+            className="bg-surface-container-high rounded-full w-14 h-14 flex items-center justify-center border border-outline shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_2px_6px_rgba(0,0,0,0.4)] text-on-surface hover:bg-surface-container-highest transition-colors disabled:opacity-30"
           >
             <span className="material-symbols-outlined">{torchOn ? "flashlight_on" : "flashlight_off"}</span>
           </button>
@@ -242,44 +318,25 @@ function ScannerContent() {
             aria-label="Switch Camera"
             onClick={switchCamera}
             disabled={cameraCount < 2}
-            className="bg-inverse-surface/80 backdrop-blur-md rounded-full w-14 h-14 flex items-center justify-center border border-outline text-inverse-on-surface hover:bg-surface-variant transition-colors disabled:opacity-30"
+            className="bg-surface-container-high rounded-full w-14 h-14 flex items-center justify-center border border-outline shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_2px_6px_rgba(0,0,0,0.4)] text-on-surface hover:bg-surface-container-highest transition-colors disabled:opacity-30"
           >
             <span className="material-symbols-outlined">flip_camera_ios</span>
           </button>
         </div>
 
         {toast && (
-          <div
-            className={`absolute bottom-40 md:bottom-24 left-1/2 -translate-x-1/2 px-6 py-3 rounded-lg shadow-lg border flex items-center gap-3 z-50 toast-enter ${
-              toast.kind === "success"
-                ? "bg-surface text-on-surface border-outline-variant"
-                : toast.kind === "cooldown"
-                  ? "bg-error-container text-on-error-container border-error/20"
-                  : "bg-error-container text-on-error-container border-error/20"
-            }`}
-          >
-            <span className="material-symbols-outlined filled">
-              {toast.kind === "success" ? "check_circle" : toast.kind === "cooldown" ? "timer" : "error"}
-            </span>
+          <div className="absolute bottom-40 md:bottom-24 left-1/2 -translate-x-1/2 px-6 py-3 rounded-lg shadow-lg border flex items-center gap-3 z-50 toast-enter bg-error-container text-on-error-container border-error/20">
+            <span className="material-symbols-outlined filled">error</span>
             <div>
               <p className="font-body-md text-body-md font-semibold">{toast.title}</p>
               {toast.subtitle && <p className="font-label-sm text-label-sm opacity-80">{toast.subtitle}</p>}
             </div>
-            {!scanning && toast.kind !== "success" && (
+            {!scanning && (
               <button onClick={retry} className="ml-2 font-label-md text-label-md underline">
                 Retry
               </button>
             )}
           </div>
-        )}
-
-        {toast?.kind === "success" && (
-          <button
-            onClick={() => router.push("/student/dashboard")}
-            className="absolute bottom-8 md:bottom-4 z-50 px-6 py-2 rounded-lg bg-primary text-on-primary font-label-md text-label-md"
-          >
-            Back to Dashboard
-          </button>
         )}
       </main>
     </div>

@@ -10,6 +10,7 @@ from app.models.academic import ClassDivision, Enrollment, Lecture
 from app.models.attendance import AttendanceRecord, AttendanceSession, AttendanceStatus, SessionStatus
 from app.models.user import ProfessorProfile, StudentProfile
 from app.schemas.attendance import (
+    AdhocSessionCreate,
     AttendanceSessionCreate,
     AttendanceSessionOut,
     LiveFeedEntry,
@@ -60,6 +61,24 @@ async def start_session(
     return session_obj
 
 
+@router.post("/sessions/adhoc", response_model=AttendanceSessionOut, status_code=201)
+@limiter.limit("20/minute")
+async def start_adhoc_session(
+    payload: AdhocSessionCreate,
+    request: Request,
+    professor_profile: ProfessorProfile = Depends(get_professor_profile),
+    db: Session = Depends(get_db),
+):
+    """Starts attendance for a subject/division with no pre-scheduled lecture (spec #2,
+    Option B). Internally creates a Lecture spanning [now, now + duration_minutes] and an
+    AttendanceSession for it, so it behaves identically to a scheduled-lecture session."""
+    session_obj = attendance_service.create_adhoc_session(
+        db, professor_profile, payload.class_division_id, payload.duration_minutes, payload.topic
+    )
+    realtime.start_rotation(session_obj.id)
+    return session_obj
+
+
 @router.get("/sessions/{session_id}", response_model=AttendanceSessionOut)
 def get_session(
     session_id: uuid.UUID,
@@ -93,14 +112,17 @@ def live_session(
     if class_division.professor_id != professor_profile.id:
         raise HTTPException(status.HTTP_403_FORBIDDEN, "You do not own this session")
 
-    present_count, total_enrolled = _counts(db, session_obj)
-
     qr_payload = None
     current_token_expires_at = None
     if session_obj.status == SessionStatus.ACTIVE:
         token = attendance_service.get_or_issue_current_token(db, session_obj)
-        qr_payload = attendance_service.encode_qr_payload(token)
-        current_token_expires_at = token.expires_at
+        if token is not None:
+            qr_payload = attendance_service.encode_qr_payload(token)
+            current_token_expires_at = token.expires_at
+
+    # get_or_issue_current_token may have just lazily flipped an expired session to CLOSED,
+    # so counts/status are computed AFTER that call to reflect the up-to-date state.
+    present_count, total_enrolled = _counts(db, session_obj)
 
     records = (
         db.query(AttendanceRecord)
@@ -128,6 +150,7 @@ def live_session(
         present_count=present_count,
         total_enrolled=total_enrolled,
         current_token_expires_at=current_token_expires_at,
+        session_expires_at=lecture.scheduled_end,
         qr_payload=qr_payload,
         feed=feed,
     )
@@ -142,7 +165,8 @@ async def scan_qr(
     db: Session = Depends(get_db),
 ):
     ip = request.client.host if request.client else None
-    record, class_division_id = attendance_service.scan(db, student_profile, payload.token, ip)
+    outcome = attendance_service.scan(db, student_profile, payload.token, ip)
+    record = outcome.record
 
     present_count, total_enrolled = _counts(db, db.get(AttendanceSession, record.session_id))
     await realtime.manager.broadcast(
@@ -158,7 +182,17 @@ async def scan_qr(
         },
     )
 
-    return ScanResult(status="marked", attendance_status=record.status.value, message="Attendance marked")
+    return ScanResult(
+        status="marked",
+        attendance_status=record.status.value,
+        message="Attendance marked successfully",
+        subject_code=outcome.subject_code,
+        subject_name=outcome.subject_name,
+        division_name=outcome.division_name,
+        session_topic=outcome.lecture_topic,
+        marked_at=record.marked_at,
+        cooldown_seconds=outcome.cooldown_seconds,
+    )
 
 
 @router.post("/manual", response_model=ManualAttendanceOut)

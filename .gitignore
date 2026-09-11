@@ -11,6 +11,9 @@ backend/*.db
 backend/test.db
 *.pyc
 
+# Generated credentials — never commit real/test account passwords
+backend/scripts/output/
+
 # Node
 frontend/node_modules/
 frontend/.next/

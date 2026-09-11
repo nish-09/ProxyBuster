@@ -40,36 +40,36 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-6">
-      <div className="w-full max-w-md bg-surface border-2 border-outline rounded-lg shadow-[6px_6px_0_#111111] p-stack-lg">
+      <div className="w-full max-w-md bg-surface border border-outline rounded-lg card-shadow p-stack-lg">
         <div className="flex items-center gap-3 mb-stack-lg">
-          <div className="w-11 h-11 rounded-md bg-primary border-2 border-outline flex items-center justify-center text-on-primary">
+          <div className="w-11 h-11 rounded-md bg-primary border border-outline shadow-[inset_0_1px_0_rgba(255,255,255,0.2),0_2px_5px_rgba(0,0,0,0.4)] flex items-center justify-center text-on-primary">
             <span className="material-symbols-outlined filled">security</span>
           </div>
           <div>
-            <h1 className="font-headline-lg text-headline-lg font-extrabold text-on-surface">Proxy Busters</h1>
-            <p className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Sign in to continue</p>
+            <h1 className="font-headline-lg text-headline-lg font-bold text-on-surface">Proxy Busters</h1>
+            <p className="font-label-sm text-label-sm text-on-surface-variant">Sign in to continue</p>
           </div>
         </div>
 
         {cooldownSeconds !== null && (
-          <div className="mb-stack-md rounded-md border-2 border-outline bg-secondary-container p-4 text-center">
-            <p className="font-body-md text-body-md text-on-surface">
+          <div className="mb-stack-md rounded-md border border-outline bg-secondary-container p-4 text-center shadow-[inset_0_1px_3px_rgba(0,0,0,0.3)]">
+            <p className="font-body-md text-body-md text-on-secondary-container">
               Session Lock Active — for security, you can&apos;t sign back in for{" "}
-              <span className="font-extrabold">{Math.ceil(cooldownSeconds / 60)} more minute(s)</span> after logging out.
+              <span className="font-bold">{Math.ceil(cooldownSeconds / 60)} more minute(s)</span> after logging out.
             </p>
           </div>
         )}
 
         {error && (
-          <div className="mb-stack-md rounded-md border-2 border-outline bg-error-container p-3">
-            <p className="font-body-md text-body-md text-on-error-container font-semibold">{error}</p>
+          <div className="mb-stack-md rounded-md border border-outline bg-error-container p-3 shadow-[inset_0_1px_3px_rgba(0,0,0,0.3)]">
+            <p className="font-body-md text-body-md text-on-error-container font-medium">{error}</p>
           </div>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block font-label-md text-label-md text-on-surface-variant mb-1" htmlFor="email">
-              EMAIL
+              Email
             </label>
             <input
               id="email"
@@ -77,13 +77,13 @@ export default function LoginPage() {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full h-11 px-3 bg-white border-2 border-outline rounded-md text-body-md font-body-md focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
+              className="w-full h-11 px-3 bg-surface-container-low border border-outline rounded-md text-body-md font-body-md text-on-surface focus:outline-none focus:border-primary transition-all"
               placeholder="you@college.edu"
             />
           </div>
           <div>
             <label className="block font-label-md text-label-md text-on-surface-variant mb-1" htmlFor="password">
-              PASSWORD
+              Password
             </label>
             <input
               id="password"
@@ -91,14 +91,14 @@ export default function LoginPage() {
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full h-11 px-3 bg-white border-2 border-outline rounded-md text-body-md font-body-md focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
+              className="w-full h-11 px-3 bg-surface-container-low border border-outline rounded-md text-body-md font-body-md text-on-surface focus:outline-none focus:border-primary transition-all"
               placeholder="••••••••"
             />
           </div>
           <button
             type="submit"
             disabled={submitting}
-            className="w-full h-11 rounded-md bg-primary text-on-primary font-label-md text-label-md font-bold border-2 border-outline transition-colors disabled:opacity-60"
+            className="w-full h-11 rounded-md bg-primary text-on-primary font-label-md text-label-md font-semibold border border-outline transition-colors disabled:opacity-60"
           >
             {submitting ? "Signing in..." : "Sign In"}
           </button>
@@ -106,7 +106,7 @@ export default function LoginPage() {
 
         <p className="mt-stack-md text-center font-body-md text-body-md text-on-surface-variant">
           New here?{" "}
-          <Link href="/register" className="text-primary font-bold hover:underline">
+          <Link href="/register" className="text-tertiary font-semibold hover:underline">
             Create an account
           </Link>
         </p>

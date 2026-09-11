@@ -1,4 +1,5 @@
 import base64
+import dataclasses
 import hashlib
 import hmac
 import secrets
@@ -11,7 +12,7 @@ from sqlalchemy.orm import Session
 
 from app.core.config import get_settings
 from app.core.time import ensure_utc, utcnow
-from app.models.academic import ClassDivision, Enrollment, Lecture
+from app.models.academic import ClassDivision, Enrollment, Lecture, Subject
 from app.models.attendance import (
     AttendanceMethod,
     AttendanceRecord,
@@ -21,11 +22,25 @@ from app.models.attendance import (
     ManualAttendance,
     SessionStatus,
 )
+from app.models.security import Cooldown
 from app.models.user import ProfessorProfile, StudentProfile, User, UserRole
 from app.schemas.attendance import ManualAttendanceRequest
 from app.services.cooldown_service import get_active_cooldown
 
 settings = get_settings()
+
+SCAN_COOLDOWN_REASON = "attendance_marked"
+
+
+@dataclasses.dataclass
+class ScanOutcome:
+    record: AttendanceRecord
+    class_division_id: uuid.UUID
+    subject_code: str
+    subject_name: str
+    division_name: str
+    lecture_topic: str | None
+    cooldown_seconds: int
 
 
 def _lecture_or_404(db: Session, lecture_id: uuid.UUID) -> Lecture:
@@ -100,6 +115,55 @@ def create_session(db: Session, professor_profile: ProfessorProfile, lecture_id:
     return session_obj
 
 
+def create_adhoc_session(
+    db: Session,
+    professor_profile: ProfessorProfile,
+    class_division_id: uuid.UUID,
+    duration_minutes: int,
+    topic: str | None,
+) -> AttendanceSession:
+    """Starts attendance for a class that has no pre-scheduled Lecture yet.
+
+    Reuses the existing Lecture + AttendanceSession models: creates a Lecture starting now
+    (scheduled_end = now + duration_minutes, which doubles as this session's expiry — see
+    decode_and_verify_scan) and then runs it through the normal create_session path, so every
+    existing guarantee (one-active-session-per-lecture, QR issuance, etc.) applies unchanged.
+    """
+    class_division = db.get(ClassDivision, class_division_id)
+    if class_division is None or class_division.professor_id != professor_profile.id:
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "You do not teach this class")
+
+    now = utcnow()
+    lecture = Lecture(
+        class_division_id=class_division_id,
+        topic=topic or "Ad-hoc Session",
+        scheduled_start=now,
+        scheduled_end=now + timedelta(minutes=duration_minutes),
+        room=class_division.room,
+    )
+    db.add(lecture)
+    db.commit()
+    db.refresh(lecture)
+
+    return create_session(db, professor_profile, lecture.id)
+
+
+def _close_if_expired(db: Session, session_obj: AttendanceSession, lecture: Lecture) -> bool:
+    """Lazily transitions an ACTIVE session to CLOSED once its lecture's scheduled_end has
+    passed. There is no separate EXPIRED status in the schema (see SessionStatus) — expiry is
+    just a time-based reason for the same CLOSED state, detected here rather than via a
+    background job. Returns True if the session is (now) closed."""
+    if session_obj.status != SessionStatus.ACTIVE:
+        return True
+    if utcnow() <= ensure_utc(lecture.scheduled_end):
+        return False
+    session_obj.status = SessionStatus.CLOSED
+    session_obj.ended_at = ensure_utc(lecture.scheduled_end)
+    db.commit()
+    db.refresh(session_obj)
+    return True
+
+
 def issue_token(db: Session, session_obj: AttendanceSession) -> AttendanceToken:
     nonce = secrets.token_urlsafe(16)
     issued_at = utcnow()
@@ -143,7 +207,12 @@ def _current_token(db: Session, session_obj: AttendanceSession) -> AttendanceTok
     return token
 
 
-def get_or_issue_current_token(db: Session, session_obj: AttendanceSession) -> AttendanceToken:
+def get_or_issue_current_token(db: Session, session_obj: AttendanceSession) -> AttendanceToken | None:
+    """Returns None (no more QR rotation) once the session's lecture has passed its
+    scheduled_end — callers use this to stop showing a scannable QR for an expired session."""
+    lecture = db.get(Lecture, session_obj.lecture_id)
+    if _close_if_expired(db, session_obj, lecture):
+        return None
     token = _current_token(db, session_obj)
     if token is None:
         token = issue_token(db, session_obj)
@@ -175,19 +244,25 @@ def decode_and_verify_scan(db: Session, raw_payload: str) -> AttendanceToken:
         raise HTTPException(status.HTTP_410_GONE, "QR code expired, please rescan")
 
     session_obj = db.get(AttendanceSession, token.session_id)
-    if session_obj is None or session_obj.status != SessionStatus.ACTIVE:
-        raise HTTPException(status.HTTP_409_CONFLICT, "Attendance session is closed")
+    if session_obj is None:
+        raise HTTPException(status.HTTP_409_CONFLICT, "Attendance session has ended.")
+    lecture = db.get(Lecture, session_obj.lecture_id)
+    if _close_if_expired(db, session_obj, lecture):
+        if session_obj.ended_at is not None and ensure_utc(session_obj.ended_at) >= ensure_utc(lecture.scheduled_end):
+            raise HTTPException(status.HTTP_410_GONE, "Attendance session has expired.")
+        raise HTTPException(status.HTTP_409_CONFLICT, "Attendance session has ended.")
 
     return token
 
 
 def scan(
     db: Session, student_profile: StudentProfile, raw_payload: str, ip_address: str | None
-) -> tuple[AttendanceRecord, uuid.UUID]:
+) -> ScanOutcome:
     token = decode_and_verify_scan(db, raw_payload)
     session_obj = db.get(AttendanceSession, token.session_id)
     lecture = db.get(Lecture, session_obj.lecture_id)
     class_division = db.get(ClassDivision, lecture.class_division_id)
+    subject = db.get(Subject, class_division.subject_id)
 
     enrollment = (
         db.query(Enrollment)
@@ -197,14 +272,9 @@ def scan(
     if enrollment is None:
         raise HTTPException(status.HTTP_403_FORBIDDEN, "You are not enrolled in this class")
 
-    cooldown = get_active_cooldown(db, student_profile.id)
-    if cooldown:
-        remaining = int((ensure_utc(cooldown.expires_at) - utcnow()).total_seconds())
-        raise HTTPException(
-            status.HTTP_423_LOCKED,
-            {"message": "Your account is in cooldown", "remaining_seconds": max(remaining, 0)},
-        )
-
+    # Checked before the cooldown lock below so re-scanning the *same* lecture's QR (e.g. a
+    # stale/replayed token) reports the more specific "already marked for this lecture"
+    # instead of a generic cooldown message.
     existing_record = (
         db.query(AttendanceRecord)
         .filter(AttendanceRecord.student_id == student_profile.id, AttendanceRecord.lecture_id == lecture.id)
@@ -212,6 +282,14 @@ def scan(
     )
     if existing_record:
         raise HTTPException(status.HTTP_409_CONFLICT, "Attendance already marked for this lecture")
+
+    cooldown = get_active_cooldown(db, student_profile.id)
+    if cooldown:
+        remaining = int((ensure_utc(cooldown.expires_at) - utcnow()).total_seconds())
+        raise HTTPException(
+            status.HTTP_423_LOCKED,
+            {"message": "Attendance already marked. Please wait before scanning again.", "remaining_seconds": max(remaining, 0)},
+        )
 
     marked_at = utcnow()
     attendance_status = AttendanceStatus.PRESENT
@@ -230,15 +308,34 @@ def scan(
     token.consumed_by = student_profile.id
     token.consumed_at = marked_at
 
+    # Server-enforced post-scan cooldown (see settings.scan_cooldown_seconds): written in the
+    # SAME transaction as the attendance record, so a client never observes a 200 response for
+    # which the cooldown wasn't actually persisted alongside it.
+    cooldown_seconds = settings.scan_cooldown_seconds
+    new_cooldown = Cooldown(
+        student_id=student_profile.id,
+        expires_at=marked_at + timedelta(seconds=cooldown_seconds),
+        reason=SCAN_COOLDOWN_REASON,
+    )
+
     try:
         db.add(record)
+        db.add(new_cooldown)
         db.commit()
     except IntegrityError as exc:
         db.rollback()
         raise HTTPException(status.HTTP_409_CONFLICT, "Attendance already marked for this lecture") from exc
 
     db.refresh(record)
-    return record, class_division.id
+    return ScanOutcome(
+        record=record,
+        class_division_id=class_division.id,
+        subject_code=subject.code,
+        subject_name=subject.name,
+        division_name=class_division.name,
+        lecture_topic=lecture.topic,
+        cooldown_seconds=cooldown_seconds,
+    )
 
 
 def close_session(db: Session, professor_profile: ProfessorProfile, session_id: uuid.UUID) -> AttendanceSession:

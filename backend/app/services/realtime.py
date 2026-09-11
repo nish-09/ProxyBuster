@@ -5,6 +5,7 @@ from fastapi import WebSocket
 
 from app.core.config import get_settings
 from app.core.db import SessionLocal
+from app.models.academic import Lecture
 from app.models.attendance import AttendanceSession, SessionStatus
 
 settings = get_settings()
@@ -45,22 +46,30 @@ _rotation_tasks: dict[uuid.UUID, asyncio.Task] = {}
 
 async def rotate_qr_loop(session_id: uuid.UUID) -> None:
     # Local imports to avoid a circular import with attendance_service at module load time.
-    from app.services.attendance_service import encode_qr_payload, issue_token
+    from app.services.attendance_service import _close_if_expired, encode_qr_payload, issue_token
 
     while True:
         db = SessionLocal()
+        expired = False
         try:
             session_obj = db.get(AttendanceSession, session_id)
             if session_obj is None or session_obj.status != SessionStatus.ACTIVE:
                 break
-            token = issue_token(db, session_obj)
-            payload = {
-                "type": "qr",
-                "token": encode_qr_payload(token),
-                "expires_at": token.expires_at.isoformat(),
-            }
+            lecture = db.get(Lecture, session_obj.lecture_id)
+            if _close_if_expired(db, session_obj, lecture):
+                expired = True
+            else:
+                token = issue_token(db, session_obj)
+                payload = {
+                    "type": "qr",
+                    "token": encode_qr_payload(token),
+                    "expires_at": token.expires_at.isoformat(),
+                }
         finally:
             db.close()
+        if expired:
+            await manager.broadcast(str(session_id), {"type": "closed"})
+            break
         await manager.broadcast(str(session_id), payload)
         await asyncio.sleep(settings.qr_token_ttl_seconds)
 

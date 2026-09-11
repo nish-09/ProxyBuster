@@ -71,7 +71,10 @@ def login_user(db: Session, payload: LoginRequest, ip_address: str | None, user_
     if user.role == UserRole.STUDENT:
         profile = db.query(StudentProfile).filter(StudentProfile.user_id == user.id).first()
         cooldown = get_active_cooldown(db, profile.id)
-        if cooldown:
+        # Only the voluntary-logout penalty blocks login. A short post-scan cooldown
+        # (reason="attendance_marked", see attendance_service.scan) is meant to throttle
+        # re-scanning, not to lock a student out of their own account/token refresh.
+        if cooldown and cooldown.reason == "manual_logout":
             remaining = int((ensure_utc(cooldown.expires_at) - utcnow()).total_seconds())
             raise HTTPException(
                 status.HTTP_423_LOCKED,

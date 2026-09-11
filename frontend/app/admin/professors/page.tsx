@@ -9,7 +9,7 @@ import { useAuth } from "@/lib/auth-context";
 import { adminApi, ApiError, type AdminProfessorOut } from "@/lib/api";
 
 const inputClass =
-  "w-full h-10 px-3 bg-surface-container border border-outline-variant rounded-md text-body-md font-body-md focus:ring-2 focus:ring-primary/15 focus:border-primary transition-all";
+  "w-full h-10 px-3 bg-surface-container border border-outline-variant rounded-md text-body-md font-body-md focus:outline-none focus:border-primary transition-all";
 const labelClass = "block font-label-sm text-label-sm text-on-surface-variant mb-1";
 
 function initials(name: string) {

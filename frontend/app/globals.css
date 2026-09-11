@@ -1,98 +1,98 @@
 @import "tailwindcss";
 
 /* ============================================================================
-   Proxy Busters — Neo-Brutalist design system
+   Proxy Busters — Modern Skeuomorphic design system
    ----------------------------------------------------------------------------
-   Every page in the app is already built on top of this single token layer
-   (bg-primary, text-on-surface, border-outline-variant, card-shadow, etc.) —
-   redefining the tokens here is what makes the whole application restyle
-   consistently instead of page-by-page. Do not hardcode raw hex values in
-   page/component files; add or adjust a token here instead.
+   Every page in the app is built on top of this single token layer (bg-primary,
+   text-on-surface, border-outline-variant, card-shadow, etc.) — redefining the
+   tokens here is what restyles the whole application consistently instead of
+   page-by-page. Do not hardcode raw hex values in page/component files; add or
+   adjust a token here instead.
 
-   Palette (see design brief):
-     background #F5F1E8   primary   #2563EB   secondary(yellow) #FACC15
-     cards      #FFFFFF   coral     #FF5A5F   mint               #7CFFB2
-     text/border #111111
+   Depth model: page (deep navy) < main content area (dark blue) < panel/card
+   (raised slate blue, --shadow-*) < inset controls (inputs, recessed navy with
+   an inner shadow). Buttons are raised by default and invert to an inset,
+   "pressed" look on :active via the @layer base rules below.
    ========================================================================== */
 @theme {
-  /* ---------- Primary (electric blue) — primary actions, "active"/informational state ---------- */
-  --color-primary: #2563eb;
-  --color-on-primary: #ffffff;
-  --color-primary-container: #d6e4ff;
-  --color-on-primary-container: #111111;
-  --color-primary-fixed: #bfd7ff;
-  --color-primary-fixed-dim: #8fb8ff;
-  --color-on-primary-fixed: #0b2e7a;
-  --color-on-primary-fixed-variant: #1d4fbe;
-  --color-inverse-primary: #8fb8ff;
+  /* ---------- Primary (teal) — primary actions, "active" state ---------- */
+  --color-primary: #167d7f;
+  --color-on-primary: #eaf7f6;
+  --color-primary-container: #163c40;
+  --color-on-primary-container: #7fd9cf;
+  --color-primary-fixed: #2e9490;
+  --color-primary-fixed-dim: #1d6b6a;
+  --color-on-primary-fixed: #eaf7f6;
+  --color-on-primary-fixed-variant: #bdece3;
+  --color-inverse-primary: #49c5b6;
 
-  /* ---------- Secondary (bright yellow) — highlights, warnings, "late" state ---------- */
-  --color-secondary: #facc15;
-  --color-on-secondary: #111111;
-  --color-secondary-container: #fff3b0;
-  --color-on-secondary-container: #111111;
-  --color-secondary-fixed: #fff3b0;
-  --color-secondary-fixed-dim: #fde68a;
-  --color-on-secondary-fixed: #111111;
-  --color-on-secondary-fixed-variant: #7a5e00;
+  /* ---------- Secondary (warm amber) — highlights, warnings, "late" state ---------- */
+  --color-secondary: #f2b84b;
+  --color-on-secondary: #241a04;
+  --color-secondary-container: #3a2a0c;
+  --color-on-secondary-container: #f6cc7c;
+  --color-secondary-fixed: #f2b84b;
+  --color-secondary-fixed-dim: #c99a3c;
+  --color-on-secondary-fixed: #241a04;
+  --color-on-secondary-fixed-variant: #f6cc7c;
 
-  /* ---------- Tertiary (mint green) — success / present / positive state ---------- */
-  --color-tertiary: #0f9d58;
-  --color-on-tertiary: #111111;
-  --color-tertiary-container: #7cffb2;
-  --color-on-tertiary-container: #111111;
-  --color-tertiary-fixed: #7cffb2;
-  --color-tertiary-fixed-dim: #5fe89a;
-  --color-on-tertiary-fixed: #111111;
-  --color-on-tertiary-fixed-variant: #0f7a4b;
+  /* ---------- Tertiary (mint) — success / present / positive state ---------- */
+  --color-tertiary: #49c5b6;
+  --color-on-tertiary: #06231f;
+  --color-tertiary-container: #103631;
+  --color-on-tertiary-container: #7fe9db;
+  --color-tertiary-fixed: #49c5b6;
+  --color-tertiary-fixed-dim: #2f8c81;
+  --color-on-tertiary-fixed: #06231f;
+  --color-on-tertiary-fixed-variant: #a4f0e4;
 
   /* ---------- Error (coral) — danger / absent / blocked state ---------- */
-  --color-error: #ff5a5f;
-  --color-on-error: #111111;
-  --color-error-container: #ffd9da;
-  --color-on-error-container: #111111;
+  --color-error: #e76f51;
+  --color-on-error: #241005;
+  --color-error-container: #3a1c11;
+  --color-on-error-container: #f3a68c;
 
-  /* ---------- Surfaces ---------- */
-  --color-surface: #ffffff;
-  --color-surface-dim: #e8e2d3;
-  --color-surface-bright: #ffffff;
-  --color-surface-container-lowest: #ffffff;
-  --color-surface-container-low: #f5f1e8;
-  --color-surface-container: #ede7d8;
-  --color-surface-container-high: #e3ddc9;
-  --color-surface-container-highest: #d9d2bc;
-  --color-surface-variant: #ede7d8;
-  --color-surface-tint: #2563eb;
+  /* ---------- Surfaces (dark, layered — never pure white/gray) ---------- */
+  --color-surface: #12243a;
+  --color-surface-dim: #0b1628;
+  --color-surface-bright: #24406b;
+  --color-surface-container-lowest: #1d3557;
+  --color-surface-container-low: #0f1e30;
+  --color-surface-container: #16304b;
+  --color-surface-container-high: #1c3c5e;
+  --color-surface-container-highest: #234873;
+  --color-surface-variant: #1d3557;
+  --color-surface-tint: #167d7f;
 
-  --color-on-surface: #111111;
-  --color-on-surface-variant: #3a3a3a;
-  --color-inverse-surface: #111111;
-  --color-inverse-on-surface: #f5f1e8;
+  --color-on-surface: #e8f0f7;
+  --color-on-surface-variant: #9fb2c5;
+  --color-inverse-surface: #e8f0f7;
+  --color-inverse-on-surface: #0b1628;
 
-  --color-outline: #111111;
-  --color-outline-variant: #111111;
+  --color-outline: #314a63;
+  --color-outline-variant: #26374c;
 
-  --color-background: #f5f1e8;
-  --color-on-background: #111111;
+  --color-background: #0b1628;
+  --color-on-background: #e8f0f7;
 
-  /* Typography scale — bolder weights throughout for a "confident" neo-brutalist voice */
-  --text-display-lg: 34px;
-  --text-display-lg--line-height: 40px;
-  --text-display-lg--font-weight: 800;
+  /* Typography — clean, readable, no oversized/decorative marketing type */
+  --text-display-lg: 30px;
+  --text-display-lg--line-height: 38px;
+  --text-display-lg--font-weight: 700;
   --text-display-lg--letter-spacing: -0.01em;
 
-  --text-headline-lg: 22px;
+  --text-headline-lg: 21px;
   --text-headline-lg--line-height: 28px;
-  --text-headline-lg--font-weight: 700;
-  --text-headline-lg--letter-spacing: -0.01em;
+  --text-headline-lg--font-weight: 600;
+  --text-headline-lg--letter-spacing: -0.005em;
 
-  --text-headline-lg-mobile: 19px;
+  --text-headline-lg-mobile: 18px;
   --text-headline-lg-mobile--line-height: 26px;
-  --text-headline-lg-mobile--font-weight: 700;
+  --text-headline-lg-mobile--font-weight: 600;
 
-  --text-headline-md: 18px;
+  --text-headline-md: 17px;
   --text-headline-md--line-height: 24px;
-  --text-headline-md--font-weight: 700;
+  --text-headline-md--font-weight: 600;
 
   --text-body-lg: 16px;
   --text-body-lg--line-height: 24px;
@@ -102,44 +102,47 @@
   --text-body-md--line-height: 20px;
   --text-body-md--font-weight: 400;
 
-  --text-label-md: 12px;
+  --text-label-md: 12.5px;
   --text-label-md--line-height: 16px;
-  --text-label-md--font-weight: 700;
-  --text-label-md--letter-spacing: 0.04em;
+  --text-label-md--font-weight: 600;
+  --text-label-md--letter-spacing: 0.01em;
 
   --text-label-sm: 11px;
   --text-label-sm--line-height: 14px;
-  --text-label-sm--font-weight: 600;
+  --text-label-sm--font-weight: 500;
 
-  /* Same names are usable as font families too (font-body-md etc, as the exports do).
-     Headings/labels/buttons use the bold grotesque; body/table text stays on Inter. */
+  /* Same names are usable as font families too (font-body-md etc). A single clean,
+     highly-legible grotesque throughout — no separate "display" typeface. */
   --font-body-lg: var(--font-inter), sans-serif;
   --font-body-md: var(--font-inter), sans-serif;
-  --font-headline-lg: var(--font-space-grotesk), var(--font-inter), sans-serif;
-  --font-headline-lg-mobile: var(--font-space-grotesk), var(--font-inter), sans-serif;
-  --font-headline-md: var(--font-space-grotesk), var(--font-inter), sans-serif;
-  --font-display-lg: var(--font-space-grotesk), var(--font-inter), sans-serif;
-  --font-label-md: var(--font-space-grotesk), var(--font-inter), sans-serif;
-  --font-label-sm: var(--font-space-grotesk), var(--font-inter), sans-serif;
+  --font-headline-lg: var(--font-inter), sans-serif;
+  --font-headline-lg-mobile: var(--font-inter), sans-serif;
+  --font-headline-md: var(--font-inter), sans-serif;
+  --font-display-lg: var(--font-inter), sans-serif;
+  --font-label-md: var(--font-inter), sans-serif;
+  --font-label-sm: var(--font-inter), sans-serif;
   --font-sans: var(--font-inter), sans-serif;
 
-  /* Radius scale — "constructed", not pill-shaped: 0-8px across the board */
-  --radius-sm: 4px;
-  --radius-md: 6px;
-  --radius-lg: 8px;
-  --radius-xl: 8px;
+  /* Radius — restrained and engineered, not bubbly: buttons/inputs 6-8px, cards 8-12px,
+     large panels 10-14px. rounded-md is what nearly every button/input in the app uses,
+     so it anchors at 8px; rounded-lg/xl step up for cards and large panels. */
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 14px;
 
-  /* Every bare `border` utility becomes a solid 2px black rule by default */
-  --default-border-width: 2px;
-  --default-border-color: #111111;
+  /* Thin, quiet borders — depth comes from shadow/highlight layering, not border weight */
+  --default-border-width: 1px;
+  --default-border-color: #314a63;
 
-  /* Hard offset shadows replace Tailwind's soft blurred shadow scale everywhere
-     `shadow-sm` / `shadow-md` / `shadow-lg` / `shadow-xl` is already used. */
-  --shadow-sm: 3px 3px 0 #111111;
-  --shadow-md: 4px 4px 0 #111111;
-  --shadow-lg: 6px 6px 0 #111111;
-  --shadow-xl: 8px 8px 0 #111111;
-  --shadow-2xl: 10px 10px 0 #111111;
+  /* Raised-panel shadows: a faint top inner highlight (the material catching light)
+     plus an outer drop shadow (the panel lifted off the surface behind it). Used by
+     every existing `shadow-sm/md/lg/xl` + `card-shadow` usage across the app. */
+  --shadow-sm: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 2px 5px rgba(0, 0, 0, 0.35);
+  --shadow-md: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 4px 10px rgba(0, 0, 0, 0.4);
+  --shadow-lg: inset 0 1px 0 rgba(255, 255, 255, 0.07), 0 8px 20px rgba(0, 0, 0, 0.45);
+  --shadow-xl: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 14px 32px rgba(0, 0, 0, 0.5);
+  --shadow-2xl: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 20px 44px rgba(0, 0, 0, 0.55);
 
   /* Spacing tokens used throughout (p-container-padding, gap-gutter, p-stack-md, ...) */
   --spacing-unit: 4px;
@@ -153,62 +156,87 @@
 body {
   background: var(--color-background);
   color: var(--color-on-background);
+  color-scheme: dark;
 }
 
 /* ----------------------------------------------------------------------------
-   Auto-brutalize every filled/outlined action button app-wide.
+   Auto-skeuomorphize every filled/outlined action button app-wide: raised by
+   default (top highlight + outer lift shadow), brightens and lifts slightly on
+   hover, and inverts to a pressed/inset look on :active (shadow moves inside,
+   button nudges down 1px) — exactly the "physically pressable" control the
+   brief asks for, applied once here rather than per button in every file.
    Scoped to <button> elements carrying one of these existing utility classes —
-   never matches inputs/selects/cards/avatars (they use different token classes
-   or, for bg-primary/bg-error, are only ever paired with rounded-full progress
-   bars/dots elsewhere, never with a <button>). This is how every button across
-   every page — including ones this redesign didn't hand-edit — gets a border,
-   a hard shadow, and the press/lift interaction without per-file changes.
+   never matches inputs/selects/cards (different token classes entirely).
    ---------------------------------------------------------------------------- */
 @layer base {
   button.bg-primary,
   button.bg-error,
   button.border-outline-variant,
   button.border-error\/30 {
-    box-shadow: 3px 3px 0 #111111;
-    transition: transform 120ms ease, box-shadow 120ms ease;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.18),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.25),
+      0 3px 6px rgba(0, 0, 0, 0.4);
+    transition: transform 110ms ease, box-shadow 110ms ease, filter 110ms ease;
   }
   button.bg-primary:not(:disabled):hover,
   button.bg-error:not(:disabled):hover,
   button.border-outline-variant:not(:disabled):hover,
   button.border-error\/30:not(:disabled):hover {
-    transform: translate(-2px, -2px);
-    box-shadow: 5px 5px 0 #111111;
+    filter: brightness(1.08);
+    transform: translateY(-1px);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.22),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.25),
+      0 6px 12px rgba(0, 0, 0, 0.45);
   }
   button.bg-primary:not(:disabled):active,
   button.bg-error:not(:disabled):active,
   button.border-outline-variant:not(:disabled):active,
   button.border-error\/30:not(:disabled):active {
-    transform: translate(2px, 2px);
-    box-shadow: 1px 1px 0 #111111;
+    filter: brightness(0.96);
+    transform: translateY(1px);
+    box-shadow:
+      inset 0 2px 5px rgba(0, 0, 0, 0.55),
+      inset 0 -1px 0 rgba(255, 255, 255, 0.04);
   }
   button.bg-primary:disabled,
   button.bg-error:disabled,
   button.border-outline-variant:disabled,
   button.border-error\/30:disabled {
-    box-shadow: 2px 2px 0 #111111;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 1px 2px rgba(0, 0, 0, 0.3);
   }
 }
 
-/* Recurring utility classes used across pages — brutalized: solid surfaces, hard shadows,
-   no blur/glassmorphism, no soft gradients. */
+/* Recessed control used for text inputs/selects/textareas — a dark inset well with a
+   soft inner shadow along the top edge, as if pressed into the panel. */
+@layer base {
+  input:not([type="checkbox"]):not([type="radio"]),
+  select,
+  textarea {
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(0, 0, 0, 0.2);
+  }
+  input:not([type="checkbox"]):not([type="radio"]):focus,
+  select:focus,
+  textarea:focus {
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.35), 0 0 0 3px rgba(73, 197, 182, 0.35);
+  }
+}
+
+/* Recurring utility classes used across pages */
 .glass-panel,
 .glass-card {
-  background: #ffffff;
-  border: 2px solid #111111;
+  background: var(--color-surface-container-lowest);
+  border: 1px solid var(--color-outline);
 }
 
 .card-shadow,
 .soft-shadow {
-  box-shadow: 4px 4px 0 #111111;
+  box-shadow: var(--shadow-md);
 }
 
 .glass-shadow {
-  box-shadow: 6px 6px 0 #111111;
+  box-shadow: var(--shadow-lg);
 }
 
 .custom-scrollbar::-webkit-scrollbar {
@@ -232,13 +260,13 @@ body {
 
 @keyframes pulse-ring {
   0% {
-    box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.5);
+    box-shadow: 0 0 0 0 rgba(73, 197, 182, 0.5);
   }
   70% {
-    box-shadow: 0 0 0 10px rgba(37, 99, 235, 0);
+    box-shadow: 0 0 0 10px rgba(73, 197, 182, 0);
   }
   100% {
-    box-shadow: 0 0 0 0 rgba(37, 99, 235, 0);
+    box-shadow: 0 0 0 0 rgba(73, 197, 182, 0);
   }
 }
 .pulse-ring {
@@ -260,9 +288,9 @@ body {
   position: absolute;
   left: 0;
   right: 0;
-  height: 3px;
-  background: var(--color-primary);
-  box-shadow: 0 0 8px 1px rgba(37, 99, 235, 0.6);
+  height: 2px;
+  background: var(--color-tertiary);
+  box-shadow: 0 0 10px 1px rgba(73, 197, 182, 0.7);
   animation: scanner-line 2.2s ease-in-out infinite;
 }
 
@@ -291,11 +319,11 @@ body {
 .progress-bar-animated {
   background-image: linear-gradient(
     45deg,
-    rgba(255, 255, 255, 0.2) 25%,
+    rgba(255, 255, 255, 0.12) 25%,
     transparent 25%,
     transparent 50%,
-    rgba(255, 255, 255, 0.2) 50%,
-    rgba(255, 255, 255, 0.2) 75%,
+    rgba(255, 255, 255, 0.12) 50%,
+    rgba(255, 255, 255, 0.12) 75%,
     transparent 75%,
     transparent
   );
@@ -326,11 +354,11 @@ body {
 
 /* Material Symbols Outlined — filled variant used for active/emphasis icons across the app */
 .material-symbols-outlined {
-  font-variation-settings: "FILL" 0, "wght" 500, "GRAD" 0, "opsz" 24;
+  font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
 }
 .material-symbols-outlined.filled,
 .material-symbols-outlined.fill {
-  font-variation-settings: "FILL" 1, "wght" 500, "GRAD" 0, "opsz" 24;
+  font-variation-settings: "FILL" 1, "wght" 400, "GRAD" 0, "opsz" 24;
 }
 
 /* Donut-chart SVG classes used on the student dashboard / history pages */
@@ -342,12 +370,12 @@ body {
 }
 .circle-bg {
   fill: none;
-  stroke: var(--color-surface-container-highest);
-  stroke-width: 4.5;
+  stroke: var(--color-surface-container-high);
+  stroke-width: 3.4;
 }
 .circle {
   fill: none;
-  stroke-width: 3.5;
+  stroke-width: 3.4;
   stroke-linecap: round;
   animation: progress 1s ease-out forwards;
 }
@@ -358,15 +386,15 @@ body {
 }
 .percentage {
   fill: var(--color-on-surface);
-  font-family: var(--font-space-grotesk), sans-serif;
-  font-weight: 800;
+  font-family: var(--font-inter), sans-serif;
+  font-weight: 700;
   font-size: 0.5em;
   text-anchor: middle;
 }
 .chart-label {
   fill: var(--color-on-surface-variant);
   font-family: var(--font-inter), sans-serif;
-  font-weight: 600;
+  font-weight: 500;
   font-size: 0.15em;
   text-anchor: middle;
 }

@@ -30,6 +30,7 @@ function SessionContent({ sessionId }: { sessionId: string }) {
   const [presentCount, setPresentCount] = useState(0);
   const [totalEnrolled, setTotalEnrolled] = useState(0);
   const [feed, setFeed] = useState<LiveFeedEntry[]>([]);
+  const [sessionRemaining, setSessionRemaining] = useState<number | null>(null);
   const [connection, setConnection] = useState<"live" | "polling" | "connecting">("connecting");
   const [showManual, setShowManual] = useState(false);
   const [rosterStudents, setRosterStudents] = useState<StudentListItem[]>([]);
@@ -39,6 +40,7 @@ function SessionContent({ sessionId }: { sessionId: string }) {
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const expiresAtRef = useRef<number | null>(null);
+  const sessionExpiresAtRef = useRef<number | null>(null);
 
   const renderQr = useCallback(async (payload: string) => {
     try {
@@ -57,12 +59,15 @@ function SessionContent({ sessionId }: { sessionId: string }) {
     [renderQr]
   );
 
-  // Tick the countdown from expiresAtRef every second, independent of transport.
+  // Tick the countdowns from the refs every second, independent of transport.
   useEffect(() => {
     countdownRef.current = setInterval(() => {
-      if (!expiresAtRef.current) return;
-      const remaining = Math.max(0, Math.round((expiresAtRef.current - Date.now()) / 1000));
-      setSecondsLeft(remaining);
+      if (expiresAtRef.current) {
+        setSecondsLeft(Math.max(0, Math.round((expiresAtRef.current - Date.now()) / 1000)));
+      }
+      if (sessionExpiresAtRef.current) {
+        setSessionRemaining(Math.max(0, Math.round((sessionExpiresAtRef.current - Date.now()) / 1000)));
+      }
     }, 1000);
     return () => {
       if (countdownRef.current) clearInterval(countdownRef.current);
@@ -78,6 +83,7 @@ function SessionContent({ sessionId }: { sessionId: string }) {
         setPresentCount(live.present_count);
         setTotalEnrolled(live.total_enrolled);
         setFeed(live.feed);
+        if (live.session_expires_at) sessionExpiresAtRef.current = new Date(live.session_expires_at).getTime();
         if (live.status === "closed") {
           setStatus("closed");
           if (pollRef.current) clearInterval(pollRef.current);
@@ -107,6 +113,8 @@ function SessionContent({ sessionId }: { sessionId: string }) {
         setPresentCount(live.present_count);
         setTotalEnrolled(live.total_enrolled);
         setFeed(live.feed);
+        if (live.session_expires_at) sessionExpiresAtRef.current = new Date(live.session_expires_at).getTime();
+        if (live.status === "closed") setStatus("closed");
         if (live.qr_payload && live.current_token_expires_at) {
           applyQr(live.qr_payload, live.current_token_expires_at);
         }
@@ -217,21 +225,21 @@ function SessionContent({ sessionId }: { sessionId: string }) {
 
   return (
     <div className="bg-background text-on-background font-body-md min-h-screen">
-      <header className="sticky top-0 z-40 bg-surface border-b-2 border-outline flex justify-between items-center w-full px-container-padding h-16">
+      <header className="sticky top-0 z-40 bg-surface border-b border-outline shadow-[0_2px_8px_rgba(0,0,0,0.3)] flex justify-between items-center w-full px-container-padding h-16">
         <button onClick={() => router.push("/professor/dashboard")} className="flex items-center gap-2 text-on-surface-variant hover:text-primary transition-colors">
           <span className="material-symbols-outlined">arrow_back</span>
           <span className="font-label-md text-label-md hidden sm:inline">Dashboard</span>
         </button>
-        <span className="font-headline-md text-headline-md font-extrabold text-primary">Proxy Busters</span>
+        <span className="font-headline-md text-headline-md font-bold text-on-surface">Proxy Busters</span>
         <span className="w-20" />
       </header>
 
       <div className="flex-1 p-container-padding flex flex-col gap-gutter max-w-5xl mx-auto w-full">
-        <div className="bg-surface rounded-lg border-2 border-outline shadow-[4px_4px_0_#111111] p-stack-md flex flex-col sm:flex-row justify-between items-start sm:items-center gap-stack-sm">
+        <div className="bg-surface rounded-lg border border-outline card-shadow p-stack-md flex flex-col sm:flex-row justify-between items-start sm:items-center gap-stack-sm">
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <span className={`w-2.5 h-2.5 rounded-full border border-outline ${status === "active" ? "bg-primary pulse-ring" : "bg-outline"}`} />
-              <span className="font-label-sm text-label-sm text-primary uppercase tracking-widest font-bold">
+              <span className={`w-2.5 h-2.5 rounded-full border border-outline ${status === "active" ? "bg-tertiary pulse-ring" : "bg-outline"}`} />
+              <span className="font-label-sm text-label-sm text-tertiary font-semibold">
                 {status === "active" ? "Live Session" : status === "closed" ? "Session Closed" : "Loading..."}
               </span>
             </div>
@@ -244,35 +252,47 @@ function SessionContent({ sessionId }: { sessionId: string }) {
               {connection === "live" ? "Live updates" : connection === "polling" ? "Reconnecting (polling)" : "Connecting..."}
             </p>
           </div>
-          <div className="bg-primary text-on-primary border-2 border-outline px-3 py-1.5 rounded-md flex items-center gap-2">
-            <span className="material-symbols-outlined text-sm filled">shield_locked</span>
-            <span className="font-label-md text-label-md font-bold">Secure Mode Enabled</span>
+          <div className="flex items-center gap-2">
+            {status === "active" && sessionRemaining !== null && (
+              <div className="bg-secondary-container text-on-secondary-container border border-outline px-3 py-1.5 rounded-md flex items-center gap-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
+                <span className="material-symbols-outlined text-sm filled">hourglass_top</span>
+                <span className="font-label-md text-label-md font-semibold">
+                  {`${String(Math.floor(sessionRemaining / 60)).padStart(2, "0")}:${String(sessionRemaining % 60).padStart(2, "0")} remaining`}
+                </span>
+              </div>
+            )}
+            <div className="bg-primary-container text-on-primary-container border border-outline px-3 py-1.5 rounded-md flex items-center gap-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
+              <span className="material-symbols-outlined text-sm filled">shield_locked</span>
+              <span className="font-label-md text-label-md font-semibold">Secure Mode Enabled</span>
+            </div>
           </div>
         </div>
 
         {status === "closed" ? (
-          <div className="bg-surface rounded-lg border-2 border-outline shadow-[4px_4px_0_#111111] p-stack-lg text-center">
-            <span className="material-symbols-outlined text-5xl text-primary mb-3">task_alt</span>
+          <div className="bg-surface rounded-lg border border-outline card-shadow p-stack-lg text-center">
+            <span className="material-symbols-outlined text-5xl text-tertiary mb-3">task_alt</span>
             <h3 className="font-headline-lg text-headline-lg text-on-surface mb-1">Session Closed</h3>
             <p className="font-body-md text-body-md text-on-surface-variant mb-4">
               Final attendance: {presentCount} / {totalEnrolled} ({percent}%)
             </p>
             <button
               onClick={() => router.push("/professor/dashboard")}
-              className="px-5 py-2 bg-primary text-on-primary border-2 border-outline rounded-md font-label-md text-label-md transition-colors"
+              className="px-5 py-2 bg-primary text-on-primary border border-outline rounded-md font-label-md text-label-md transition-colors"
             >
               Back to Dashboard
             </button>
           </div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-gutter flex-1">
-            <div className="lg:col-span-2 bg-surface rounded-lg border-2 border-outline shadow-[6px_6px_0_#111111] flex flex-col relative overflow-hidden min-h-[420px]">
-              <div className="p-stack-md flex justify-between items-center z-10 border-b-2 border-outline">
+            <div className="lg:col-span-2 bg-surface rounded-lg border border-outline card-shadow flex flex-col relative overflow-hidden min-h-[420px]">
+              <div className="p-stack-md flex justify-between items-center z-10 border-b border-outline">
                 <h3 className="font-headline-md text-headline-md text-on-surface">Scan to Mark Attendance</h3>
               </div>
+              {/* Physical "display housing" around the QR — the QR module itself stays plain
+                  dark-on-white for maximum scan contrast; only the frame around it is themed. */}
               <div className="flex-1 flex flex-col items-center justify-center p-stack-lg z-10 bg-surface-container-low">
-                <div className="bg-surface p-4 rounded-lg border-2 border-outline shadow-[4px_4px_0_#111111] relative">
-                  <div className="w-64 h-64 bg-white border-2 border-outline rounded-md flex items-center justify-center relative overflow-hidden">
+                <div className="bg-surface-container-high p-4 rounded-lg border border-outline card-shadow relative">
+                  <div className="w-64 h-64 bg-white rounded-md flex items-center justify-center relative overflow-hidden shadow-[inset_0_0_0_1px_rgba(0,0,0,0.08)]">
                     {qrDataUrl ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img src={qrDataUrl} alt="Attendance QR code" className="w-full h-full object-contain" />
@@ -280,37 +300,37 @@ function SessionContent({ sessionId }: { sessionId: string }) {
                       <span className="material-symbols-outlined text-6xl text-primary opacity-50 animate-pulse">qr_code_2</span>
                     )}
                   </div>
-                  <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 bg-secondary border-2 border-outline shadow-[2px_2px_0_#111111] rounded-md px-4 py-1.5 flex items-center gap-2 whitespace-nowrap">
+                  <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 bg-secondary border border-outline shadow-[0_3px_8px_rgba(0,0,0,0.4)] rounded-md px-4 py-1.5 flex items-center gap-2 whitespace-nowrap">
                     <span className="material-symbols-outlined text-on-secondary text-sm animate-spin" style={{ animationDuration: "3s" }}>
                       refresh
                     </span>
-                    <span className="font-label-sm text-label-sm text-on-secondary font-bold">
+                    <span className="font-label-sm text-label-sm text-on-secondary font-semibold">
                       Refreshing in <span>{secondsLeft}</span>s
                     </span>
                   </div>
                 </div>
               </div>
-              <div className="h-2 w-full bg-surface-container-high z-10 relative border-t-2 border-outline">
-                <div className="h-full bg-primary progress-bar-animated" style={{ width: `${(secondsLeft / QR_TTL_SECONDS) * 100}%` }} />
+              <div className="h-2 w-full bg-surface-container-high z-10 relative border-t border-outline">
+                <div className="h-full bg-tertiary progress-bar-animated" style={{ width: `${(secondsLeft / QR_TTL_SECONDS) * 100}%` }} />
               </div>
             </div>
 
             <div className="flex flex-col gap-gutter h-full">
-              <div className="bg-tertiary-container rounded-lg border-2 border-outline shadow-[4px_4px_0_#111111] p-stack-md flex-shrink-0">
-                <h4 className="font-label-md text-label-md text-on-tertiary-container uppercase tracking-wider mb-2">Attendance Status</h4>
+              <div className="bg-tertiary-container rounded-lg border border-outline card-shadow p-stack-md flex-shrink-0">
+                <h4 className="font-label-md text-label-md text-on-tertiary-container mb-2">Attendance Status</h4>
                 <div className="flex items-baseline gap-2">
                   <span className="font-display-lg text-display-lg text-on-tertiary-container">{presentCount}</span>
                   <span className="font-headline-md text-headline-md text-on-tertiary-container">/ {totalEnrolled}</span>
                 </div>
-                <div className="mt-4 w-full bg-surface border-2 border-outline rounded-md h-3 overflow-hidden">
-                  <div className="bg-primary h-full" style={{ width: `${percent}%` }} />
+                <div className="mt-4 w-full bg-surface-dim border border-outline rounded-md h-3 overflow-hidden shadow-[inset_0_1px_3px_rgba(0,0,0,0.4)]">
+                  <div className="bg-tertiary h-full" style={{ width: `${percent}%` }} />
                 </div>
-                <p className="font-label-sm text-label-sm text-on-tertiary-container mt-2 text-right font-bold">{percent}% Present</p>
+                <p className="font-label-sm text-label-sm text-on-tertiary-container mt-2 text-right font-semibold">{percent}% Present</p>
               </div>
 
-              <div className="bg-surface rounded-lg border-2 border-outline shadow-[4px_4px_0_#111111] p-stack-md flex-1 flex flex-col min-h-[200px]">
+              <div className="bg-surface rounded-lg border border-outline card-shadow p-stack-md flex-1 flex flex-col min-h-[200px]">
                 <div className="flex justify-between items-center mb-stack-sm">
-                  <h4 className="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Live Feed</h4>
+                  <h4 className="font-label-md text-label-md text-on-surface-variant">Live Feed</h4>
                   <span className="flex h-2 w-2 relative">
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
                     <span className="relative inline-flex rounded-full h-2 w-2 bg-primary" />

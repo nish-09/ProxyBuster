@@ -145,7 +145,7 @@ function AttendanceContent() {
           <select
             value={subjectId}
             onChange={(e) => setSubjectId(e.target.value)}
-            className="w-full h-10 pl-3 pr-10 appearance-none bg-surface-container-lowest border border-outline-variant rounded-lg font-body-md text-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/15 focus:border-primary shadow-sm glass-shadow cursor-pointer"
+            className="w-full h-10 pl-3 pr-10 appearance-none bg-surface-container-lowest border border-outline-variant rounded-lg font-body-md text-body-md text-on-surface focus:outline-none focus:outline-none focus:border-primary shadow-sm glass-shadow cursor-pointer"
           >
             <option value="all">All Subjects</option>
             {subjects.map((s) => (
