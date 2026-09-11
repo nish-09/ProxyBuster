@@ -9,73 +9,82 @@
    page-by-page. Do not hardcode raw hex values in page/component files; add or
    adjust a token here instead.
 
-   Palette: lavender #C9A7FF dominates as the page background; acid lime
-   #DFFF72 marks cards/primary actions (used strategically, not everywhere);
-   deep lavender #B88AFF is for secondary/nav sections; near-black #171717 is
-   every border/shadow/heading; neon lime #E8FF8A is reserved for small
-   highlights only. No soft Claymorphism shadows anymore — every raised
-   surface gets a HARD, un-blurred offset shadow (card-shadow == 6px 6px 0
-   #171717) and a thick black border. Buttons press physically into their own
-   shadow on :active via the @layer base rules below.
+   STRICT PALETTE (5 colors, no exceptions): lavender #C9A7FF is the page/body
+   background ONLY — never a card/box/panel color. Yellow (#DFFF72 primary
+   surface, #E8FF8A brighter highlight — the only two yellows in the system)
+   is EVERY card/box/panel/table/form/modal surface; every major UI block is
+   yellow-on-lavender, like a printed sticker on a canvas. Green (#22C55E,
+   the one true green) is reserved for tiny details only — status dots,
+   small checkmarks, micro-labels — never a large filled surface. Red
+   (#EF4444, the one true red) is reserved for errors/destructive states
+   only. Black (#171717) is every border/shadow/heading/body text. No blue,
+   cyan, orange, pink, purple or teal anywhere, and no second shade of
+   yellow/green/red beyond the ones named above. No soft Claymorphism
+   shadows — every raised surface gets a HARD, un-blurred offset shadow
+   (card-shadow == 6px 6px 0 #171717) and a thick black border. Buttons
+   press physically into their own shadow on :active via @layer base below.
    ========================================================================== */
 @theme {
-  /* ---------- Primary (acid lime) — primary actions, cards, "active" state ---------- */
+  /* ---------- Primary (yellow) — primary actions, cards, "active"/neutral state ---------- */
   --color-primary: #dfff72;
   --color-on-primary: #171717;
-  --color-primary-container: #eaffab;
+  --color-primary-container: #dfff72;
   --color-on-primary-container: #171717;
   --color-primary-fixed: #dfff72;
-  --color-primary-fixed-dim: #c8e85e;
+  --color-primary-fixed-dim: #e8ff8a;
   --color-on-primary-fixed: #171717;
   --color-on-primary-fixed-variant: #171717;
   --color-inverse-primary: #171717;
 
-  /* ---------- Secondary (deep lavender) — nav/secondary sections, "late" state ---------- */
-  --color-secondary: #b88aff;
-  --color-on-secondary: #171717;
-  --color-secondary-container: #d9c4ff;
-  --color-on-secondary-container: #171717;
-  --color-secondary-fixed: #b88aff;
-  --color-secondary-fixed-dim: #a06ffb;
-  --color-on-secondary-fixed: #171717;
-  --color-on-secondary-fixed-variant: #171717;
+  /* ---------- Secondary (black-on-yellow) — the ONE non-triad exception, reserved for the
+     "late" attendance status (a real 4th business state, not decoration); inverted
+     black/yellow rather than a new hue so it still stays inside the 5-color system. ---------- */
+  --color-secondary: #171717;
+  --color-on-secondary: #e8ff8a;
+  --color-secondary-container: #171717;
+  --color-on-secondary-container: #e8ff8a;
+  --color-secondary-fixed: #171717;
+  --color-secondary-fixed-dim: #171717;
+  --color-on-secondary-fixed: #e8ff8a;
+  --color-on-secondary-fixed-variant: #e8ff8a;
 
-  /* ---------- Tertiary (neon lime) — success / present / small highlights ---------- */
-  --color-tertiary: #8fd13f;
+  /* ---------- Tertiary (the one green) — success / present / tiny positive details ONLY ---------- */
+  --color-tertiary: #22c55e;
   --color-on-tertiary: #171717;
-  --color-tertiary-container: #e8ff8a;
+  --color-tertiary-container: #b9f2cd;
   --color-on-tertiary-container: #171717;
-  --color-tertiary-fixed: #e8ff8a;
-  --color-tertiary-fixed-dim: #b7d94f;
+  --color-tertiary-fixed: #22c55e;
+  --color-tertiary-fixed-dim: #1a9f4b;
   --color-on-tertiary-fixed: #171717;
   --color-on-tertiary-fixed-variant: #171717;
 
-  /* ---------- Error (hot pink-red) — danger / absent / stop / blocked state ---------- */
-  --color-error: #ff5470;
+  /* ---------- Error (the one red) — danger / absent / stop / blocked state ONLY ---------- */
+  --color-error: #ef4444;
   --color-on-error: #171717;
-  --color-error-container: #ffc2cd;
+  --color-error-container: #fbc6c6;
   --color-on-error-container: #171717;
 
-  /* ---------- Surfaces (lavender family) ---------- */
-  --color-surface: #d9c4ff;
-  --color-surface-dim: #b88aff;
-  --color-surface-bright: #f1e9ff;
-  --color-surface-container-lowest: #f1e9ff;
-  --color-surface-container-low: #e4d6ff;
-  --color-surface-container: #d9c4ff;
-  --color-surface-container-high: #cbb0ff;
-  --color-surface-container-highest: #b88aff;
-  --color-surface-variant: #b88aff;
+  /* ---------- Surfaces — YELLOW, never lavender. Only the two yellows named above. ---------- */
+  --color-surface: #dfff72;
+  --color-surface-dim: #e8ff8a;
+  --color-surface-bright: #e8ff8a;
+  --color-surface-container-lowest: #dfff72;
+  --color-surface-container-low: #dfff72;
+  --color-surface-container: #dfff72;
+  --color-surface-container-high: #e8ff8a;
+  --color-surface-container-highest: #e8ff8a;
+  --color-surface-variant: #e8ff8a;
   --color-surface-tint: #dfff72;
 
   --color-on-surface: #171717;
-  --color-on-surface-variant: #3a3140;
+  --color-on-surface-variant: #40401f;
   --color-inverse-surface: #171717;
-  --color-inverse-on-surface: #f1e9ff;
+  --color-inverse-on-surface: #dfff72;
 
   --color-outline: #171717;
   --color-outline-variant: #171717;
 
+  /* Page/body canvas — lavender, and ONLY the page canvas. */
   --color-background: #c9a7ff;
   --color-on-background: #171717;
 
@@ -250,10 +259,12 @@ body {
   box-shadow: inset 3px 3px 0 rgba(23, 23, 23, 0.15);
 }
 
-/* Restrained colored surfaces reserved for where color IS the message (an active/live
- * session, a success confirmation, a stop/danger control) — a thick tinted border plus the
- * standard hard black offset shadow. Kept from the prior design system's naming so call
- * sites didn't need touching; "glow" now means "accent border", matching Neo-Brutalism. */
+/* Restrained accent surfaces reserved for where color IS the message (an active/live
+ * session, a success confirmation, a stop/danger control) — kept from the prior design
+ * system's naming so call sites didn't need touching. Under the strict 5-color palette,
+ * "blue" no longer exists: an "active/informational" surface is just the brighter of the
+ * two approved yellows (never black, which is reserved for the "late" status only), while
+ * green/red stay small-scale tints of the single approved shade of each. */
 .clay-glow-blue,
 .clay-glow-green,
 .clay-glow-red {
@@ -261,7 +272,7 @@ body {
   box-shadow: var(--shadow-md);
 }
 .clay-glow-blue {
-  background-color: var(--color-secondary-container);
+  background-color: var(--color-primary-fixed-dim);
 }
 .clay-glow-green {
   background-color: var(--color-tertiary-container);

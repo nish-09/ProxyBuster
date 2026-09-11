@@ -46,43 +46,40 @@ function Donut({ pct, size = 160 }: { pct: number; size?: number }) {
 
 function SubjectCard({ subject }: { subject: SubjectAttendanceOut }) {
   const warning = subject.percentage < 75;
+  // Card surface stays the standard yellow always (strict palette: cards are never
+  // filled with the status color) — red/green is used only for the small badge, the
+  // percentage number and the progress bar fill, per "small details only".
   return (
-    <div
-      className={
-        warning
-          ? "rounded-lg border border-outline bg-secondary-container card-shadow p-5 flex flex-col relative overflow-hidden"
-          : "bg-tertiary-container rounded-lg border border-outline card-shadow p-5 flex flex-col"
-      }
-    >
+    <div className="rounded-lg border border-outline bg-surface-container-lowest card-shadow p-5 flex flex-col relative overflow-hidden">
       <div className="flex justify-between items-start mb-4">
-        <div className="w-10 h-10 rounded-md bg-surface-container-high border border-outline flex items-center justify-center text-on-surface shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
+        <div className="w-10 h-10 rounded-md bg-surface-container-high border border-outline flex items-center justify-center text-on-surface">
           <span className="material-symbols-outlined">menu_book</span>
         </div>
         <span
           className={`font-label-md text-label-md font-semibold px-2 py-1 rounded border border-outline flex items-center gap-1 ${
-            warning ? "bg-secondary text-on-secondary" : "bg-tertiary text-on-tertiary"
+            warning ? "bg-error text-on-error" : "bg-tertiary text-on-tertiary"
           }`}
         >
           {warning && <span className="material-symbols-outlined text-[14px]">warning</span>}
           {warning ? "Action Req" : "Safe"}
         </span>
       </div>
-      <h4 className={`font-headline-md text-headline-md-mobile mb-1 truncate ${warning ? "text-on-secondary-container" : "text-on-tertiary-container"}`} title={subject.subject_name}>
+      <h4 className="font-headline-md text-headline-md-mobile mb-1 truncate text-on-surface" title={subject.subject_name}>
         {subject.subject_name}
       </h4>
-      <p className={`font-body-md text-body-md mb-4 ${warning ? "text-on-secondary-container" : "text-on-tertiary-container"} opacity-80`}>{subject.subject_code}</p>
+      <p className="font-body-md text-body-md mb-4 text-on-surface-variant">{subject.subject_code}</p>
       <div className="mt-auto">
         <div className="flex justify-between items-end mb-2">
-          <span className={`font-display-lg text-display-lg leading-none ${warning ? "text-on-secondary-container" : "text-on-tertiary-container"}`}>
+          <span className={`font-display-lg text-display-lg leading-none ${warning ? "text-error" : "text-tertiary"}`}>
             {subject.percentage.toFixed(0)}
             <span className="text-xl">%</span>
           </span>
-          <span className={`font-label-sm text-label-sm ${warning ? "text-on-secondary-container" : "text-on-tertiary-container"} opacity-80`}>
+          <span className="font-label-sm text-label-sm text-on-surface-variant">
             {subject.present + subject.late + subject.manual}/{subject.total}
           </span>
         </div>
-        <div className="w-full rounded-md h-2 bg-surface-dim border border-outline overflow-hidden shadow-[inset_0_1px_2px_rgba(0,0,0,0.4)]">
-          <div className={`h-full ${warning ? "bg-secondary" : "bg-tertiary"}`} style={{ width: `${Math.min(subject.percentage, 100)}%` }} />
+        <div className="w-full rounded-md h-2 bg-surface-dim border border-outline overflow-hidden">
+          <div className={`h-full ${warning ? "bg-error" : "bg-tertiary"}`} style={{ width: `${Math.min(subject.percentage, 100)}%` }} />
         </div>
       </div>
     </div>
@@ -174,10 +171,10 @@ function DashboardContent() {
         <div className="mt-4 md:mt-0 flex items-center gap-4">
           <span
             className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md font-label-md text-label-md font-semibold border border-outline card-shadow ${
-              data.standing === "good" ? "bg-tertiary-container text-on-tertiary-container" : "bg-secondary-container text-on-secondary-container"
+              data.standing === "good" ? "bg-tertiary-container text-on-tertiary-container" : "bg-error-container text-on-error-container"
             }`}
           >
-            <span className={`w-2 h-2 rounded-full border border-outline ${data.standing === "good" ? "bg-tertiary" : "bg-secondary"}`} />
+            <span className={`w-2 h-2 rounded-full border border-outline ${data.standing === "good" ? "bg-tertiary" : "bg-error"}`} />
             {data.standing === "good" ? "Good Standing" : "Needs Attention"}
           </span>
         </div>
@@ -250,7 +247,7 @@ function DashboardContent() {
                 {calcResult && (
                   <div
                     className={`flex items-center gap-1 px-2 py-1 rounded border border-outline font-semibold ${
-                      calcResult.classes_can_miss > 0 ? "text-on-tertiary-container bg-tertiary-container" : "text-on-secondary-container bg-secondary-container"
+                      calcResult.classes_can_miss > 0 ? "text-on-tertiary-container bg-tertiary-container" : "text-on-error-container bg-error-container"
                     }`}
                   >
                     <span className="material-symbols-outlined text-[16px]">
