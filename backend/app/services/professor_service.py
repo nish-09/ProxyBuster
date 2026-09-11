@@ -156,16 +156,27 @@ def dashboard(db: Session, professor_profile: ProfessorProfile) -> ProfessorDash
         if owned_ids
         else []
     )
+    # Batched instead of 3 queries per lecture — class_divisions_by_id/subjects_by_id are
+    # already built above (every upcoming lecture's division is necessarily in owned_ids).
+    active_lecture_ids = (
+        {
+            row[0]
+            for row in db.query(AttendanceSession.lecture_id)
+            .filter(
+                AttendanceSession.lecture_id.in_([l.id for l in upcoming_lectures]),
+                AttendanceSession.status == SessionStatus.ACTIVE,
+            )
+            .all()
+        }
+        if upcoming_lectures
+        else set()
+    )
+
     upcoming_sessions = []
     for lecture in upcoming_lectures:
-        class_division = db.get(ClassDivision, lecture.class_division_id)
-        subject = db.get(Subject, class_division.subject_id)
-        has_active = (
-            db.query(AttendanceSession)
-            .filter(AttendanceSession.lecture_id == lecture.id, AttendanceSession.status == SessionStatus.ACTIVE)
-            .first()
-            is not None
-        )
+        class_division = class_divisions_by_id[lecture.class_division_id]
+        subject = subjects_by_id[class_division.subject_id]
+        has_active = lecture.id in active_lecture_ids
         upcoming_sessions.append(
             UpcomingSessionOut(
                 lecture_id=lecture.id,
@@ -228,10 +239,25 @@ def list_students(
 
     student_ids = _enrolled_student_ids(db, scope_ids)
     overall_by_student = analytics_service.batch_overall_stats(db, student_ids, scope_ids, REQUIRED_PCT_DEFAULT)
+
+    # Batched instead of 2 queries per student (db.get(StudentProfile) + db.get(User)) — with
+    # a realistic ~60-student roster and Supabase's per-round-trip network latency, that N+1
+    # alone measured ~8s on this endpoint; this endpoint is the professor's main roster view.
+    student_profiles_by_id = (
+        {sp.id: sp for sp in db.query(StudentProfile).filter(StudentProfile.id.in_(student_ids)).all()}
+        if student_ids
+        else {}
+    )
+    users_by_id = (
+        {u.id: u for u in db.query(User).filter(User.id.in_([sp.user_id for sp in student_profiles_by_id.values()])).all()}
+        if student_profiles_by_id
+        else {}
+    )
+
     items: list[StudentListItem] = []
     for sid in student_ids:
-        student_profile = db.get(StudentProfile, sid)
-        user = db.get(User, student_profile.user_id)
+        student_profile = student_profiles_by_id[sid]
+        user = users_by_id[student_profile.user_id]
         if q:
             needle = q.lower()
             if needle not in user.full_name.lower() and needle not in student_profile.roll_number.lower():
@@ -422,10 +448,36 @@ def attendance_sheet(
 
     stats_by_student = analytics_service.batch_subject_stats(db, student_ids, class_division_id, REQUIRED_PCT_DEFAULT)
 
+    # Batched instead of 3 queries per student (StudentProfile, User, latest AnomalyScore) —
+    # with a realistic ~60-student roster and Supabase's per-round-trip network latency, that
+    # N+1 alone measured ~11.7s on this endpoint.
+    student_profiles_by_id = (
+        {sp.id: sp for sp in db.query(StudentProfile).filter(StudentProfile.id.in_(student_ids)).all()}
+        if student_ids
+        else {}
+    )
+    users_by_id = (
+        {u.id: u for u in db.query(User).filter(User.id.in_([sp.user_id for sp in student_profiles_by_id.values()])).all()}
+        if student_profiles_by_id
+        else {}
+    )
+    # One query for every anomaly score row for these students, newest first, then keep only
+    # the first (= latest) one seen per student — equivalent to a per-student "latest row"
+    # lookup without N separate queries or a Postgres-only DISTINCT ON.
+    latest_anomaly_by_student: dict[uuid.UUID, AnomalyScore] = {}
+    if student_ids:
+        for a in (
+            db.query(AnomalyScore)
+            .filter(AnomalyScore.student_id.in_(student_ids))
+            .order_by(AnomalyScore.computed_at.desc())
+            .all()
+        ):
+            latest_anomaly_by_student.setdefault(a.student_id, a)
+
     rows: list[AttendanceSheetRow] = []
     for sid in student_ids:
-        student_profile = db.get(StudentProfile, sid)
-        user = db.get(User, student_profile.user_id)
+        student_profile = student_profiles_by_id[sid]
+        user = users_by_id[student_profile.user_id]
         cells: dict[str, AttendanceSheetCell] = {}
         for lecture in lectures:
             record = records_by_student.get(sid, {}).get(lecture.id)
@@ -437,9 +489,7 @@ def attendance_sheet(
 
         stats = stats_by_student[sid]
 
-        latest_anomaly = (
-            db.query(AnomalyScore).filter(AnomalyScore.student_id == sid).order_by(AnomalyScore.computed_at.desc()).first()
-        )
+        latest_anomaly = latest_anomaly_by_student.get(sid)
         suspicious = bool(latest_anomaly and float(latest_anomaly.score) >= SUSPICIOUS_SCORE_THRESHOLD)
         suspicious_reason = (latest_anomaly.reasons[0] if suspicious and latest_anomaly.reasons else None)
 
@@ -474,10 +524,14 @@ def security_events(
         query = query.filter(SecurityEvent.severity == SecurityEventSeverity(severity_filter))
     events = query.order_by(SecurityEvent.created_at.desc()).limit(limit).all()
 
+    # Batched instead of 2 queries per event (one of which — StudentProfile — was fetched and
+    # never even used; only the User's full_name is).
+    event_user_ids = {e.user_id for e in events if e.user_id is not None}
+    users_by_id = {u.id: u for u in db.query(User).filter(User.id.in_(event_user_ids)).all()} if event_user_ids else {}
+
     results = []
     for e in events:
-        student_profile = db.query(StudentProfile).filter(StudentProfile.user_id == e.user_id).first() if e.user_id else None
-        user = db.get(User, e.user_id) if e.user_id else None
+        user = users_by_id.get(e.user_id) if e.user_id else None
         results.append(
             SecurityEventOut(
                 id=e.id,
@@ -532,12 +586,25 @@ def cooldowns(db: Session, professor_profile: ProfessorProfile) -> list[Cooldown
         .order_by(Cooldown.expires_at.desc())
         .all()
     )
+    # Batched instead of 2 queries per active cooldown.
+    active_student_ids = {c.student_id for c in active}
+    student_profiles_by_id = (
+        {sp.id: sp for sp in db.query(StudentProfile).filter(StudentProfile.id.in_(active_student_ids)).all()}
+        if active_student_ids
+        else {}
+    )
+    users_by_id = (
+        {u.id: u for u in db.query(User).filter(User.id.in_([sp.user_id for sp in student_profiles_by_id.values()])).all()}
+        if student_profiles_by_id
+        else {}
+    )
+
     results = []
     for c in active:
         if ensure_utc(c.expires_at) <= now:
             continue
-        student_profile = db.get(StudentProfile, c.student_id)
-        user = db.get(User, student_profile.user_id)
+        student_profile = student_profiles_by_id[c.student_id]
+        user = users_by_id[student_profile.user_id]
         results.append(
             CooldownListItem(
                 student_id=c.student_id,
