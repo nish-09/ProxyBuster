@@ -235,12 +235,16 @@ function SessionContent({ sessionId }: { sessionId: string }) {
       </header>
 
       <div className="flex-1 p-container-padding flex flex-col gap-gutter max-w-5xl mx-auto w-full">
-        <div className="bg-surface rounded-lg border border-outline card-shadow p-stack-md flex flex-col sm:flex-row justify-between items-start sm:items-center gap-stack-sm">
+        <div
+          className={`bg-surface rounded-lg p-stack-md flex flex-col sm:flex-row justify-between items-start sm:items-center gap-stack-sm ${
+            status === "active" ? "clay-glow-blue" : "border border-outline clay-raised"
+          }`}
+        >
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <span className={`w-2.5 h-2.5 rounded-full border border-outline ${status === "active" ? "bg-tertiary pulse-ring" : "bg-outline"}`} />
-              <span className="font-label-sm text-label-sm text-tertiary font-semibold">
-                {status === "active" ? "Live Session" : status === "closed" ? "Session Closed" : "Loading..."}
+              <span className={`w-2.5 h-2.5 rounded-full border border-outline ${status === "active" ? "bg-primary pulse-ring" : "bg-outline"}`} />
+              <span className={`font-label-sm text-label-sm font-semibold ${status === "active" ? "text-primary" : "text-on-surface-variant"}`}>
+                {status === "active" ? "Session Active" : status === "closed" ? "Session Closed" : "Loading..."}
               </span>
             </div>
             <h2 className="font-display-lg text-display-lg text-on-surface">
@@ -291,7 +295,7 @@ function SessionContent({ sessionId }: { sessionId: string }) {
               {/* Physical "display housing" around the QR — the QR module itself stays plain
                   dark-on-white for maximum scan contrast; only the frame around it is themed. */}
               <div className="flex-1 flex flex-col items-center justify-center p-stack-lg z-10 bg-surface-container-low">
-                <div className="bg-surface-container-high p-5 rounded-xl clay-recessed relative">
+                <div className="bg-surface-container-high p-5 rounded-xl clay-recessed-glow-blue relative">
                   <div className="w-64 h-64 bg-white rounded-lg flex items-center justify-center relative overflow-hidden shadow-[0_2px_10px_rgba(80,70,60,0.15)]">
                     {qrDataUrl ? (
                       // eslint-disable-next-line @next/next/no-img-element
@@ -316,16 +320,21 @@ function SessionContent({ sessionId }: { sessionId: string }) {
             </div>
 
             <div className="flex flex-col gap-gutter h-full">
-              <div className="bg-tertiary-container rounded-lg border border-outline card-shadow p-stack-md flex-shrink-0">
-                <h4 className="font-label-md text-label-md text-on-tertiary-container mb-2">Attendance Status</h4>
+              {/* Grey card per the design system — green is reserved for the number/icon/
+                  progress bar, not the whole surface. */}
+              <div className="bg-surface rounded-lg border border-outline card-shadow p-stack-md flex-shrink-0">
+                <h4 className="font-label-md text-label-md text-on-surface-variant mb-2 flex items-center gap-1.5">
+                  <span className="material-symbols-outlined text-tertiary text-[16px] filled">how_to_reg</span>
+                  Attendance Status
+                </h4>
                 <div className="flex items-baseline gap-2">
-                  <span className="font-display-lg text-display-lg text-on-tertiary-container">{presentCount}</span>
-                  <span className="font-headline-md text-headline-md text-on-tertiary-container">/ {totalEnrolled}</span>
+                  <span className="font-display-lg text-display-lg text-tertiary">{presentCount}</span>
+                  <span className="font-headline-md text-headline-md text-on-surface-variant">/ {totalEnrolled}</span>
                 </div>
                 <div className="mt-4 w-full bg-surface-dim rounded-md h-3 overflow-hidden clay-recessed">
                   <div className="bg-tertiary h-full" style={{ width: `${percent}%` }} />
                 </div>
-                <p className="font-label-sm text-label-sm text-on-tertiary-container mt-2 text-right font-semibold">{percent}% Present</p>
+                <p className="font-label-sm text-label-sm text-tertiary mt-2 text-right font-semibold">{percent}% Present</p>
               </div>
 
               <div className="bg-surface rounded-lg border border-outline card-shadow p-stack-md flex-1 flex flex-col min-h-[200px]">

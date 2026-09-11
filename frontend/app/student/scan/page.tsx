@@ -215,8 +215,8 @@ function ScannerContent() {
     const { date, time } = formatMarkedAt(successResult.marked_at);
     return (
       <main className="flex-1 w-full min-h-screen flex items-center justify-center bg-surface p-container-padding">
-        <div className="w-full max-w-md bg-surface-container-lowest rounded-xl clay-raised-lg p-stack-lg flex flex-col items-center text-center">
-          <div className="w-16 h-16 rounded-full bg-tertiary-container flex items-center justify-center mb-stack-md clay-raised animate-clay-pop">
+        <div className="w-full max-w-md bg-surface-container-lowest rounded-xl clay-glow-green p-stack-lg flex flex-col items-center text-center">
+          <div className="w-16 h-16 rounded-full bg-tertiary-container flex items-center justify-center mb-stack-md clay-glow-green animate-clay-pop">
             <span className="material-symbols-outlined filled text-on-tertiary-container" style={{ fontSize: 36 }}>
               check_circle
             </span>
@@ -296,7 +296,7 @@ function ScannerContent() {
           </div>
         </div>
 
-        <div className="relative w-[300px] h-[300px] md:w-[400px] md:h-[400px] rounded-xl overflow-hidden shadow-[0_16px_40px_rgba(0,0,0,0.45)] bg-black border-4 border-surface">
+        <div className="relative w-[300px] h-[300px] md:w-[400px] md:h-[400px] rounded-xl overflow-hidden bg-black border-4 border-surface shadow-[0_16px_40px_rgba(0,0,0,0.45),0_0_16px_rgba(59,130,246,0.15)]">
           <div id="qr-reader" ref={containerRef} className="absolute inset-0 [&_video]:object-cover [&_video]:w-full [&_video]:h-full" />
           <div className="absolute top-0 left-0 w-12 h-12 border-t-4 border-l-4 border-tertiary rounded-tl-xl m-4 pointer-events-none" />
           <div className="absolute top-0 right-0 w-12 h-12 border-t-4 border-r-4 border-tertiary rounded-tr-xl m-4 pointer-events-none" />

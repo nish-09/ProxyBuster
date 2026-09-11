@@ -97,12 +97,12 @@ function CooldownContent() {
   return (
     <main className="flex-1 flex flex-col justify-center items-center w-full min-h-screen p-container-padding relative overflow-hidden bg-background">
       <div className="w-full max-w-lg z-10 flex flex-col items-center justify-center animate-fade-in-up">
-        <div className="bg-surface rounded-xl clay-raised-lg p-stack-lg w-full flex flex-col items-center text-center relative overflow-hidden">
+        <div className="bg-surface rounded-xl clay-glow-blue p-stack-lg w-full flex flex-col items-center text-center relative overflow-hidden">
           <div className="absolute top-0 left-0 w-full h-2 bg-surface-container-high border-b border-outline">
-            <div className="h-full bg-error" style={{ width: `${progressPct}%` }} />
+            <div className="h-full bg-primary" style={{ width: `${progressPct}%` }} />
           </div>
-          <div className="w-16 h-16 rounded-lg bg-error-container flex items-center justify-center mb-stack-md mt-2 clay-raised">
-            <span className="material-symbols-outlined filled text-on-error-container" style={{ fontSize: 32 }}>
+          <div className="w-16 h-16 rounded-lg bg-primary-container flex items-center justify-center mb-stack-md mt-2 clay-raised">
+            <span className="material-symbols-outlined filled text-on-primary-container" style={{ fontSize: 32 }}>
               lock_clock
             </span>
           </div>
@@ -117,7 +117,7 @@ function CooldownContent() {
           <div className="bg-surface-dim py-6 px-10 rounded-lg mb-stack-lg w-full flex flex-col items-center clay-recessed">
             <div className="font-display-lg text-display-lg text-on-surface tracking-tight font-bold flex items-center gap-1">
               <span>{m}</span>
-              <span style={{ opacity: blink ? 1 : 0 }} className="text-tertiary">
+              <span style={{ opacity: blink ? 1 : 0 }} className="text-primary">
                 :
               </span>
               <span>{s}</span>

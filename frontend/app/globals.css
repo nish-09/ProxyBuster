@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 /* ============================================================================
-   Proxy Busters — Claymorphism design system
+   Proxy Busters — Claymorphism (Grey + Neon Accent) design system
    ----------------------------------------------------------------------------
    Every page in the app is built on top of this single token layer (bg-primary,
    text-on-surface, border-outline-variant, card-shadow, etc.) — redefining the
@@ -9,73 +9,82 @@
    page-by-page. Do not hardcode raw hex values in page/component files; add or
    adjust a token here instead.
 
-   Depth model: page (warm putty) < surface container (soft clay panel, raised
-   via --shadow-*, a dark outer shadow + a white highlight on the opposite
-   corner) < inset controls (inputs, recessed clay with an inner shadow only,
-   no highlight — it reads as pressed IN rather than raised). Buttons are
-   raised by default and invert to a pressed/inset look on :active via the
-   @layer base rules below.
+   Palette story: a predominantly grey/charcoal clay base (~80-90% of the UI)
+   with exactly three functional accents — blue (primary action / active /
+   information), green (success / present), red (danger / absent / stop) — and
+   nothing else. Grey dominates; color communicates meaning, never decoration.
+
+   Depth model: page (charcoal) < surface container (soft grey clay panel,
+   raised via --shadow-*, a dark outer shadow + a faint light rim on the
+   opposite edge) < inset controls (inputs, recessed clay with an inner
+   shadow only — pressed IN rather than raised). Buttons are raised by
+   default and invert to a pressed/inset look on :active via the @layer base
+   rules below. A restrained colored edge-glow (see .clay-glow-*) is reserved
+   for the handful of surfaces where color IS the message (an active session,
+   a success confirmation, a stop/danger action) — never applied broadly.
    ========================================================================== */
 @theme {
-  /* ---------- Primary (indigo) — primary actions, "active" state ---------- */
-  --color-primary: #5b6cff;
-  --color-on-primary: #ffffff;
-  --color-primary-container: #e2e4ff;
-  --color-on-primary-container: #3c46cc;
-  --color-primary-fixed: #5b6cff;
-  --color-primary-fixed-dim: #4a58e0;
-  --color-on-primary-fixed: #ffffff;
-  --color-on-primary-fixed-variant: #e2e4ff;
-  --color-inverse-primary: #c3c9ff;
+  /* ---------- Primary (blue) — primary actions, active/information state ---------- */
+  --color-primary: #3b82f6;
+  --color-on-primary: #f8fafc;
+  --color-primary-container: #26334d;
+  --color-on-primary-container: #60a5fa;
+  --color-primary-fixed: #3b82f6;
+  --color-primary-fixed-dim: #2f6bd6;
+  --color-on-primary-fixed: #f8fafc;
+  --color-on-primary-fixed-variant: #bfdbfe;
+  --color-inverse-primary: #93c5fd;
 
-  /* ---------- Secondary (warm amber) — highlights, warnings, "late" state ---------- */
-  --color-secondary: #f2b84b;
-  --color-on-secondary: #402c00;
-  --color-secondary-container: #faeacb;
-  --color-on-secondary-container: #6b4a08;
-  --color-secondary-fixed: #f2b84b;
-  --color-secondary-fixed-dim: #d9a13b;
-  --color-on-secondary-fixed: #402c00;
-  --color-on-secondary-fixed-variant: #6b4a08;
+  /* ---------- Secondary (muted amber) — the one non-triad exception, reserved for
+     the "late" attendance status, which is a genuine 4th business state (not
+     decoration) that the other three accents can't represent without ambiguity. ---------- */
+  --color-secondary: #d9a521;
+  --color-on-secondary: #2a1e02;
+  --color-secondary-container: #3a3320;
+  --color-on-secondary-container: #e8c25c;
+  --color-secondary-fixed: #d9a521;
+  --color-secondary-fixed-dim: #b78b1c;
+  --color-on-secondary-fixed: #2a1e02;
+  --color-on-secondary-fixed-variant: #e8c25c;
 
-  /* ---------- Tertiary (leaf green) — success / present / positive state ---------- */
-  --color-tertiary: #55b98a;
-  --color-on-tertiary: #ffffff;
-  --color-tertiary-container: #dbf1e5;
-  --color-on-tertiary-container: #256b4b;
-  --color-tertiary-fixed: #6fcf97;
-  --color-tertiary-fixed-dim: #3f9d72;
-  --color-on-tertiary-fixed: #ffffff;
-  --color-on-tertiary-fixed-variant: #1f5940;
+  /* ---------- Tertiary (green) — success / present / positive state ---------- */
+  --color-tertiary: #22c55e;
+  --color-on-tertiary: #f8fafc;
+  --color-tertiary-container: #1c3a29;
+  --color-on-tertiary-container: #4ade80;
+  --color-tertiary-fixed: #4ade80;
+  --color-tertiary-fixed-dim: #1e9e50;
+  --color-on-tertiary-fixed: #0c2216;
+  --color-on-tertiary-fixed-variant: #86efac;
 
-  /* ---------- Error (coral) — danger / absent / blocked state ---------- */
-  --color-error: #e76f51;
-  --color-on-error: #ffffff;
-  --color-error-container: #fbe1d8;
-  --color-on-error-container: #8a3720;
+  /* ---------- Error (red) — danger / absent / stop / blocked state ---------- */
+  --color-error: #ef4444;
+  --color-on-error: #f8fafc;
+  --color-error-container: #3d2020;
+  --color-on-error-container: #f87171;
 
-  /* ---------- Surfaces (warm, light, layered clay — never stark white/gray) ---------- */
-  --color-surface: #f3efe8;
-  --color-surface-dim: #ded8ce;
-  --color-surface-bright: #faf8f4;
-  --color-surface-container-lowest: #f8f5f0;
-  --color-surface-container-low: #f3efe8;
-  --color-surface-container: #ede8df;
-  --color-surface-container-high: #e5e0d5;
-  --color-surface-container-highest: #ded8ce;
-  --color-surface-variant: #e5e0d5;
-  --color-surface-tint: #5b6cff;
+  /* ---------- Surfaces (grey/charcoal, layered clay) ---------- */
+  --color-surface: #303238;
+  --color-surface-dim: #292b2f;
+  --color-surface-bright: #42444a;
+  --color-surface-container-lowest: #383a40;
+  --color-surface-container-low: #303238;
+  --color-surface-container: #383a40;
+  --color-surface-container-high: #42444a;
+  --color-surface-container-highest: #4b4e56;
+  --color-surface-variant: #383a40;
+  --color-surface-tint: #3b82f6;
 
-  --color-on-surface: #242424;
-  --color-on-surface-variant: #737373;
-  --color-inverse-surface: #242424;
-  --color-inverse-on-surface: #f8f5f0;
+  --color-on-surface: #f1f3f4;
+  --color-on-surface-variant: #b8bcc4;
+  --color-inverse-surface: #f1f3f4;
+  --color-inverse-on-surface: #292b2f;
 
-  --color-outline: #d1cbc1;
-  --color-outline-variant: #e2ddd3;
+  --color-outline: #4b4e56;
+  --color-outline-variant: #555962;
 
-  --color-background: #e9e4dc;
-  --color-on-background: #242424;
+  --color-background: #202124;
+  --color-on-background: #f1f3f4;
 
   /* Typography — clean, friendly, still dense enough for a real management tool */
   --text-display-lg: 28px;
@@ -127,7 +136,7 @@
 
   /* Radius — large but controlled: buttons/inputs 14-16px, cards 20px, large panels
      24-28px. Soft extruded clay reads through generous (not pill-shaped) corners.
-     Tables/registers intentionally stay tighter — see .clay-table below. */
+     Tables/registers intentionally stay tighter (see the attendance sheet page). */
   --radius-sm: 10px;
   --radius-md: 16px;
   --radius-lg: 20px;
@@ -135,16 +144,17 @@
 
   /* Thin, quiet borders — depth comes from shadow/highlight layering, not border weight */
   --default-border-width: 1px;
-  --default-border-color: #d1cbc1;
+  --default-border-color: #4b4e56;
 
-  /* Clay shadow language: a soft warm-dark outer shadow (the surface lifted off the
-     page behind it) + a soft white highlight from the opposite corner (light catching
-     the raised edge). Used by every existing shadow-sm/md/lg/xl + card-shadow usage. */
-  --shadow-sm: -3px -3px 8px rgba(255, 255, 255, 0.7), 4px 6px 14px rgba(80, 70, 60, 0.1);
-  --shadow-md: -4px -4px 10px rgba(255, 255, 255, 0.75), 6px 10px 20px rgba(80, 70, 60, 0.14);
-  --shadow-lg: -5px -5px 12px rgba(255, 255, 255, 0.8), 8px 14px 28px rgba(80, 70, 60, 0.16);
-  --shadow-xl: -6px -6px 14px rgba(255, 255, 255, 0.85), 10px 18px 36px rgba(80, 70, 60, 0.18);
-  --shadow-2xl: -6px -6px 16px rgba(255, 255, 255, 0.9), 14px 24px 46px rgba(80, 70, 60, 0.2);
+  /* Clay shadow language (dark surface variant): a soft black outer shadow (the panel
+     lifted off the charcoal page behind it) + a faint light rim on the opposite edge
+     (light just barely catching the raised corner — restrained, not a glow). Used by
+     every existing shadow-sm/md/lg/xl + card-shadow usage. */
+  --shadow-sm: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 4px 10px rgba(0, 0, 0, 0.28);
+  --shadow-md: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 8px 18px rgba(0, 0, 0, 0.32);
+  --shadow-lg: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 12px 28px rgba(0, 0, 0, 0.36);
+  --shadow-xl: inset 0 1px 0 rgba(255, 255, 255, 0.07), 0 16px 36px rgba(0, 0, 0, 0.4);
+  --shadow-2xl: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 22px 48px rgba(0, 0, 0, 0.44);
 
   /* Spacing tokens used throughout (p-container-padding, gap-gutter, p-stack-md, ...) */
   --spacing-unit: 4px;
@@ -158,17 +168,20 @@
 body {
   background: var(--color-background);
   color: var(--color-on-background);
-  color-scheme: light;
+  color-scheme: dark;
 }
 
 /* ----------------------------------------------------------------------------
    Auto-clay every filled/outlined action button app-wide: raised by default
-   (soft outer shadow + white highlight, "extruded" from the surface), lifts
-   very slightly on hover, and presses inward (inset shadow, no highlight,
-   nudges down 1px) on :active — the tactile "physically pressable" clay
-   button the brief asks for, applied once here rather than per button in
-   every file. Scoped to <button> elements carrying one of these existing
-   utility classes — never matches inputs/selects/cards (different classes).
+   (soft outer shadow + faint top rim, "extruded" from the surface), lifts
+   very slightly on hover, and presses inward (inset shadow, no rim, nudges
+   down 1px) on :active — the tactile "physically pressable" clay button the
+   brief asks for, applied once here rather than per button in every file.
+   Scoped to <button> elements carrying one of these existing utility classes
+   — never matches inputs/selects/cards (different classes). Primary buttons
+   (bg-primary) get a restrained blue edge glow; danger buttons (bg-error) a
+   restrained red one — see the "NEON EDGE GLOW" rules further down for the
+   exact recipe this mirrors.
    ---------------------------------------------------------------------------- */
 @layer base {
   button.bg-primary,
@@ -176,51 +189,79 @@ body {
   button.border-outline-variant,
   button.border-error\/30 {
     box-shadow:
-      -3px -3px 8px rgba(255, 255, 255, 0.35),
-      4px 6px 14px rgba(80, 70, 60, 0.22);
+      inset 0 1px 0 rgba(255, 255, 255, 0.08),
+      0 8px 18px rgba(0, 0, 0, 0.3);
     transition: transform 110ms ease, box-shadow 110ms ease, filter 110ms ease;
+  }
+  button.bg-primary {
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.12),
+      0 8px 18px rgba(0, 0, 0, 0.3),
+      0 0 12px rgba(59, 130, 246, 0.18);
+  }
+  button.bg-error {
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.1),
+      0 8px 18px rgba(0, 0, 0, 0.3),
+      0 0 12px rgba(239, 68, 68, 0.18);
   }
   button.bg-primary:not(:disabled):hover,
   button.bg-error:not(:disabled):hover,
   button.border-outline-variant:not(:disabled):hover,
   button.border-error\/30:not(:disabled):hover {
-    filter: brightness(1.04);
+    filter: brightness(1.08);
     transform: translateY(-1px);
     box-shadow:
-      -4px -4px 10px rgba(255, 255, 255, 0.4),
-      6px 9px 18px rgba(80, 70, 60, 0.26);
+      inset 0 1px 0 rgba(255, 255, 255, 0.1),
+      0 10px 22px rgba(0, 0, 0, 0.34);
+  }
+  button.bg-primary:not(:disabled):hover {
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.14),
+      0 10px 22px rgba(0, 0, 0, 0.34),
+      0 0 16px rgba(59, 130, 246, 0.26);
+  }
+  button.bg-error:not(:disabled):hover {
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.12),
+      0 10px 22px rgba(0, 0, 0, 0.34),
+      0 0 16px rgba(239, 68, 68, 0.26);
   }
   button.bg-primary:not(:disabled):active,
   button.bg-error:not(:disabled):active,
   button.border-outline-variant:not(:disabled):active,
   button.border-error\/30:not(:disabled):active {
-    filter: brightness(0.97);
+    filter: brightness(0.96);
     transform: translateY(1px);
     box-shadow:
-      inset 3px 3px 7px rgba(80, 70, 60, 0.25),
-      inset -1px -1px 3px rgba(255, 255, 255, 0.3);
+      inset 0 3px 7px rgba(0, 0, 0, 0.45),
+      inset 0 -1px 0 rgba(255, 255, 255, 0.04);
   }
   button.bg-primary:disabled,
   button.bg-error:disabled,
   button.border-outline-variant:disabled,
   button.border-error\/30:disabled {
-    box-shadow: 2px 3px 6px rgba(80, 70, 60, 0.12);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
   }
 }
 
 /* Recessed control used for text inputs/selects/textareas — a soft clay well pressed
- * into the panel, inner shadow only (no highlight — that's what reads as "recessed"). */
+ * into the panel, inner shadow only (no rim — that's what reads as "recessed"). Focus
+ * gets a restrained blue glow ring (see NEON EDGE GLOW below). */
 @layer base {
   input:not([type="checkbox"]):not([type="radio"]),
   select,
   textarea {
     background-color: var(--color-surface-dim);
-    box-shadow: inset 3px 3px 7px rgba(80, 70, 60, 0.12), inset -2px -2px 5px rgba(255, 255, 255, 0.6);
+    box-shadow: inset 2px 2px 6px rgba(0, 0, 0, 0.35), inset -1px -1px 2px rgba(255, 255, 255, 0.03);
   }
   input:not([type="checkbox"]):not([type="radio"]):focus,
   select:focus,
   textarea:focus {
-    box-shadow: inset 3px 3px 7px rgba(80, 70, 60, 0.12), 0 0 0 3px rgba(91, 108, 255, 0.28);
+    box-shadow:
+      inset 2px 2px 6px rgba(0, 0, 0, 0.35),
+      0 0 0 1px rgba(59, 130, 246, 0.45),
+      0 0 10px rgba(59, 130, 246, 0.2);
   }
 }
 
@@ -249,7 +290,36 @@ body {
   box-shadow: var(--shadow-lg);
 }
 .clay-recessed {
-  box-shadow: inset 4px 4px 10px rgba(80, 70, 60, 0.12), inset -2px -2px 6px rgba(255, 255, 255, 0.6);
+  box-shadow: inset 3px 3px 8px rgba(0, 0, 0, 0.35), inset -1px -1px 2px rgba(255, 255, 255, 0.03);
+}
+
+/* ----------------------------------------------------------------------------
+   NEON EDGE GLOW — an extremely restrained colored rim used ONLY where color is
+   the message (an active/live session, a success confirmation, a stop/danger
+   control). This must read as "light catching the edge of a clay surface", not
+   as a cyberpunk glow: a 1px tinted border + a small tight shadow blur, layered
+   on top of the normal clay outer shadow. Never apply to more than a handful of
+   surfaces on a single screen.
+   ---------------------------------------------------------------------------- */
+.clay-glow-blue {
+  border: 1px solid rgba(59, 130, 246, 0.45);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25), 0 0 12px rgba(59, 130, 246, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+.clay-glow-green {
+  border: 1px solid rgba(34, 197, 94, 0.45);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25), 0 0 12px rgba(34, 197, 94, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+.clay-glow-red {
+  border: 1px solid rgba(239, 68, 68, 0.45);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25), 0 0 12px rgba(239, 68, 68, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+/* Recessed surfaces (e.g. the QR housing) that also need the restrained edge glow —
+ * combines .clay-recessed's inner shadow with .clay-glow-*'s tinted rim in one rule,
+ * since two separate box-shadow utility classes would just clobber each other. */
+.clay-recessed-glow-blue {
+  border: 1px solid rgba(59, 130, 246, 0.4);
+  box-shadow: inset 3px 3px 8px rgba(0, 0, 0, 0.35), inset -1px -1px 2px rgba(255, 255, 255, 0.03), 0 0 14px rgba(59, 130, 246, 0.14);
 }
 
 .custom-scrollbar::-webkit-scrollbar {
@@ -271,15 +341,17 @@ body {
   scrollbar-width: none;
 }
 
+/* "Active/live" pulse — blue, per the design system's Blue = active/information rule
+ * (used on the professor live-session status dot). */
 @keyframes pulse-ring {
   0% {
-    box-shadow: 0 0 0 0 rgba(85, 185, 138, 0.45);
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.45);
   }
   70% {
-    box-shadow: 0 0 0 10px rgba(85, 185, 138, 0);
+    box-shadow: 0 0 0 10px rgba(59, 130, 246, 0);
   }
   100% {
-    box-shadow: 0 0 0 0 rgba(85, 185, 138, 0);
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
   }
 }
 .pulse-ring {
@@ -302,8 +374,8 @@ body {
   left: 0;
   right: 0;
   height: 2px;
-  background: var(--color-tertiary);
-  box-shadow: 0 0 10px 1px rgba(85, 185, 138, 0.6);
+  background: var(--color-primary);
+  box-shadow: 0 0 10px 1px rgba(59, 130, 246, 0.55);
   animation: scanner-line 2.2s ease-in-out infinite;
 }
 
@@ -332,11 +404,11 @@ body {
 .progress-bar-animated {
   background-image: linear-gradient(
     45deg,
-    rgba(255, 255, 255, 0.25) 25%,
+    rgba(255, 255, 255, 0.14) 25%,
     transparent 25%,
     transparent 50%,
-    rgba(255, 255, 255, 0.25) 50%,
-    rgba(255, 255, 255, 0.25) 75%,
+    rgba(255, 255, 255, 0.14) 50%,
+    rgba(255, 255, 255, 0.14) 75%,
     transparent 75%,
     transparent
   );
