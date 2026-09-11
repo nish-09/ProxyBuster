@@ -64,20 +64,29 @@
   --color-error-container: #fbc6c6;
   --color-on-error-container: #171717;
 
-  /* ---------- Surfaces — YELLOW, never lavender. Only the two yellows named above. ---------- */
-  --color-surface: #dfff72;
-  --color-surface-dim: #e8ff8a;
-  --color-surface-bright: #e8ff8a;
+  /* ---------- Surfaces — LAVENDER by default (the page canvas/chrome), NOT yellow. Only
+     `surface-container-lowest` (the token Card.tsx and genuine "this is a card" surfaces
+     use) is yellow — that is deliberately the ONE surface token that opts into yellow, so
+     switching a specific element from ambient-chrome to an actual card is a one-token
+     change (`bg-surface` → `bg-surface-container-lowest`) rather than a new color. This is
+     what keeps lavender dominant (~60-70% of the UI) with yellow reserved for real cards
+     (~20-30%), instead of the whole app reading as yellow. ---------- */
+  --color-surface: #b88aff;
+  --color-surface-dim: #a06ffb;
+  --color-surface-bright: #d9c4ff;
   --color-surface-container-lowest: #dfff72;
-  --color-surface-container-low: #dfff72;
-  --color-surface-container: #dfff72;
-  --color-surface-container-high: #e8ff8a;
-  --color-surface-container-highest: #e8ff8a;
-  --color-surface-variant: #e8ff8a;
+  --color-surface-container-low: #c9a7ff;
+  --color-surface-container: #cdb0ff;
+  /* Lighter than --color-surface on purpose (not a duplicate of it) — this is what makes
+     e.g. the sidebar's active nav item or a table's hover row actually visible against the
+     surface it's sitting on, instead of disappearing into an identical background. */
+  --color-surface-container-high: #d9c4ff;
+  --color-surface-container-highest: #e4d6ff;
+  --color-surface-variant: #b88aff;
   --color-surface-tint: #dfff72;
 
   --color-on-surface: #171717;
-  --color-on-surface-variant: #40401f;
+  --color-on-surface-variant: #33302b;
   --color-inverse-surface: #171717;
   --color-inverse-on-surface: #dfff72;
 
@@ -219,7 +228,9 @@ body {
   input:not([type="checkbox"]):not([type="radio"]),
   select,
   textarea {
-    background-color: var(--color-surface-container-lowest);
+    /* Light lavender, not yellow — inputs usually sit inside a yellow card/form panel and
+       need contrast against it, not to blend into it. */
+    background-color: var(--color-surface-bright);
     border: 3px solid #171717;
     box-shadow: none;
   }

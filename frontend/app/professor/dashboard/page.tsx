@@ -152,7 +152,7 @@ function DashboardContent() {
           {data && !loading && (
             <>
               <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-gutter">
-                <div className="bg-surface rounded-xl p-5 border border-outline-variant shadow-sm flex flex-col justify-between h-full relative overflow-hidden">
+                <div className="bg-surface-container-lowest rounded-xl p-5 border border-outline-variant shadow-sm flex flex-col justify-between h-full relative overflow-hidden">
                   <div className="absolute -right-4 -top-4 w-24 h-24 bg-primary/5 rounded-full blur-xl" />
                   <div className="p-2 bg-primary-container/20 rounded-lg text-primary w-fit mb-4">
                     <span className="material-symbols-outlined">school</span>
@@ -172,7 +172,7 @@ function DashboardContent() {
                   </div>
                 </div>
 
-                <div className="bg-surface rounded-xl p-5 border border-outline-variant shadow-sm flex flex-col justify-between h-full">
+                <div className="bg-surface-container-lowest rounded-xl p-5 border border-outline-variant shadow-sm flex flex-col justify-between h-full">
                   <div className="p-2 bg-secondary-container/30 rounded-lg text-secondary w-fit mb-4">
                     <span className="material-symbols-outlined">monitoring</span>
                   </div>
@@ -191,7 +191,7 @@ function DashboardContent() {
 
                 <button
                   onClick={() => router.push("/professor/students")}
-                  className="text-left bg-surface rounded-xl p-5 border border-error-container shadow-sm flex flex-col justify-between h-full relative overflow-hidden group hover:border-error transition-colors cursor-pointer"
+                  className="text-left bg-surface-container-lowest rounded-xl p-5 border border-error-container shadow-sm flex flex-col justify-between h-full relative overflow-hidden group hover:border-error transition-colors cursor-pointer"
                 >
                   <div className="absolute top-0 right-0 w-1 h-full bg-error" />
                   <div className="p-2 bg-error-container rounded-lg text-error w-fit mb-4">
@@ -208,7 +208,7 @@ function DashboardContent() {
                   </div>
                 </button>
 
-                <div className="bg-surface rounded-xl p-5 border border-outline-variant shadow-sm flex flex-col justify-between h-full">
+                <div className="bg-surface-container-lowest rounded-xl p-5 border border-outline-variant shadow-sm flex flex-col justify-between h-full">
                   <div className="p-2 bg-surface-container-highest rounded-lg text-on-surface-variant w-fit mb-4">
                     <span className="material-symbols-outlined">person_off</span>
                   </div>

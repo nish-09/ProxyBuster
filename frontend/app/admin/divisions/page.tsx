@@ -68,7 +68,7 @@ function CreateDivisionForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="bg-surface rounded-xl border border-outline-variant shadow-sm p-5 mb-gutter grid grid-cols-1 md:grid-cols-3 gap-4">
+    <form onSubmit={handleSubmit} className="bg-surface-container-lowest rounded-xl border border-outline-variant shadow-sm p-5 mb-gutter grid grid-cols-1 md:grid-cols-3 gap-4">
       <div>
         <label className={labelClass}>Subject</label>
         <select value={subjectId} onChange={(e) => setSubjectId(e.target.value)} className={inputClass}>
@@ -279,7 +279,7 @@ function DivisionsContent() {
             />
           )}
 
-          <div className="bg-surface rounded-xl border border-outline-variant shadow-sm overflow-hidden">
+          <div className="bg-surface-container-lowest rounded-xl border border-outline-variant shadow-sm overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-left">
                 <thead className="bg-surface-container-lowest border-b border-outline-variant/50">

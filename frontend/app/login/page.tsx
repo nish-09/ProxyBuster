@@ -40,7 +40,7 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-6">
-      <div className="w-full max-w-md bg-surface border border-outline rounded-xl card-shadow p-stack-lg">
+      <div className="w-full max-w-md bg-surface-container-lowest border border-outline rounded-xl card-shadow p-stack-lg">
         <div className="flex items-center gap-3 mb-stack-lg">
           <div className="w-12 h-12 rounded-lg bg-primary flex items-center justify-center text-on-primary clay-raised">
             <span className="material-symbols-outlined filled">security</span>

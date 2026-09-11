@@ -272,7 +272,7 @@ function SessionContent({ sessionId }: { sessionId: string }) {
         </div>
 
         {status === "closed" ? (
-          <div className="bg-surface rounded-lg border border-outline card-shadow p-stack-lg text-center">
+          <div className="bg-surface-container-lowest rounded-lg border border-outline card-shadow p-stack-lg text-center">
             <span className="material-symbols-outlined text-5xl text-tertiary mb-3">task_alt</span>
             <h3 className="font-headline-lg text-headline-lg text-on-surface mb-1">Session Closed</h3>
             <p className="font-body-md text-body-md text-on-surface-variant mb-4">
@@ -287,7 +287,7 @@ function SessionContent({ sessionId }: { sessionId: string }) {
           </div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-gutter flex-1">
-            <div className="lg:col-span-2 bg-surface rounded-lg border border-outline card-shadow flex flex-col relative overflow-hidden min-h-[420px]">
+            <div className="lg:col-span-2 bg-surface-container-lowest rounded-lg border border-outline card-shadow flex flex-col relative overflow-hidden min-h-[420px]">
               <div className="p-stack-md flex justify-between items-center z-10 border-b border-outline">
                 <h3 className="font-headline-md text-headline-md text-on-surface">Scan to Mark Attendance</h3>
               </div>
@@ -319,9 +319,9 @@ function SessionContent({ sessionId }: { sessionId: string }) {
             </div>
 
             <div className="flex flex-col gap-gutter h-full">
-              {/* Grey card per the design system — green is reserved for the number/icon/
-                  progress bar, not the whole surface. */}
-              <div className="bg-surface rounded-lg border border-outline card-shadow p-stack-md flex-shrink-0">
+              {/* Yellow stat card per the strict palette — green is reserved for the
+                  number/icon/progress bar, not the whole surface. */}
+              <div className="bg-surface-container-lowest rounded-lg border border-outline card-shadow p-stack-md flex-shrink-0">
                 <h4 className="font-label-md text-label-md text-on-surface-variant mb-2 flex items-center gap-1.5">
                   <span className="material-symbols-outlined text-tertiary text-[16px] filled">how_to_reg</span>
                   Attendance Status

@@ -76,7 +76,7 @@ function DashboardContent() {
                   <a
                     key={t.label}
                     href={t.href}
-                    className="bg-surface rounded-xl p-5 border border-outline-variant shadow-sm flex flex-col justify-between h-full hover:border-primary transition-colors"
+                    className="bg-surface-container-lowest rounded-xl p-5 border border-outline-variant shadow-sm flex flex-col justify-between h-full hover:border-primary transition-colors"
                   >
                     <div className="p-2 bg-primary-container/20 rounded-lg text-primary w-fit mb-4">
                       <span className="material-symbols-outlined">{t.icon}</span>
@@ -89,7 +89,7 @@ function DashboardContent() {
                 ))}
           </section>
 
-          <div className="bg-surface rounded-xl border border-outline-variant shadow-sm p-5">
+          <div className="bg-surface-container-lowest rounded-xl border border-outline-variant shadow-sm p-5">
             <h3 className="font-headline-md text-headline-md text-on-surface mb-3">Onboarding checklist</h3>
             <ol className="list-decimal list-inside space-y-2 font-body-md text-body-md text-on-surface-variant">
               <li>Create professor accounts under <a className="text-primary hover:underline" href="/admin/professors">Professors</a>.</li>
