@@ -88,15 +88,42 @@ def dashboard(db: Session, professor_profile: ProfessorProfile) -> ProfessorDash
     student_ids = _enrolled_student_ids(db, owned_ids)
     total_students = len(student_ids)
 
+    # Batched up front instead of 4 queries per class-division inside the loop below (was
+    # N+1 on the professor dashboard — the single most-frequently-loaded page in the app).
+    class_divisions_by_id = (
+        {cd.id: cd for cd in db.query(ClassDivision).filter(ClassDivision.id.in_(owned_ids)).all()} if owned_ids else {}
+    )
+    subjects_by_id = (
+        {s.id: s for s in db.query(Subject).filter(Subject.id.in_({cd.subject_id for cd in class_divisions_by_id.values()})).all()}
+        if class_divisions_by_id
+        else {}
+    )
+    student_ids_by_cd: dict[uuid.UUID, list[uuid.UUID]] = {}
+    if owned_ids:
+        for cd_id_row, sid in db.query(Enrollment.class_division_id, Enrollment.student_id).filter(
+            Enrollment.class_division_id.in_(owned_ids)
+        ).all():
+            student_ids_by_cd.setdefault(cd_id_row, []).append(sid)
+    active_cd_ids = (
+        {
+            row[0]
+            for row in db.query(Lecture.class_division_id)
+            .join(AttendanceSession, AttendanceSession.lecture_id == Lecture.id)
+            .filter(Lecture.class_division_id.in_(owned_ids), AttendanceSession.status == SessionStatus.ACTIVE)
+            .distinct()
+            .all()
+        }
+        if owned_ids
+        else set()
+    )
+
     percentages = []
     below_threshold_students: set[uuid.UUID] = set()
     active_subjects: list[ActiveSubjectOut] = []
     for cd_id in owned_ids:
-        class_division = db.get(ClassDivision, cd_id)
-        subject = db.get(Subject, class_division.subject_id)
-        cd_student_ids = [
-            row[0] for row in db.query(Enrollment.student_id).filter(Enrollment.class_division_id == cd_id).all()
-        ]
+        class_division = class_divisions_by_id[cd_id]
+        subject = subjects_by_id[class_division.subject_id]
+        cd_student_ids = student_ids_by_cd.get(cd_id, [])
         cd_stats = analytics_service.batch_subject_stats(db, cd_student_ids, cd_id, REQUIRED_PCT_DEFAULT)
         cd_pcts = []
         for sid in cd_student_ids:
@@ -107,13 +134,6 @@ def dashboard(db: Session, professor_profile: ProfessorProfile) -> ProfessorDash
         avg_pct = round(sum(cd_pcts) / len(cd_pcts), 2) if cd_pcts else 0.0
         percentages.append(avg_pct)
 
-        has_active = (
-            db.query(AttendanceSession)
-            .join(Lecture, AttendanceSession.lecture_id == Lecture.id)
-            .filter(Lecture.class_division_id == cd_id, AttendanceSession.status == SessionStatus.ACTIVE)
-            .first()
-            is not None
-        )
         active_subjects.append(
             ActiveSubjectOut(
                 class_division_id=cd_id,
@@ -121,7 +141,7 @@ def dashboard(db: Session, professor_profile: ProfessorProfile) -> ProfessorDash
                 subject_name=subject.name,
                 division_name=class_division.name,
                 avg_pct=avg_pct,
-                has_active_session=has_active,
+                has_active_session=cd_id in active_cd_ids,
             )
         )
 

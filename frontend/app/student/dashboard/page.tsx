@@ -6,6 +6,7 @@ import { SideNavBar } from "@/components/layout/SideNavBar";
 import { TopNavBar, DesktopTopBar } from "@/components/layout/TopNavBar";
 import { BottomMobileNav } from "@/components/layout/BottomMobileNav";
 import { Card } from "@/components/ui/Card";
+import { SkeletonBlock } from "@/components/ui/Skeleton";
 import {
   studentApi,
   ApiError,
@@ -136,11 +137,11 @@ function DashboardContent() {
 
   if (loading) {
     return (
-      <div className="p-container-padding max-w-7xl mx-auto space-y-gutter animate-pulse">
-        <div className="h-10 w-64 bg-surface-container-high rounded-lg" />
+      <div className="p-container-padding max-w-7xl mx-auto space-y-gutter">
+        <SkeletonBlock className="h-10 w-64 rounded-lg" />
         <div className="grid grid-cols-1 md:grid-cols-12 gap-gutter">
-          <div className="md:col-span-4 h-64 bg-surface-container-high rounded-xl" />
-          <div className="md:col-span-8 h-64 bg-surface-container-high rounded-xl" />
+          <SkeletonBlock className="md:col-span-4 h-64 rounded-xl" />
+          <SkeletonBlock className="md:col-span-8 h-64 rounded-xl" />
         </div>
       </div>
     );

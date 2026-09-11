@@ -7,6 +7,7 @@ import { SideNavBar } from "@/components/layout/SideNavBar";
 import { TopNavBar, DesktopTopBar } from "@/components/layout/TopNavBar";
 import { BottomMobileNav } from "@/components/layout/BottomMobileNav";
 import { NewSessionModal } from "@/components/professor/NewSessionModal";
+import { CardSkeleton } from "@/components/ui/Skeleton";
 import { useAuth } from "@/lib/auth-context";
 import { professorApi, attendanceApi, type ProfessorDashboardOut, type ActivityFeedItem } from "@/lib/api";
 
@@ -137,7 +138,7 @@ function DashboardContent() {
           {loading && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-gutter">
               {[0, 1, 2, 3].map((i) => (
-                <div key={i} className="h-32 bg-surface rounded-xl border border-outline-variant animate-pulse" />
+                <CardSkeleton key={i} />
               ))}
             </div>
           )}

@@ -80,7 +80,24 @@ def list_students(db: Session, q: str | None = None, limit: int = 100, offset: i
         needle = f"%{q.lower()}%"
         query = query.filter(func.lower(User.full_name).like(needle) | func.lower(StudentProfile.roll_number).like(needle))
     profiles = query.order_by(User.full_name.asc()).offset(offset).limit(limit).all()
-    return [_student_out(db, p) for p in profiles]
+
+    # Batch the User lookup instead of one db.get() per row (was N+1 — up to `limit` extra
+    # round trips on a list endpoint the admin UI calls on every page load).
+    users_by_id = {u.id: u for u in db.query(User).filter(User.id.in_([p.user_id for p in profiles])).all()}
+    return [
+        AdminStudentOut(
+            id=p.id,
+            user_id=p.user_id,
+            email=users_by_id[p.user_id].email,
+            full_name=users_by_id[p.user_id].full_name,
+            is_active=users_by_id[p.user_id].is_active,
+            roll_number=p.roll_number,
+            program=p.program,
+            semester=p.semester,
+            created_at=users_by_id[p.user_id].created_at,
+        )
+        for p in profiles
+    ]
 
 
 def _student_or_404(db: Session, student_id: uuid.UUID) -> StudentProfile:
@@ -148,7 +165,21 @@ def list_professors(db: Session, q: str | None = None, limit: int = 100, offset:
         needle = f"%{q.lower()}%"
         query = query.filter(func.lower(User.full_name).like(needle) | func.lower(ProfessorProfile.department).like(needle))
     profiles = query.order_by(User.full_name.asc()).offset(offset).limit(limit).all()
-    return [_professor_out(db, p) for p in profiles]
+
+    # Batched (was N+1 — see list_students).
+    users_by_id = {u.id: u for u in db.query(User).filter(User.id.in_([p.user_id for p in profiles])).all()}
+    return [
+        AdminProfessorOut(
+            id=p.id,
+            user_id=p.user_id,
+            email=users_by_id[p.user_id].email,
+            full_name=users_by_id[p.user_id].full_name,
+            is_active=users_by_id[p.user_id].is_active,
+            department=p.department,
+            created_at=users_by_id[p.user_id].created_at,
+        )
+        for p in profiles
+    ]
 
 
 def _professor_or_404(db: Session, professor_id: uuid.UUID) -> ProfessorProfile:
@@ -267,7 +298,45 @@ def create_division(db: Session, payload: AdminCreateDivisionRequest) -> AdminDi
 
 def list_divisions(db: Session) -> list[AdminDivisionOut]:
     divisions = db.query(ClassDivision).order_by(ClassDivision.name.asc()).all()
-    return [_division_out(db, d) for d in divisions]
+    if not divisions:
+        return []
+
+    # Batched (was up to 4 queries per row: subject, professor, professor's user, enrolled
+    # count — N+1 on a page every admin visit loads).
+    subjects_by_id = {s.id: s for s in db.query(Subject).filter(Subject.id.in_({d.subject_id for d in divisions})).all()}
+    professors_by_id = {
+        p.id: p for p in db.query(ProfessorProfile).filter(ProfessorProfile.id.in_({d.professor_id for d in divisions})).all()
+    }
+    professor_users_by_id = {
+        u.id: u for u in db.query(User).filter(User.id.in_([p.user_id for p in professors_by_id.values()])).all()
+    }
+    counts_by_division = dict(
+        db.query(Enrollment.class_division_id, func.count(Enrollment.id))
+        .filter(Enrollment.class_division_id.in_([d.id for d in divisions]))
+        .group_by(Enrollment.class_division_id)
+        .all()
+    )
+
+    results = []
+    for d in divisions:
+        subject = subjects_by_id.get(d.subject_id)
+        professor = professors_by_id.get(d.professor_id)
+        professor_user = professor_users_by_id.get(professor.user_id) if professor else None
+        results.append(
+            AdminDivisionOut(
+                id=d.id,
+                subject_id=d.subject_id,
+                subject_code=subject.code if subject else "",
+                subject_name=subject.name if subject else "",
+                professor_id=d.professor_id,
+                professor_name=professor_user.full_name if professor_user else "Unknown",
+                name=d.name,
+                semester=d.semester,
+                room=d.room,
+                enrolled_count=counts_by_division.get(d.id, 0),
+            )
+        )
+    return results
 
 
 def _division_or_404(db: Session, division_id: uuid.UUID) -> ClassDivision:
@@ -331,7 +400,30 @@ def _enrollment_out(db: Session, enrollment: Enrollment, student: StudentProfile
 def list_enrollments(db: Session, class_division_id: uuid.UUID) -> list[AdminEnrollmentOut]:
     _division_or_404(db, class_division_id)
     enrollments = db.query(Enrollment).filter(Enrollment.class_division_id == class_division_id).all()
-    return [_enrollment_out(db, e) for e in enrollments]
+    if not enrollments:
+        return []
+
+    # Batched (was 2 queries per row: StudentProfile + User — N+1).
+    students_by_id = {
+        s.id: s for s in db.query(StudentProfile).filter(StudentProfile.id.in_({e.student_id for e in enrollments})).all()
+    }
+    users_by_id = {u.id: u for u in db.query(User).filter(User.id.in_([s.user_id for s in students_by_id.values()])).all()}
+
+    results = []
+    for e in enrollments:
+        student = students_by_id.get(e.student_id)
+        user = users_by_id.get(student.user_id) if student else None
+        results.append(
+            AdminEnrollmentOut(
+                id=e.id,
+                student_id=e.student_id,
+                student_name=user.full_name if user else "Unknown",
+                roll_number=student.roll_number if student else "",
+                class_division_id=e.class_division_id,
+                created_at=e.created_at,
+            )
+        )
+    return results
 
 
 def delete_enrollment(db: Session, enrollment_id: uuid.UUID) -> None:
@@ -409,7 +501,35 @@ def list_lectures(db: Session, class_division_id: uuid.UUID | None = None) -> li
     if class_division_id is not None:
         query = query.filter(Lecture.class_division_id == class_division_id)
     lectures = query.order_by(Lecture.scheduled_start.desc()).limit(200).all()
-    return [_lecture_out(db, l) for l in lectures]
+    if not lectures:
+        return []
+
+    # Batched (was 2 queries per row, up to 200 rows = up to 400 extra queries — N+1).
+    divisions_by_id = {
+        d.id: d for d in db.query(ClassDivision).filter(ClassDivision.id.in_({l.class_division_id for l in lectures})).all()
+    }
+    subjects_by_id = {
+        s.id: s
+        for s in db.query(Subject).filter(Subject.id.in_([d.subject_id for d in divisions_by_id.values()])).all()
+    }
+
+    results = []
+    for l in lectures:
+        division = divisions_by_id.get(l.class_division_id)
+        subject = subjects_by_id.get(division.subject_id) if division else None
+        results.append(
+            AdminLectureOut(
+                id=l.id,
+                class_division_id=l.class_division_id,
+                subject_name=subject.name if subject else "",
+                division_name=division.name if division else "",
+                topic=l.topic,
+                scheduled_start=l.scheduled_start,
+                scheduled_end=l.scheduled_end,
+                room=l.room,
+            )
+        )
+    return results
 
 
 def _lecture_or_404(db: Session, lecture_id: uuid.UUID) -> Lecture:

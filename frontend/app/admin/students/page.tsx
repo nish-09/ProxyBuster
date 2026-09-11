@@ -6,6 +6,7 @@ import { SideNavBar } from "@/components/layout/SideNavBar";
 import { TopNavBar, DesktopTopBar } from "@/components/layout/TopNavBar";
 import { BottomMobileNav } from "@/components/layout/BottomMobileNav";
 import { useAuth } from "@/lib/auth-context";
+import { SkeletonBlock } from "@/components/ui/Skeleton";
 import { adminApi, ApiError, type AdminStudentOut } from "@/lib/api";
 
 const inputClass =
@@ -164,6 +165,16 @@ function StudentsContent() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-outline-variant/30">
+                  {loading &&
+                    Array.from({ length: 6 }).map((_, i) => (
+                      <tr key={i}>
+                        {Array.from({ length: 7 }).map((__, c) => (
+                          <td key={c} className="p-4">
+                            <SkeletonBlock className="h-4 w-full" />
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
                   {!loading && students.length === 0 && (
                     <tr>
                       <td colSpan={7} className="p-6 text-center font-body-md text-body-md text-on-surface-variant">
@@ -171,7 +182,7 @@ function StudentsContent() {
                       </td>
                     </tr>
                   )}
-                  {students.map((s) => (
+                  {!loading && students.map((s) => (
                     <tr key={s.id} className="hover:bg-surface-container-low transition-colors">
                       <td className="p-4 font-body-md font-semibold text-on-surface">{s.full_name}</td>
                       <td className="p-4 font-body-md text-body-md text-on-surface-variant">{s.roll_number}</td>

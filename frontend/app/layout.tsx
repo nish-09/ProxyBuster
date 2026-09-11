@@ -1,14 +1,14 @@
 import type { Metadata } from "next";
-import { Plus_Jakarta_Sans } from "next/font/google";
+import { Space_Grotesk } from "next/font/google";
 import { AuthProvider } from "@/lib/auth-context";
 import "./globals.css";
 
-// A clean, rounded, friendly grotesque throughout — the Claymorphism treatment comes
-// from soft extruded surfaces/shadows, not from a decorative or oversized typeface.
-const clayFont = Plus_Jakarta_Sans({
+// A bold, geometric grotesque throughout — the Neo-Brutalist treatment comes from thick
+// black borders and hard offset shadows, not from a decorative or oversized typeface.
+const clayFont = Space_Grotesk({
   variable: "--font-clay",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
+  weight: ["400", "500", "600", "700"],
 });
 
 export const metadata: Metadata = {

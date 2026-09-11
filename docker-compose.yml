@@ -33,7 +33,7 @@ services:
       JWT_ALGORITHM: HS256
       ACCESS_TOKEN_EXPIRE_MINUTES: "480"
       QR_SIGNING_SECRET: dev_only_change_me_qr_secret
-      QR_TOKEN_TTL_SECONDS: "10"
+      QR_TOKEN_TTL_SECONDS: "5"
       COOLDOWN_MINUTES: "60"
       PROFESSOR_INVITE_CODE: dev_only_change_me_invite_code
       CORS_ORIGINS: http://localhost:3000

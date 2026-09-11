@@ -6,6 +6,7 @@ import { SideNavBar } from "@/components/layout/SideNavBar";
 import { TopNavBar, DesktopTopBar } from "@/components/layout/TopNavBar";
 import { BottomMobileNav } from "@/components/layout/BottomMobileNav";
 import { useAuth } from "@/lib/auth-context";
+import { CardSkeleton } from "@/components/ui/Skeleton";
 import { adminApi } from "@/lib/api";
 
 function initials(name: string) {
@@ -69,23 +70,23 @@ function DashboardContent() {
           </header>
 
           <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-gutter">
-            {tiles.map((t) => (
-              <a
-                key={t.label}
-                href={t.href}
-                className="bg-surface rounded-xl p-5 border border-outline-variant shadow-sm flex flex-col justify-between h-full hover:border-primary transition-colors"
-              >
-                <div className="p-2 bg-primary-container/20 rounded-lg text-primary w-fit mb-4">
-                  <span className="material-symbols-outlined">{t.icon}</span>
-                </div>
-                <div>
-                  <p className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mb-1">{t.label}</p>
-                  <h3 className="font-display-lg text-display-lg text-on-surface">
-                    {loading ? "…" : t.value}
-                  </h3>
-                </div>
-              </a>
-            ))}
+            {loading
+              ? Array.from({ length: 4 }).map((_, i) => <CardSkeleton key={i} />)
+              : tiles.map((t) => (
+                  <a
+                    key={t.label}
+                    href={t.href}
+                    className="bg-surface rounded-xl p-5 border border-outline-variant shadow-sm flex flex-col justify-between h-full hover:border-primary transition-colors"
+                  >
+                    <div className="p-2 bg-primary-container/20 rounded-lg text-primary w-fit mb-4">
+                      <span className="material-symbols-outlined">{t.icon}</span>
+                    </div>
+                    <div>
+                      <p className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mb-1">{t.label}</p>
+                      <h3 className="font-display-lg text-display-lg text-on-surface">{t.value}</h3>
+                    </div>
+                  </a>
+                ))}
           </section>
 
           <div className="bg-surface rounded-xl border border-outline-variant shadow-sm p-5">

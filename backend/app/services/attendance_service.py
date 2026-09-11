@@ -95,23 +95,30 @@ def create_session(db: Session, professor_profile: ProfessorProfile, lecture_id:
         raise HTTPException(status.HTTP_409_CONFLICT, "An attendance session is already active for this lecture")
 
     session_obj = AttendanceSession(
+        id=uuid.uuid4(),  # set explicitly (not left to the column default) so _build_token
+        # below can use session_obj.id before this row is flushed — SQLAlchemy only applies
+        # `default=` callables at flush time, not at construction time.
         lecture_id=lecture_id,
         professor_id=professor_profile.id,
         status=SessionStatus.ACTIVE,
     )
     db.add(session_obj)
+    # The first token is built (client-side id, see _build_token) and inserted in the SAME
+    # transaction as the session row — one commit/round-trip instead of two — so the "first
+    # QR" is available to the caller one full DB round-trip sooner than before.
+    first_token = _build_token(session_obj)
+    db.add(first_token)
     try:
         db.commit()
     except IntegrityError as exc:
         # The read-then-write check above is only a fast path / friendly error message.
         # The actual guarantee is the partial unique index on (lecture_id) WHERE status =
         # 'ACTIVE' (see migration 9ebaabdae366): if two requests race past the check above,
-        # only one INSERT can win at the database level and the loser lands here.
+        # only one INSERT can win at the database level and the loser lands here — the token
+        # insert in the same transaction rolls back with it, so no orphaned token is left behind.
         db.rollback()
         raise HTTPException(status.HTTP_409_CONFLICT, "An attendance session is already active for this lecture") from exc
     db.refresh(session_obj)
-
-    issue_token(db, session_obj)
     return session_obj
 
 
@@ -164,7 +171,11 @@ def _close_if_expired(db: Session, session_obj: AttendanceSession, lecture: Lect
     return True
 
 
-def issue_token(db: Session, session_obj: AttendanceSession) -> AttendanceToken:
+def _build_token(session_obj: AttendanceSession) -> AttendanceToken:
+    """Constructs a signed AttendanceToken without touching the DB. session_obj.id is safe to
+    use here even before that row is committed — GUID primary keys are generated client-side
+    (default=uuid.uuid4 on the model), not by the database — which is what lets create_session
+    below fold the session insert and its first token into a single commit/round-trip."""
     nonce = secrets.token_urlsafe(16)
     issued_at = utcnow()
     expires_at = issued_at + timedelta(seconds=settings.qr_token_ttl_seconds)
@@ -174,13 +185,17 @@ def issue_token(db: Session, session_obj: AttendanceSession) -> AttendanceToken:
         settings.qr_signing_secret.encode(), signing_payload.encode(), hashlib.sha256
     ).hexdigest()
 
-    token = AttendanceToken(
+    return AttendanceToken(
         session_id=session_obj.id,
         nonce=nonce,
         signature=signature,
         issued_at=issued_at,
         expires_at=expires_at,
     )
+
+
+def issue_token(db: Session, session_obj: AttendanceSession) -> AttendanceToken:
+    token = _build_token(session_obj)
     db.add(token)
     db.commit()
     db.refresh(token)

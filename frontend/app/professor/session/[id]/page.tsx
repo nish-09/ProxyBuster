@@ -13,7 +13,7 @@ import {
   type StudentListItem,
 } from "@/lib/api";
 
-const QR_TTL_SECONDS = 10; // mirrors backend settings.qr_token_ttl_seconds
+const QR_TTL_SECONDS = 5; // mirrors backend settings.qr_token_ttl_seconds
 
 function SessionContent({ sessionId }: { sessionId: string }) {
   const router = useRouter();
@@ -99,22 +99,21 @@ function SessionContent({ sessionId }: { sessionId: string }) {
     }, 3500);
   }, [sessionId, applyQr]);
 
-  // Initial load: confirm ownership/lecture id, seed state from the live endpoint.
+  // Initial load: getSession (ownership/lecture id) and liveSession (QR/counts) don't depend
+  // on each other's results, so fetch both in parallel instead of sequentially — this is one
+  // fewer network round-trip standing between "Start Session" and the first visible QR.
   useEffect(() => {
     let cancelled = false;
     (async () => {
       try {
-        const session = await attendanceApi.getSession(sessionId);
+        const [session, live] = await Promise.all([attendanceApi.getSession(sessionId), attendanceApi.liveSession(sessionId)]);
         if (cancelled) return;
         setLectureId(session.lecture_id);
-        setStatus(session.status);
-        const live = await attendanceApi.liveSession(sessionId);
-        if (cancelled) return;
         setPresentCount(live.present_count);
         setTotalEnrolled(live.total_enrolled);
         setFeed(live.feed);
         if (live.session_expires_at) sessionExpiresAtRef.current = new Date(live.session_expires_at).getTime();
-        if (live.status === "closed") setStatus("closed");
+        setStatus(live.status === "closed" ? "closed" : session.status);
         if (live.qr_payload && live.current_token_expires_at) {
           applyQr(live.qr_payload, live.current_token_expires_at);
         }

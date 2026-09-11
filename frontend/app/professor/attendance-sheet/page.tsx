@@ -6,6 +6,7 @@ import { SideNavBar } from "@/components/layout/SideNavBar";
 import { TopNavBar, DesktopTopBar } from "@/components/layout/TopNavBar";
 import { BottomMobileNav } from "@/components/layout/BottomMobileNav";
 import { useAuth } from "@/lib/auth-context";
+import { AttendanceSheetSkeleton } from "@/components/ui/Skeleton";
 import { professorApi, type ActiveSubjectOut, type AttendanceSheetOut } from "@/lib/api";
 
 function initials(name: string) {
@@ -150,12 +151,14 @@ function SheetContent() {
             </div>
           </div>
 
+          {loading && <AttendanceSheetSkeleton />}
+
           {/* Tighter radius than the rest of the app on purpose (spec: "do not make the
               table excessively rounded") — this should read as a register, not a card. */}
+          {!loading && (
           <div className="flex-1 bg-surface-container-lowest border border-outline-variant rounded-md clay-raised overflow-hidden flex flex-col relative min-h-[300px]">
-            {loading && <div className="p-8 text-center font-body-md text-body-md text-on-surface-variant">Loading...</div>}
             {error && <div className="p-8 text-center font-body-md text-body-md text-error">{error}</div>}
-            {!loading && !error && sheet && (
+            {!error && sheet && (
               <>
                 <div className="flex-1 overflow-auto custom-scrollbar relative">
                   <table className="w-full text-left border-collapse min-w-[800px]">
@@ -238,10 +241,11 @@ function SheetContent() {
                 </div>
               </>
             )}
-            {!loading && !error && !sheet && (
+            {!error && !sheet && (
               <div className="p-8 text-center font-body-md text-body-md text-on-surface-variant">Select a subject to view its roster.</div>
             )}
           </div>
+          )}
         </div>
       </main>
       <BottomMobileNav role="professor" />

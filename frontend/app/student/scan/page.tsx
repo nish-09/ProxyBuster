@@ -203,14 +203,6 @@ function ScannerContent() {
     }
   }, [scanning, startCamera]);
 
-  if (checkingCooldown) {
-    return (
-      <main className="flex-1 relative w-full h-screen flex items-center justify-center bg-black/90">
-        <span className="material-symbols-outlined animate-spin text-tertiary text-4xl">progress_activity</span>
-      </main>
-    );
-  }
-
   if (successResult) {
     const { date, time } = formatMarkedAt(successResult.marked_at);
     return (
@@ -291,12 +283,23 @@ function ScannerContent() {
             <span className="material-symbols-outlined text-tertiary mb-2 text-[32px]">qr_code_scanner</span>
             <p className="font-body-md text-body-md text-on-surface mb-1">Point your camera at the QR code on the professor&apos;s screen.</p>
             <p className="font-label-md text-label-md text-tertiary animate-pulse">
-              {cameraError ? cameraError : scanning ? "Scanning for Session..." : "Starting camera..."}
+              {checkingCooldown
+                ? "Checking status..."
+                : cameraError
+                  ? cameraError
+                  : scanning
+                    ? "Scanning for Session..."
+                    : "Starting camera..."}
             </p>
           </div>
         </div>
 
         <div className="relative w-[300px] h-[300px] md:w-[400px] md:h-[400px] rounded-xl overflow-hidden bg-black border-4 border-surface shadow-[0_16px_40px_rgba(0,0,0,0.45),0_0_16px_rgba(59,130,246,0.15)]">
+          {checkingCooldown && (
+            <div className="absolute inset-0 skeleton-shimmer flex items-center justify-center">
+              <span className="material-symbols-outlined text-tertiary text-4xl">qr_code_scanner</span>
+            </div>
+          )}
           <div id="qr-reader" ref={containerRef} className="absolute inset-0 [&_video]:object-cover [&_video]:w-full [&_video]:h-full" />
           <div className="absolute top-0 left-0 w-12 h-12 border-t-4 border-l-4 border-tertiary rounded-tl-xl m-4 pointer-events-none" />
           <div className="absolute top-0 right-0 w-12 h-12 border-t-4 border-r-4 border-tertiary rounded-tr-xl m-4 pointer-events-none" />

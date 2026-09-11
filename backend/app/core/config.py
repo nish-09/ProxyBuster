@@ -16,7 +16,7 @@ class Settings(BaseSettings):
     access_token_expire_minutes: int = 480
 
     qr_signing_secret: str
-    qr_token_ttl_seconds: int = 10
+    qr_token_ttl_seconds: int = 5
 
     cooldown_minutes: int = 60
 

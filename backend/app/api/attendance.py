@@ -8,7 +8,7 @@ from app.core.deps import CurrentUser, get_current_user, get_professor_profile, 
 from app.core.rate_limit import limiter
 from app.models.academic import ClassDivision, Enrollment, Lecture
 from app.models.attendance import AttendanceRecord, AttendanceSession, AttendanceStatus, SessionStatus
-from app.models.user import ProfessorProfile, StudentProfile
+from app.models.user import ProfessorProfile, StudentProfile, User
 from app.schemas.attendance import (
     AdhocSessionCreate,
     AttendanceSessionCreate,
@@ -131,13 +131,27 @@ def live_session(
         .limit(20)
         .all()
     )
+    # Batched instead of 2 queries per record (StudentProfile + its .user) — this endpoint is
+    # polled every few seconds while a session is live, so N+1 here was a recurring cost, not
+    # a one-off.
+    student_profiles_by_id = (
+        {sp.id: sp for sp in db.query(StudentProfile).filter(StudentProfile.id.in_({r.student_id for r in records})).all()}
+        if records
+        else {}
+    )
+    users_by_id = (
+        {u.id: u for u in db.query(User).filter(User.id.in_([sp.user_id for sp in student_profiles_by_id.values()])).all()}
+        if student_profiles_by_id
+        else {}
+    )
     feed = []
     for record in records:
-        student_profile = db.get(StudentProfile, record.student_id)
+        student_profile = student_profiles_by_id.get(record.student_id)
+        user = users_by_id.get(student_profile.user_id) if student_profile else None
         feed.append(
             LiveFeedEntry(
                 id=record.id,
-                student_name=student_profile.user.full_name if student_profile else "Unknown",
+                student_name=user.full_name if user else "Unknown",
                 roll_number=student_profile.roll_number if student_profile else "",
                 status=record.status,
                 marked_at=record.marked_at,
