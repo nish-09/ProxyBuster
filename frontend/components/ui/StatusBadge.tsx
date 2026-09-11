@@ -28,7 +28,7 @@ export function StatusBadge({ status, className = "" }: { status: string; classN
   const label = LABELS[key] ?? status;
   return (
     <span
-      className={`inline-flex items-center font-label-sm text-label-sm font-semibold px-2.5 py-1 rounded-md border shadow-[inset_0_1px_2px_rgba(0,0,0,0.3)] ${style} ${className}`}
+      className={`inline-flex items-center font-label-sm text-label-sm font-semibold px-2.5 py-1 rounded-md border shadow-[inset_2px_2px_4px_rgba(80,70,60,0.1)] ${style} ${className}`}
     >
       {label}
     </span>

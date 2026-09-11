@@ -40,19 +40,19 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-6">
-      <div className="w-full max-w-md bg-surface border border-outline rounded-lg card-shadow p-stack-lg">
+      <div className="w-full max-w-md bg-surface border border-outline rounded-xl card-shadow p-stack-lg">
         <div className="flex items-center gap-3 mb-stack-lg">
-          <div className="w-11 h-11 rounded-md bg-primary border border-outline shadow-[inset_0_1px_0_rgba(255,255,255,0.2),0_2px_5px_rgba(0,0,0,0.4)] flex items-center justify-center text-on-primary">
+          <div className="w-12 h-12 rounded-lg bg-primary flex items-center justify-center text-on-primary clay-raised">
             <span className="material-symbols-outlined filled">security</span>
           </div>
           <div>
             <h1 className="font-headline-lg text-headline-lg font-bold text-on-surface">Proxy Busters</h1>
-            <p className="font-label-sm text-label-sm text-on-surface-variant">Sign in to continue</p>
+            <p className="font-label-sm text-label-sm text-on-surface-variant">Smart attendance. Less proxy.</p>
           </div>
         </div>
 
         {cooldownSeconds !== null && (
-          <div className="mb-stack-md rounded-md border border-outline bg-secondary-container p-4 text-center shadow-[inset_0_1px_3px_rgba(0,0,0,0.3)]">
+          <div className="mb-stack-md rounded-md border border-outline bg-secondary-container p-4 text-center clay-recessed">
             <p className="font-body-md text-body-md text-on-secondary-container">
               Session Lock Active — for security, you can&apos;t sign back in for{" "}
               <span className="font-bold">{Math.ceil(cooldownSeconds / 60)} more minute(s)</span> after logging out.
@@ -61,7 +61,7 @@ export default function LoginPage() {
         )}
 
         {error && (
-          <div className="mb-stack-md rounded-md border border-outline bg-error-container p-3 shadow-[inset_0_1px_3px_rgba(0,0,0,0.3)]">
+          <div className="mb-stack-md rounded-md border border-outline bg-error-container p-3 clay-recessed">
             <p className="font-body-md text-body-md text-on-error-container font-medium">{error}</p>
           </div>
         )}
@@ -77,7 +77,7 @@ export default function LoginPage() {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full h-11 px-3 bg-surface-container-low border border-outline rounded-md text-body-md font-body-md text-on-surface focus:outline-none focus:border-primary transition-all"
+              className="w-full h-11 px-3 bg-surface-container-low border border-outline rounded-lg text-body-md font-body-md text-on-surface focus:outline-none focus:border-primary transition-all"
               placeholder="you@college.edu"
             />
           </div>
@@ -91,14 +91,14 @@ export default function LoginPage() {
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full h-11 px-3 bg-surface-container-low border border-outline rounded-md text-body-md font-body-md text-on-surface focus:outline-none focus:border-primary transition-all"
+              className="w-full h-11 px-3 bg-surface-container-low border border-outline rounded-lg text-body-md font-body-md text-on-surface focus:outline-none focus:border-primary transition-all"
               placeholder="••••••••"
             />
           </div>
           <button
             type="submit"
             disabled={submitting}
-            className="w-full h-11 rounded-md bg-primary text-on-primary font-label-md text-label-md font-semibold border border-outline transition-colors disabled:opacity-60"
+            className="w-full h-11 rounded-lg bg-primary text-on-primary font-label-md text-label-md font-semibold transition-colors disabled:opacity-60"
           >
             {submitting ? "Signing in..." : "Sign In"}
           </button>

@@ -1,14 +1,14 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Plus_Jakarta_Sans } from "next/font/google";
 import { AuthProvider } from "@/lib/auth-context";
 import "./globals.css";
 
-// A single clean, highly-legible grotesque throughout — the skeuomorphic control-panel
-// treatment comes from surfaces/shadows/depth, not from a decorative or oversized typeface.
-const inter = Inter({
-  variable: "--font-inter",
+// A clean, rounded, friendly grotesque throughout — the Claymorphism treatment comes
+// from soft extruded surfaces/shadows, not from a decorative or oversized typeface.
+const clayFont = Plus_Jakarta_Sans({
+  variable: "--font-clay",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  weight: ["400", "500", "600", "700", "800"],
 });
 
 export const metadata: Metadata = {
@@ -18,7 +18,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${inter.variable} h-full`}>
+    <html lang="en" className={`${clayFont.variable} h-full`}>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />

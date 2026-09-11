@@ -97,11 +97,11 @@ function CooldownContent() {
   return (
     <main className="flex-1 flex flex-col justify-center items-center w-full min-h-screen p-container-padding relative overflow-hidden bg-background">
       <div className="w-full max-w-lg z-10 flex flex-col items-center justify-center animate-fade-in-up">
-        <div className="bg-surface border border-outline rounded-lg card-shadow p-stack-lg w-full flex flex-col items-center text-center relative overflow-hidden">
+        <div className="bg-surface rounded-xl clay-raised-lg p-stack-lg w-full flex flex-col items-center text-center relative overflow-hidden">
           <div className="absolute top-0 left-0 w-full h-2 bg-surface-container-high border-b border-outline">
             <div className="h-full bg-error" style={{ width: `${progressPct}%` }} />
           </div>
-          <div className="w-16 h-16 rounded-md bg-error-container border border-outline flex items-center justify-center mb-stack-md mt-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
+          <div className="w-16 h-16 rounded-lg bg-error-container flex items-center justify-center mb-stack-md mt-2 clay-raised">
             <span className="material-symbols-outlined filled text-on-error-container" style={{ fontSize: 32 }}>
               lock_clock
             </span>
@@ -114,7 +114,7 @@ function CooldownContent() {
               ? "Attendance already marked. Please wait before scanning again."
               : "For security, logging out triggers a cooldown before you can log back in."}
           </p>
-          <div className="bg-surface-dim py-6 px-10 rounded-md border border-outline mb-stack-lg w-full flex flex-col items-center shadow-[inset_0_2px_6px_rgba(0,0,0,0.4)]">
+          <div className="bg-surface-dim py-6 px-10 rounded-lg mb-stack-lg w-full flex flex-col items-center clay-recessed">
             <div className="font-display-lg text-display-lg text-on-surface tracking-tight font-bold flex items-center gap-1">
               <span>{m}</span>
               <span style={{ opacity: blink ? 1 : 0 }} className="text-tertiary">
@@ -128,7 +128,7 @@ function CooldownContent() {
               </div>
             )}
           </div>
-          <div className="flex items-start gap-3 bg-secondary-container p-4 rounded-md border border-outline w-full text-left shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
+          <div className="flex items-start gap-3 bg-secondary-container p-4 rounded-md w-full text-left clay-raised">
             <span className="material-symbols-outlined text-on-secondary-container mt-0.5" style={{ fontSize: 20 }}>
               security
             </span>

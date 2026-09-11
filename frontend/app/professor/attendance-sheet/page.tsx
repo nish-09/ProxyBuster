@@ -150,7 +150,9 @@ function SheetContent() {
             </div>
           </div>
 
-          <div className="flex-1 bg-surface-container-lowest border border-outline-variant rounded-xl shadow-sm overflow-hidden flex flex-col relative min-h-[300px]">
+          {/* Tighter radius than the rest of the app on purpose (spec: "do not make the
+              table excessively rounded") — this should read as a register, not a card. */}
+          <div className="flex-1 bg-surface-container-lowest border border-outline-variant rounded-md clay-raised overflow-hidden flex flex-col relative min-h-[300px]">
             {loading && <div className="p-8 text-center font-body-md text-body-md text-on-surface-variant">Loading...</div>}
             {error && <div className="p-8 text-center font-body-md text-body-md text-error">{error}</div>}
             {!loading && !error && sheet && (

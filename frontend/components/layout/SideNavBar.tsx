@@ -46,9 +46,9 @@ export function SideNavBar({ role }: { role: "student" | "professor" | "admin" }
   const items = role === "student" ? STUDENT_ITEMS : role === "admin" ? ADMIN_ITEMS : PROFESSOR_ITEMS;
 
   return (
-    <nav className="hidden md:flex flex-col h-full p-stack-md fixed left-0 top-0 h-full w-[280px] bg-surface border-r border-outline shadow-[4px_0_16px_rgba(0,0,0,0.35)] z-50">
+    <nav className="hidden md:flex flex-col h-full p-stack-md fixed left-0 top-0 h-full w-[280px] bg-surface border-r border-outline shadow-[6px_0_20px_rgba(80,70,60,0.1)] z-50">
       <div className="mb-stack-lg flex items-center gap-3 px-3">
-        <div className="w-10 h-10 rounded-md bg-primary border border-outline shadow-[inset_0_1px_0_rgba(255,255,255,0.2),0_2px_5px_rgba(0,0,0,0.4)] flex items-center justify-center text-on-primary">
+        <div className="w-10 h-10 rounded-lg bg-primary flex items-center justify-center text-on-primary clay-raised">
           <span className="material-symbols-outlined filled">security</span>
         </div>
         <div>
@@ -67,8 +67,8 @@ export function SideNavBar({ role }: { role: "student" | "professor" | "admin" }
                 href={item.href}
                 className={
                   active
-                    ? "flex items-center gap-3 px-4 py-3 text-on-surface font-semibold bg-surface-container-high border border-outline rounded-md shadow-[inset_0_2px_4px_rgba(0,0,0,0.4)] transition-all duration-150"
-                    : "flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-on-surface hover:bg-surface-container border border-transparent rounded-md transition-colors duration-200"
+                    ? "flex items-center gap-3 px-4 py-3 text-on-surface font-semibold bg-surface-container-high rounded-md clay-recessed transition-all duration-150"
+                    : "flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-on-surface hover:bg-surface-container rounded-md transition-colors duration-200"
                 }
               >
                 <span className={`material-symbols-outlined${active ? " filled text-tertiary" : ""}`}>{item.icon}</span>

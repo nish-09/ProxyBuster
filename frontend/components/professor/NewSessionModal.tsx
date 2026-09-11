@@ -51,27 +51,33 @@ export function NewSessionModal({ sessions, subjects, onClose, onStart, onStartA
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-inverse-surface/40 p-4">
-      <div className="w-full max-w-md bg-surface-container-lowest border border-outline-variant rounded-xl card-shadow p-stack-md">
+      <div className="w-full max-w-md bg-surface-container-lowest rounded-xl clay-raised-lg p-stack-md">
         <h3 className="font-headline-md text-headline-md text-on-surface mb-1">Start Attendance</h3>
         <p className="font-body-md text-body-md text-on-surface-variant mb-stack-md">
           Start from a scheduled lecture, or start an ad-hoc session right now.
         </p>
 
-        <div className="flex gap-1 mb-stack-md bg-surface-container p-1 rounded-md border border-outline-variant">
+        <div className="grid grid-cols-2 gap-3 mb-stack-md">
           <button
             onClick={() => setTab("scheduled")}
-            className={`flex-1 py-1.5 rounded font-label-md text-label-md transition-colors ${
-              tab === "scheduled" ? "bg-primary text-on-primary" : "text-on-surface-variant hover:bg-surface-container-high"
+            className={`flex flex-col items-center gap-1.5 py-4 rounded-lg font-label-md text-label-md transition-all ${
+              tab === "scheduled"
+                ? "bg-primary text-on-primary clay-raised"
+                : "bg-surface-container text-on-surface-variant clay-recessed hover:text-on-surface"
             }`}
           >
+            <span className="material-symbols-outlined">event_available</span>
             Scheduled Lecture
           </button>
           <button
             onClick={() => setTab("adhoc")}
-            className={`flex-1 py-1.5 rounded font-label-md text-label-md transition-colors ${
-              tab === "adhoc" ? "bg-primary text-on-primary" : "text-on-surface-variant hover:bg-surface-container-high"
+            className={`flex flex-col items-center gap-1.5 py-4 rounded-lg font-label-md text-label-md transition-all ${
+              tab === "adhoc"
+                ? "bg-primary text-on-primary clay-raised"
+                : "bg-surface-container text-on-surface-variant clay-recessed hover:text-on-surface"
             }`}
           >
+            <span className="material-symbols-outlined">bolt</span>
             Ad-hoc Session
           </button>
         </div>

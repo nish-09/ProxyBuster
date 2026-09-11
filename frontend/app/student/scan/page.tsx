@@ -215,8 +215,8 @@ function ScannerContent() {
     const { date, time } = formatMarkedAt(successResult.marked_at);
     return (
       <main className="flex-1 w-full min-h-screen flex items-center justify-center bg-surface p-container-padding">
-        <div className="w-full max-w-md bg-surface-container-lowest border border-outline-variant rounded-xl card-shadow p-stack-lg flex flex-col items-center text-center">
-          <div className="w-16 h-16 rounded-full bg-tertiary-container border border-outline flex items-center justify-center mb-stack-md">
+        <div className="w-full max-w-md bg-surface-container-lowest rounded-xl clay-raised-lg p-stack-lg flex flex-col items-center text-center">
+          <div className="w-16 h-16 rounded-full bg-tertiary-container flex items-center justify-center mb-stack-md clay-raised animate-clay-pop">
             <span className="material-symbols-outlined filled text-on-tertiary-container" style={{ fontSize: 36 }}>
               check_circle
             </span>
@@ -296,7 +296,7 @@ function ScannerContent() {
           </div>
         </div>
 
-        <div className="relative w-[300px] h-[300px] md:w-[400px] md:h-[400px] rounded-xl overflow-hidden shadow-[0_8px_28px_rgba(0,0,0,0.6)] bg-black border border-outline">
+        <div className="relative w-[300px] h-[300px] md:w-[400px] md:h-[400px] rounded-xl overflow-hidden shadow-[0_16px_40px_rgba(0,0,0,0.45)] bg-black border-4 border-surface">
           <div id="qr-reader" ref={containerRef} className="absolute inset-0 [&_video]:object-cover [&_video]:w-full [&_video]:h-full" />
           <div className="absolute top-0 left-0 w-12 h-12 border-t-4 border-l-4 border-tertiary rounded-tl-xl m-4 pointer-events-none" />
           <div className="absolute top-0 right-0 w-12 h-12 border-t-4 border-r-4 border-tertiary rounded-tr-xl m-4 pointer-events-none" />
@@ -310,7 +310,7 @@ function ScannerContent() {
             aria-label="Toggle Flashlight"
             onClick={toggleFlashlight}
             disabled={!torchSupported}
-            className="bg-surface-container-high rounded-full w-14 h-14 flex items-center justify-center border border-outline shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_2px_6px_rgba(0,0,0,0.4)] text-on-surface hover:bg-surface-container-highest transition-colors disabled:opacity-30"
+            className="bg-surface-container-high rounded-full w-14 h-14 flex items-center justify-center clay-raised text-on-surface hover:bg-surface-container-highest transition-colors disabled:opacity-30"
           >
             <span className="material-symbols-outlined">{torchOn ? "flashlight_on" : "flashlight_off"}</span>
           </button>
@@ -318,7 +318,7 @@ function ScannerContent() {
             aria-label="Switch Camera"
             onClick={switchCamera}
             disabled={cameraCount < 2}
-            className="bg-surface-container-high rounded-full w-14 h-14 flex items-center justify-center border border-outline shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_2px_6px_rgba(0,0,0,0.4)] text-on-surface hover:bg-surface-container-highest transition-colors disabled:opacity-30"
+            className="bg-surface-container-high rounded-full w-14 h-14 flex items-center justify-center clay-raised text-on-surface hover:bg-surface-container-highest transition-colors disabled:opacity-30"
           >
             <span className="material-symbols-outlined">flip_camera_ios</span>
           </button>

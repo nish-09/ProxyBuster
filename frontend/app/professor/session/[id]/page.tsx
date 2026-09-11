@@ -225,7 +225,7 @@ function SessionContent({ sessionId }: { sessionId: string }) {
 
   return (
     <div className="bg-background text-on-background font-body-md min-h-screen">
-      <header className="sticky top-0 z-40 bg-surface border-b border-outline shadow-[0_2px_8px_rgba(0,0,0,0.3)] flex justify-between items-center w-full px-container-padding h-16">
+      <header className="sticky top-0 z-40 bg-surface border-b border-outline shadow-[0_6px_20px_rgba(80,70,60,0.08)] flex justify-between items-center w-full px-container-padding h-16">
         <button onClick={() => router.push("/professor/dashboard")} className="flex items-center gap-2 text-on-surface-variant hover:text-primary transition-colors">
           <span className="material-symbols-outlined">arrow_back</span>
           <span className="font-label-md text-label-md hidden sm:inline">Dashboard</span>
@@ -254,14 +254,14 @@ function SessionContent({ sessionId }: { sessionId: string }) {
           </div>
           <div className="flex items-center gap-2">
             {status === "active" && sessionRemaining !== null && (
-              <div className="bg-secondary-container text-on-secondary-container border border-outline px-3 py-1.5 rounded-md flex items-center gap-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
+              <div className="bg-secondary-container text-on-secondary-container px-3 py-1.5 rounded-md flex items-center gap-2 clay-raised">
                 <span className="material-symbols-outlined text-sm filled">hourglass_top</span>
                 <span className="font-label-md text-label-md font-semibold">
                   {`${String(Math.floor(sessionRemaining / 60)).padStart(2, "0")}:${String(sessionRemaining % 60).padStart(2, "0")} remaining`}
                 </span>
               </div>
             )}
-            <div className="bg-primary-container text-on-primary-container border border-outline px-3 py-1.5 rounded-md flex items-center gap-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
+            <div className="bg-primary-container text-on-primary-container px-3 py-1.5 rounded-md flex items-center gap-2 clay-raised">
               <span className="material-symbols-outlined text-sm filled">shield_locked</span>
               <span className="font-label-md text-label-md font-semibold">Secure Mode Enabled</span>
             </div>
@@ -291,8 +291,8 @@ function SessionContent({ sessionId }: { sessionId: string }) {
               {/* Physical "display housing" around the QR — the QR module itself stays plain
                   dark-on-white for maximum scan contrast; only the frame around it is themed. */}
               <div className="flex-1 flex flex-col items-center justify-center p-stack-lg z-10 bg-surface-container-low">
-                <div className="bg-surface-container-high p-4 rounded-lg border border-outline card-shadow relative">
-                  <div className="w-64 h-64 bg-white rounded-md flex items-center justify-center relative overflow-hidden shadow-[inset_0_0_0_1px_rgba(0,0,0,0.08)]">
+                <div className="bg-surface-container-high p-5 rounded-xl clay-recessed relative">
+                  <div className="w-64 h-64 bg-white rounded-lg flex items-center justify-center relative overflow-hidden shadow-[0_2px_10px_rgba(80,70,60,0.15)]">
                     {qrDataUrl ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img src={qrDataUrl} alt="Attendance QR code" className="w-full h-full object-contain" />
@@ -300,7 +300,7 @@ function SessionContent({ sessionId }: { sessionId: string }) {
                       <span className="material-symbols-outlined text-6xl text-primary opacity-50 animate-pulse">qr_code_2</span>
                     )}
                   </div>
-                  <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 bg-secondary border border-outline shadow-[0_3px_8px_rgba(0,0,0,0.4)] rounded-md px-4 py-1.5 flex items-center gap-2 whitespace-nowrap">
+                  <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 bg-secondary rounded-md px-4 py-1.5 flex items-center gap-2 whitespace-nowrap clay-raised">
                     <span className="material-symbols-outlined text-on-secondary text-sm animate-spin" style={{ animationDuration: "3s" }}>
                       refresh
                     </span>
@@ -322,7 +322,7 @@ function SessionContent({ sessionId }: { sessionId: string }) {
                   <span className="font-display-lg text-display-lg text-on-tertiary-container">{presentCount}</span>
                   <span className="font-headline-md text-headline-md text-on-tertiary-container">/ {totalEnrolled}</span>
                 </div>
-                <div className="mt-4 w-full bg-surface-dim border border-outline rounded-md h-3 overflow-hidden shadow-[inset_0_1px_3px_rgba(0,0,0,0.4)]">
+                <div className="mt-4 w-full bg-surface-dim rounded-md h-3 overflow-hidden clay-recessed">
                   <div className="bg-tertiary h-full" style={{ width: `${percent}%` }} />
                 </div>
                 <p className="font-label-sm text-label-sm text-on-tertiary-container mt-2 text-right font-semibold">{percent}% Present</p>
