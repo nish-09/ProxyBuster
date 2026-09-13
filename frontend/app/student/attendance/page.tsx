@@ -204,7 +204,7 @@ function AttendanceContent() {
                 <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
                   <circle className="text-surface-container-high" cx="50" cy="50" fill="transparent" r="40" stroke="currentColor" strokeWidth="8" />
                   <circle
-                    className="text-primary"
+                    className="text-tertiary"
                     cx="50"
                     cy="50"
                     fill="transparent"

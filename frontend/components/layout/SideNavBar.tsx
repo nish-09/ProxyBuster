@@ -46,7 +46,7 @@ export function SideNavBar({ role }: { role: "student" | "professor" | "admin" }
   const items = role === "student" ? STUDENT_ITEMS : role === "admin" ? ADMIN_ITEMS : PROFESSOR_ITEMS;
 
   return (
-    <nav className="hidden md:flex flex-col h-full p-stack-md fixed left-0 top-0 h-full w-[280px] bg-surface border-r border-outline shadow-[6px_0_20px_rgba(80,70,60,0.1)] z-50">
+    <nav className="hidden md:flex flex-col p-stack-md fixed left-4 top-4 bottom-4 w-[248px] bg-surface rounded-[28px] border border-outline-variant card-shadow z-50">
       <div className="mb-stack-lg flex items-center gap-3 px-3">
         <div className="w-10 h-10 rounded-lg bg-primary flex items-center justify-center text-on-primary clay-raised">
           <span className="material-symbols-outlined filled">security</span>

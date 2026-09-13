@@ -36,7 +36,7 @@ export function BottomMobileNav({ role }: { role: "student" | "professor" | "adm
   const items = role === "student" ? STUDENT_ITEMS : role === "admin" ? ADMIN_ITEMS : PROFESSOR_ITEMS;
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-surface border-t border-outline shadow-[0_-6px_20px_rgba(80,70,60,0.1)] flex justify-around items-center h-16">
+    <nav className="md:hidden fixed bottom-3 left-3 right-3 z-40 bg-surface border border-outline-variant rounded-[24px] card-shadow flex justify-around items-center h-16">
       {items.map((item) => {
         const active = pathname?.startsWith(item.href);
         return (

@@ -10,7 +10,7 @@ interface TopNavBarProps {
 /** Sticky header, ported from the desktop Stitch exports' TopNavBar-equivalent markup. */
 export function TopNavBar({ avatarInitials, onSearch, showSearch = false }: TopNavBarProps) {
   return (
-    <header className="flex justify-between items-center w-full px-container-padding h-16 bg-surface border-b border-outline shadow-[0_6px_20px_rgba(80,70,60,0.08)] sticky top-0 z-40 md:hidden">
+    <header className="flex justify-between items-center w-full px-container-padding h-16 bg-surface border-b border-outline-variant shadow-[0_6px_18px_rgba(23,32,51,0.08)] sticky top-0 z-40 md:hidden rounded-b-[24px]">
       <h1 className="font-headline-md text-headline-md font-bold text-on-surface">Proxy Busters</h1>
       <div className="flex items-center gap-4">
         {showSearch && (

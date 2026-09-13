@@ -224,7 +224,7 @@ function SessionContent({ sessionId }: { sessionId: string }) {
 
   return (
     <div className="bg-background text-on-background font-body-md min-h-screen">
-      <header className="sticky top-0 z-40 bg-surface border-b border-outline shadow-[0_6px_20px_rgba(80,70,60,0.08)] flex justify-between items-center w-full px-container-padding h-16">
+      <header className="sticky top-0 z-40 bg-surface border-b border-outline shadow-[0_6px_20px_rgba(23,32,51,0.08)] flex justify-between items-center w-full px-container-padding h-16">
         <button onClick={() => router.push("/professor/dashboard")} className="flex items-center gap-2 text-on-surface-variant hover:text-primary transition-colors">
           <span className="material-symbols-outlined">arrow_back</span>
           <span className="font-label-md text-label-md hidden sm:inline">Dashboard</span>
@@ -295,7 +295,7 @@ function SessionContent({ sessionId }: { sessionId: string }) {
                   dark-on-white for maximum scan contrast; only the frame around it is themed. */}
               <div className="flex-1 flex flex-col items-center justify-center p-4 sm:p-stack-lg z-10 bg-surface-container-low">
                 <div className="bg-surface-container-high p-3 sm:p-5 rounded-xl clay-recessed-glow-blue relative max-w-full">
-                  <div className="w-full max-w-64 aspect-square bg-white rounded-lg flex items-center justify-center relative overflow-hidden shadow-[0_2px_10px_rgba(80,70,60,0.15)]">
+                  <div className="w-full max-w-64 aspect-square bg-white rounded-lg flex items-center justify-center relative overflow-hidden shadow-[0_2px_10px_rgba(23,32,51,0.15)]">
                     {qrDataUrl ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img src={qrDataUrl} alt="Attendance QR code" className="w-full h-full object-contain" />

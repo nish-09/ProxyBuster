@@ -89,8 +89,8 @@ function StudentDetailContent({ studentId }: { studentId: string }) {
                         </p>
                       </div>
                       <div className="bg-surface-container-low px-3 py-1 rounded-full border border-outline-variant flex items-center gap-1.5">
-                        <span className={`w-2 h-2 rounded-full ${detail.standing === "good" ? "bg-[#10b981]" : "bg-error"}`} />
-                        <span className={`font-label-sm text-label-sm font-bold ${detail.standing === "good" ? "text-[#065f46]" : "text-error"}`}>
+                        <span className={`w-2 h-2 rounded-full ${detail.standing === "good" ? "bg-tertiary" : "bg-error"}`} />
+                        <span className={`font-label-sm text-label-sm font-bold ${detail.standing === "good" ? "text-tertiary-fixed-dim" : "text-error"}`}>
                           {detail.standing === "good" ? "Good Standing" : "Attendance Warning"}
                         </span>
                       </div>
@@ -162,9 +162,9 @@ function StudentDetailContent({ studentId }: { studentId: string }) {
                   <h3 className="font-label-md text-label-md text-on-surface">Active Session</h3>
                   <span className="relative flex h-2 w-2">
                     {detail.active_device && detail.active_device.status === "active" && (
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#10b981] opacity-75" />
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-tertiary opacity-75" />
                     )}
-                    <span className={`relative inline-flex rounded-full h-2 w-2 ${detail.active_device?.status === "active" ? "bg-[#10b981]" : "bg-outline"}`} />
+                    <span className={`relative inline-flex rounded-full h-2 w-2 ${detail.active_device?.status === "active" ? "bg-tertiary" : "bg-outline"}`} />
                   </span>
                 </div>
                 <div className="p-6 flex flex-col items-center text-center">

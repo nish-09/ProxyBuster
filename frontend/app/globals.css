@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 /* ============================================================================
-   Proxy Busters — Neo-Brutalism design system
+   Proxy Busters — Bright Claymorphism design system
    ----------------------------------------------------------------------------
    Every page in the app is built on top of this single token layer (bg-primary,
    text-on-surface, border-outline-variant, card-shadow, etc.) — redefining the
@@ -9,112 +9,117 @@
    page-by-page. Do not hardcode raw hex values in page/component files; add or
    adjust a token here instead.
 
-   STRICT PALETTE (5 colors, no exceptions): lavender #C9A7FF is the page/body
-   background ONLY — never a card/box/panel color. Yellow (#DFFF72 primary
-   surface, #E8FF8A brighter highlight — the only two yellows in the system)
-   is EVERY card/box/panel/table/form/modal surface; every major UI block is
-   yellow-on-lavender, like a printed sticker on a canvas. Green (#22C55E,
-   the one true green) is reserved for tiny details only — status dots,
-   small checkmarks, micro-labels — never a large filled surface. Red
-   (#EF4444, the one true red) is reserved for errors/destructive states
-   only. Black (#171717) is every border/shadow/heading/body text. No blue,
-   cyan, orange, pink, purple or teal anywhere, and no second shade of
-   yellow/green/red beyond the ones named above. No soft Claymorphism
-   shadows — every raised surface gets a HARD, un-blurred offset shadow
-   (card-shadow == 6px 6px 0 #171717) and a thick black border. Buttons
-   press physically into their own shadow on :active via @layer base below.
+   PALETTE: a cool light blue (#DDEBFF) is the page/body canvas — it stays
+   visible between cards and should read as the dominant surface (~60-70% of
+   the UI). Five bright clay accents sit on top of it, each with a fixed job:
+   Lavender (#C9A7FF) is the brand/primary-action color (CTAs, brand mark,
+   active nav). Sky blue (#9DD9FF) is "active/live/info". Soft yellow
+   (#FFE58A) is "late/warning". Mint (#9FF3D0, with a more saturated mint for
+   text/strokes/progress fills) is "success/present". Coral/peach
+   (#FF6F59 text-on-light / #FFD3C7 container) is "error/review/destructive".
+   Most containers (tables, forms, modals, generic panels) stay a neutral
+   near-white clay surface — color is reserved for stat chips, badges, hero
+   CTAs and status, not every box in the app. No hard black borders/shadows:
+   every raised surface gets a soft, blurred, layered clay shadow (a dark
+   diffused shadow + a soft light highlight), thin near-invisible borders,
+   and generous rounded corners.
    ========================================================================== */
 @theme {
-  /* ---------- Primary (yellow) — primary actions, cards, "active"/neutral state ---------- */
-  --color-primary: #dfff72;
-  --color-on-primary: #171717;
-  --color-primary-container: #dfff72;
-  --color-on-primary-container: #171717;
-  --color-primary-fixed: #dfff72;
-  --color-primary-fixed-dim: #e8ff8a;
-  --color-on-primary-fixed: #171717;
-  --color-on-primary-fixed-variant: #171717;
-  --color-inverse-primary: #171717;
+  /* ---------- Primary (lavender) — brand color, primary CTAs, active nav state ---------- */
+  --color-primary: #c9a7ff;
+  --color-on-primary: #172033;
+  --color-primary-container: #ead9ff;
+  --color-on-primary-container: #172033;
+  --color-primary-fixed: #c9a7ff;
+  --color-primary-fixed-dim: #b98bff;
+  --color-on-primary-fixed: #172033;
+  --color-on-primary-fixed-variant: #172033;
+  --color-inverse-primary: #ead9ff;
 
-  /* ---------- Secondary (black-on-yellow) — the ONE non-triad exception, reserved for the
-     "late" attendance status (a real 4th business state, not decoration); inverted
-     black/yellow rather than a new hue so it still stays inside the 5-color system. ---------- */
-  --color-secondary: #171717;
-  --color-on-secondary: #e8ff8a;
-  --color-secondary-container: #171717;
-  --color-on-secondary-container: #e8ff8a;
-  --color-secondary-fixed: #171717;
-  --color-secondary-fixed-dim: #171717;
-  --color-on-secondary-fixed: #e8ff8a;
-  --color-on-secondary-fixed-variant: #e8ff8a;
+  /* ---------- Secondary (soft yellow) — "late" / warning business state ---------- */
+  --color-secondary: #ffe58a;
+  --color-on-secondary: #172033;
+  --color-secondary-container: #fff3c9;
+  --color-on-secondary-container: #172033;
+  --color-secondary-fixed: #ffe58a;
+  --color-secondary-fixed-dim: #ffd966;
+  --color-on-secondary-fixed: #172033;
+  --color-on-secondary-fixed-variant: #172033;
 
-  /* ---------- Tertiary (the one green) — success / present / tiny positive details ONLY ---------- */
-  --color-tertiary: #22c55e;
-  --color-on-tertiary: #171717;
-  --color-tertiary-container: #b9f2cd;
-  --color-on-tertiary-container: #171717;
-  --color-tertiary-fixed: #22c55e;
-  --color-tertiary-fixed-dim: #1a9f4b;
-  --color-on-tertiary-fixed: #171717;
-  --color-on-tertiary-fixed-variant: #171717;
+  /* ---------- Tertiary (mint) — success / present. A more saturated mint than the
+     pastel container so it stays legible as a stroke/fill/small icon on light cards. ---------- */
+  --color-tertiary: #1fae7c;
+  --color-on-tertiary: #ffffff;
+  --color-tertiary-container: #9ff3d0;
+  --color-on-tertiary-container: #0e4b36;
+  --color-tertiary-fixed: #2fe6a5;
+  --color-tertiary-fixed-dim: #0e7f58;
+  --color-on-tertiary-fixed: #172033;
+  --color-on-tertiary-fixed-variant: #172033;
 
-  /* ---------- Error (the one red) — danger / absent / stop / blocked state ONLY ---------- */
-  --color-error: #ef4444;
-  --color-on-error: #171717;
-  --color-error-container: #fbc6c6;
-  --color-on-error-container: #171717;
+  /* ---------- Info (sky blue) — "active/live" surfaces (live session banner, connection
+     state) — a distinct hue from primary so brand color and "this is happening now" don't
+     collide. ---------- */
+  --color-info: #9dd9ff;
+  --color-on-info: #172033;
+  --color-info-container: #d6f0ff;
+  --color-on-info-container: #172033;
 
-  /* ---------- Surfaces — LAVENDER by default (the page canvas/chrome), NOT yellow. Only
-     `surface-container-lowest` (the token Card.tsx and genuine "this is a card" surfaces
-     use) is yellow — that is deliberately the ONE surface token that opts into yellow, so
-     switching a specific element from ambient-chrome to an actual card is a one-token
-     change (`bg-surface` → `bg-surface-container-lowest`) rather than a new color. This is
-     what keeps lavender dominant (~60-70% of the UI) with yellow reserved for real cards
-     (~20-30%), instead of the whole app reading as yellow. ---------- */
-  --color-surface: #b88aff;
-  --color-surface-dim: #a06ffb;
-  --color-surface-bright: #d9c4ff;
-  --color-surface-container-lowest: #dfff72;
-  --color-surface-container-low: #c9a7ff;
-  --color-surface-container: #cdb0ff;
-  /* Lighter than --color-surface on purpose (not a duplicate of it) — this is what makes
+  /* ---------- Error (coral/peach) — danger / absent / stop / blocked state ONLY ---------- */
+  --color-error: #ff6f59;
+  --color-on-error: #172033;
+  --color-error-container: #ffd3c7;
+  --color-on-error-container: #7a2a1a;
+
+  /* ---------- Surfaces — a clean near-white clay by default. `surface-container-lowest`
+     (Card.tsx and every genuine "this is a card" surface) is the crisp white card token;
+     `surface`/`surface-container-low` sit a shade closer to the page canvas so the app
+     shell (nav bars, main content backdrop) reads as continuous with the background
+     instead of a hard-edged box. ---------- */
+  --color-surface: #f7faff;
+  --color-surface-dim: #e3ecfb;
+  --color-surface-bright: #ffffff;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #e9f1ff;
+  --color-surface-container: #eef4ff;
+  /* A touch more saturated than surface-container-low on purpose — this is what makes
      e.g. the sidebar's active nav item or a table's hover row actually visible against the
      surface it's sitting on, instead of disappearing into an identical background. */
-  --color-surface-container-high: #d9c4ff;
-  --color-surface-container-highest: #e4d6ff;
-  --color-surface-variant: #b88aff;
-  --color-surface-tint: #dfff72;
+  --color-surface-container-high: #e1eaff;
+  --color-surface-container-highest: #d4e2fb;
+  --color-surface-variant: #f7faff;
+  --color-surface-tint: #c9a7ff;
 
-  --color-on-surface: #171717;
-  --color-on-surface-variant: #33302b;
-  --color-inverse-surface: #171717;
-  --color-inverse-on-surface: #dfff72;
+  --color-on-surface: #172033;
+  --color-on-surface-variant: #526078;
+  --color-inverse-surface: #172033;
+  --color-inverse-on-surface: #f7faff;
 
-  --color-outline: #171717;
-  --color-outline-variant: #171717;
+  --color-outline: #c9d6ed;
+  --color-outline-variant: #dbe6f7;
 
-  /* Page/body canvas — lavender, and ONLY the page canvas. */
-  --color-background: #c9a7ff;
-  --color-on-background: #171717;
+  /* Page/body canvas — cool light blue, and the dominant surface across the app. */
+  --color-background: #ddebff;
+  --color-on-background: #172033;
 
-  /* Typography — bold, editorial, unmistakably brutalist without being oversized everywhere */
+  /* Typography — friendly, confident, still unmistakably a serious academic product. */
   --text-display-lg: 32px;
-  --text-display-lg--line-height: 36px;
-  --text-display-lg--font-weight: 800;
-  --text-display-lg--letter-spacing: -0.02em;
+  --text-display-lg--line-height: 38px;
+  --text-display-lg--font-weight: 700;
+  --text-display-lg--letter-spacing: -0.015em;
 
   --text-headline-lg: 22px;
-  --text-headline-lg--line-height: 27px;
-  --text-headline-lg--font-weight: 800;
+  --text-headline-lg--line-height: 28px;
+  --text-headline-lg--font-weight: 700;
   --text-headline-lg--letter-spacing: -0.01em;
 
   --text-headline-lg-mobile: 19px;
-  --text-headline-lg-mobile--line-height: 24px;
-  --text-headline-lg-mobile--font-weight: 800;
+  --text-headline-lg-mobile--line-height: 25px;
+  --text-headline-lg-mobile--font-weight: 700;
 
   --text-headline-md: 17px;
-  --text-headline-md--line-height: 22px;
-  --text-headline-md--font-weight: 800;
+  --text-headline-md--line-height: 23px;
+  --text-headline-md--font-weight: 700;
 
   --text-body-lg: 16px;
   --text-body-lg--line-height: 24px;
@@ -127,14 +132,14 @@
   --text-label-md: 12.5px;
   --text-label-md--line-height: 16px;
   --text-label-md--font-weight: 700;
-  --text-label-md--letter-spacing: 0.02em;
+  --text-label-md--letter-spacing: 0.01em;
 
   --text-label-sm: 11px;
   --text-label-sm--line-height: 14px;
   --text-label-sm--font-weight: 700;
 
-  /* Same names are usable as font families too (font-body-md etc). A single bold, geometric
-     grotesque throughout — no separate "display" typeface needed. */
+  /* Same names are usable as font families too (font-body-md etc). A single friendly,
+     geometric grotesque throughout — no separate "display" typeface needed. */
   --font-body-lg: var(--font-clay), sans-serif;
   --font-body-md: var(--font-clay), sans-serif;
   --font-headline-lg: var(--font-clay), sans-serif;
@@ -145,23 +150,25 @@
   --font-label-sm: var(--font-clay), sans-serif;
   --font-sans: var(--font-clay), sans-serif;
 
-  /* Radius — kept deliberately sharp. No 20-28px "clay" corners anymore. */
-  --radius-sm: 4px;
-  --radius-md: 6px;
-  --radius-lg: 8px;
-  --radius-xl: 10px;
+  /* Radius — generous and rounded throughout, per the Bright Claymorphism spec
+     (small controls ~12px, buttons ~14-16px, cards ~20-24px). */
+  --radius-sm: 12px;
+  --radius-md: 16px;
+  --radius-lg: 20px;
+  --radius-xl: 24px;
 
-  /* Thick black borders are a core part of the identity, not a subtle accent. */
-  --default-border-width: 3px;
-  --default-border-color: #171717;
+  /* Thin, near-invisible borders — depth comes from the shadow system below, not
+     from a heavy stroke around every surface. */
+  --default-border-width: 1px;
+  --default-border-color: #c9d6ed;
 
-  /* Hard, un-blurred offset shadows — no blur radius, no softness, no highlight rim. Every
-     shadow-sm/md/lg/xl + card-shadow usage across the app now renders this way. */
-  --shadow-sm: 4px 4px 0 #171717;
-  --shadow-md: 6px 6px 0 #171717;
-  --shadow-lg: 8px 8px 0 #171717;
-  --shadow-xl: 10px 10px 0 #171717;
-  --shadow-2xl: 12px 12px 0 #171717;
+  /* Soft layered clay shadows: a diffused dark shadow toward the light source's opposite
+     corner plus a soft light highlight — no hard offsets, no solid-black edges, no blur-0. */
+  --shadow-sm: 3px 3px 10px rgba(23, 32, 51, 0.1), -2px -2px 6px rgba(255, 255, 255, 0.6);
+  --shadow-md: 6px 6px 18px rgba(23, 32, 51, 0.12), -4px -4px 12px rgba(255, 255, 255, 0.65);
+  --shadow-lg: 10px 10px 26px rgba(23, 32, 51, 0.14), -6px -6px 16px rgba(255, 255, 255, 0.7);
+  --shadow-xl: 14px 14px 34px rgba(23, 32, 51, 0.16), -8px -8px 20px rgba(255, 255, 255, 0.75);
+  --shadow-2xl: 18px 18px 44px rgba(23, 32, 51, 0.18), -10px -10px 24px rgba(255, 255, 255, 0.8);
 
   /* Spacing tokens used throughout (p-container-padding, gap-gutter, p-stack-md, ...) */
   --spacing-unit: 4px;
@@ -189,65 +196,81 @@ body {
 }
 
 /* ----------------------------------------------------------------------------
-   Physical, pressable Neo-Brutalist buttons app-wide: a thick black border and
-   a hard offset shadow by default; on hover the button lifts slightly further
-   away from its shadow; on :active it moves INTO its own shadow (shadow
-   shrinks to 0, button translates by the same offset) — the exact "physical
-   pressed-button effect" the brief specifies. Applied once here rather than
-   per button in every file. Scoped to <button> elements carrying one of these
-   existing utility classes — never matches inputs/selects/cards.
+   Tactile clay buttons app-wide: soft layered shadow by default; on hover the
+   button lifts slightly with a stronger shadow; on :active it presses down
+   (shadow relaxes, button nudges toward the surface) — a gentle physical
+   press, not a hard brutalist snap. Applied once here rather than per button
+   in every file. Scoped to <button> elements carrying one of these existing
+   utility classes — never matches inputs/selects/cards.
    ---------------------------------------------------------------------------- */
 @layer base {
+  /* Solid clay buttons (primary/error): color + soft shadow carries the whole effect. */
   button.bg-primary,
-  button.bg-error,
-  button.border-outline-variant,
-  button.border-error\/30 {
-    border: 3px solid #171717;
-    box-shadow: 5px 5px 0 #171717;
-    transition: transform 90ms ease, box-shadow 90ms ease, filter 90ms ease;
+  button.bg-error {
+    border: none;
+    box-shadow: var(--shadow-sm);
+    transition: transform 180ms ease, box-shadow 180ms ease, filter 180ms ease;
   }
   button.bg-primary:not(:disabled):hover,
-  button.bg-error:not(:disabled):hover,
-  button.border-outline-variant:not(:disabled):hover,
-  button.border-error\/30:not(:disabled):hover {
-    transform: translate(-2px, -2px);
-    box-shadow: 7px 7px 0 #171717;
+  button.bg-error:not(:disabled):hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
   }
   button.bg-primary:not(:disabled):active,
-  button.bg-error:not(:disabled):active,
-  button.border-outline-variant:not(:disabled):active,
-  button.border-error\/30:not(:disabled):active {
-    transform: translate(5px, 5px);
-    box-shadow: 0 0 0 #171717;
+  button.bg-error:not(:disabled):active {
+    transform: translateY(1px);
+    box-shadow: 2px 2px 8px rgba(23, 32, 51, 0.16), -1px -1px 4px rgba(255, 255, 255, 0.5);
   }
   button.bg-primary:disabled,
-  button.bg-error:disabled,
-  button.border-outline-variant:disabled,
-  button.border-error\/30:disabled {
+  button.bg-error:disabled {
     background-color: var(--color-surface-container-high) !important;
     color: var(--color-on-surface-variant) !important;
-    box-shadow: 3px 3px 0 #171717;
+    box-shadow: none;
     filter: none;
-    opacity: 0.75;
+    opacity: 0.65;
+  }
+
+  /* Outline/secondary clay buttons: a thin soft border plus a lighter shadow. */
+  button.border-outline-variant,
+  button.border-error\/30 {
+    border-width: 1.5px;
+    box-shadow: var(--shadow-sm);
+    transition: transform 180ms ease, box-shadow 180ms ease, background-color 180ms ease;
+  }
+  button.border-outline-variant:not(:disabled):hover,
+  button.border-error\/30:not(:disabled):hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+  }
+  button.border-outline-variant:not(:disabled):active,
+  button.border-error\/30:not(:disabled):active {
+    transform: translateY(1px);
+    box-shadow: none;
+  }
+  button.border-outline-variant:disabled,
+  button.border-error\/30:disabled {
+    opacity: 0.6;
+    box-shadow: none;
   }
 }
 
-/* Inputs/selects/textareas: flat surface, thick black border, no soft inset shadow — a small
- * hard offset shadow on focus is the brutalist equivalent of a focus ring. */
+/* Inputs/selects/textareas: soft inset clay — a gentle "pressed into the surface" feel with
+ * a thin border and a colored glow on focus instead of a hard offset shadow. */
 @layer base {
   input:not([type="checkbox"]):not([type="radio"]),
   select,
   textarea {
-    /* Light lavender, not yellow — inputs usually sit inside a yellow card/form panel and
-       need contrast against it, not to blend into it. */
     background-color: var(--color-surface-bright);
-    border: 3px solid #171717;
-    box-shadow: none;
+    border: 1.5px solid var(--color-outline-variant);
+    box-shadow: inset 2px 2px 6px rgba(23, 32, 51, 0.07), inset -2px -2px 6px rgba(255, 255, 255, 0.6);
+    transition: border-color 150ms ease, box-shadow 150ms ease;
   }
   input:not([type="checkbox"]):not([type="radio"]):focus,
   select:focus,
   textarea:focus {
-    box-shadow: 3px 3px 0 #171717;
+    border-color: var(--color-primary);
+    box-shadow: inset 2px 2px 6px rgba(23, 32, 51, 0.07), inset -2px -2px 6px rgba(255, 255, 255, 0.6),
+      0 0 0 3px rgba(201, 167, 255, 0.35);
     outline: none;
   }
 }
@@ -256,7 +279,7 @@ body {
 .glass-panel,
 .glass-card {
   background: var(--color-surface-container-lowest);
-  border: 3px solid var(--color-outline);
+  border: 1.5px solid var(--color-outline-variant);
 }
 
 .card-shadow,
@@ -268,8 +291,8 @@ body {
   box-shadow: var(--shadow-lg);
 }
 
-/* Explicit brutalist primitives — reach for these directly when a surface needs more than
- * the auto-applied button/input rules above (e.g. non-button panels, QR housings). */
+/* Explicit clay primitives — reach for these directly when a surface needs more than the
+ * auto-applied button/input rules above (e.g. non-button panels, QR housings). */
 .clay-raised {
   box-shadow: var(--shadow-md);
 }
@@ -277,23 +300,20 @@ body {
   box-shadow: var(--shadow-lg);
 }
 .clay-recessed {
-  box-shadow: inset 3px 3px 0 rgba(23, 23, 23, 0.15);
+  box-shadow: inset 3px 3px 8px rgba(23, 32, 51, 0.1), inset -2px -2px 6px rgba(255, 255, 255, 0.6);
 }
 
 /* Restrained accent surfaces reserved for where color IS the message (an active/live
  * session, a success confirmation, a stop/danger control) — kept from the prior design
- * system's naming so call sites didn't need touching. Under the strict 5-color palette,
- * "blue" no longer exists: an "active/informational" surface is just the brighter of the
- * two approved yellows (never black, which is reserved for the "late" status only), while
- * green/red stay small-scale tints of the single approved shade of each. */
+ * system's naming so call sites didn't need touching. */
 .clay-glow-blue,
 .clay-glow-green,
 .clay-glow-red {
-  border: 3px solid #171717;
+  border: 1.5px solid var(--color-outline-variant);
   box-shadow: var(--shadow-md);
 }
 .clay-glow-blue {
-  background-color: var(--color-primary-fixed-dim);
+  background-color: var(--color-info-container);
 }
 .clay-glow-green {
   background-color: var(--color-tertiary-container);
@@ -302,8 +322,8 @@ body {
   background-color: var(--color-error-container);
 }
 .clay-recessed-glow-blue {
-  border: 3px solid #171717;
-  box-shadow: inset 3px 3px 0 rgba(23, 23, 23, 0.15);
+  border: 1.5px solid var(--color-outline-variant);
+  box-shadow: inset 3px 3px 8px rgba(23, 32, 51, 0.1), inset -2px -2px 6px rgba(255, 255, 255, 0.6);
 }
 
 .custom-scrollbar::-webkit-scrollbar {
@@ -325,17 +345,16 @@ body {
   scrollbar-width: none;
 }
 
-/* "Active/live" pulse — a hard-edged ring rather than a soft glow, in keeping with the rest
- * of the shadow language. */
+/* "Active/live" pulse — a soft, muted ring rather than a hard black edge. */
 @keyframes pulse-ring {
   0% {
-    box-shadow: 0 0 0 0 rgba(23, 23, 23, 0.35);
+    box-shadow: 0 0 0 0 rgba(82, 96, 120, 0.32);
   }
   70% {
-    box-shadow: 0 0 0 8px rgba(23, 23, 23, 0);
+    box-shadow: 0 0 0 8px rgba(82, 96, 120, 0);
   }
   100% {
-    box-shadow: 0 0 0 0 rgba(23, 23, 23, 0);
+    box-shadow: 0 0 0 0 rgba(82, 96, 120, 0);
   }
 }
 .pulse-ring {
@@ -387,11 +406,11 @@ body {
 .progress-bar-animated {
   background-image: linear-gradient(
     45deg,
-    rgba(23, 23, 23, 0.12) 25%,
+    rgba(23, 32, 51, 0.1) 25%,
     transparent 25%,
     transparent 50%,
-    rgba(23, 23, 23, 0.12) 50%,
-    rgba(23, 23, 23, 0.12) 75%,
+    rgba(23, 32, 51, 0.1) 50%,
+    rgba(23, 32, 51, 0.1) 75%,
     transparent 75%,
     transparent
   );
@@ -436,8 +455,8 @@ body {
   animation: clay-pop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }
 
-/* Neo-Brutalist skeleton shimmer: a hard lavender block with a neon-lime sweep — no grey,
- * no gradients-as-decoration, no blur. See components/ui/Skeleton.tsx. */
+/* Bright Claymorphism skeleton shimmer: a soft light-blue block with a lavender-tinted
+ * sweep — no grey, no hard edges. See components/ui/Skeleton.tsx. */
 @keyframes skeleton-sweep {
   0% {
     transform: translateX(-100%);
@@ -456,7 +475,7 @@ body {
   position: absolute;
   inset: 0;
   transform: translateX(-100%);
-  background: linear-gradient(90deg, transparent, rgba(232, 255, 138, 0.55), transparent);
+  background: linear-gradient(90deg, transparent, rgba(201, 167, 255, 0.45), transparent);
   animation: skeleton-sweep 1.4s ease-in-out infinite;
 }
 

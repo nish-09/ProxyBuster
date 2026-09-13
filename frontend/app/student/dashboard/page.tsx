@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
 import { RequireRole } from "@/components/route-guard";
 import { SideNavBar } from "@/components/layout/SideNavBar";
 import { TopNavBar, DesktopTopBar } from "@/components/layout/TopNavBar";
@@ -26,7 +27,7 @@ function initials(name: string) {
 
 function Donut({ pct, size = 160 }: { pct: number; size?: number }) {
   return (
-    <svg className="circular-chart text-primary" style={{ width: size, height: size }} viewBox="0 0 36 36">
+    <svg className="circular-chart text-tertiary" style={{ width: size, height: size }} viewBox="0 0 36 36">
       <path
         className="circle-bg"
         d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
@@ -179,6 +180,22 @@ function DashboardContent() {
           </span>
         </div>
       </div>
+
+      <Link
+        href="/student/scan"
+        className="group flex items-center justify-between gap-4 bg-primary text-on-primary rounded-xl px-6 py-5 clay-raised hover:-translate-y-0.5 active:translate-y-0.5 transition-transform"
+      >
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 rounded-lg bg-surface-container-lowest text-primary flex items-center justify-center flex-shrink-0">
+            <span className="material-symbols-outlined filled text-[26px]">qr_code_scanner</span>
+          </div>
+          <div>
+            <h3 className="font-headline-md text-headline-md">Scan Attendance</h3>
+            <p className="font-body-md text-body-md text-on-primary/80">Open the scanner to mark yourself present</p>
+          </div>
+        </div>
+        <span className="material-symbols-outlined group-hover:translate-x-1 transition-transform">arrow_forward</span>
+      </Link>
 
       <div className="grid grid-cols-1 md:grid-cols-12 gap-gutter">
         <Card className="md:col-span-4 flex flex-col justify-between h-full relative overflow-hidden">
