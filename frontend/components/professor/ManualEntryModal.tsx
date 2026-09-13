@@ -33,7 +33,7 @@ export function ManualEntryModal({ students, onClose, onSubmit }: ManualEntryMod
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-inverse-surface/40 p-4">
-      <div className="w-full max-w-md bg-surface-container-lowest border border-outline-variant rounded-xl card-shadow p-stack-md">
+      <div className="w-full max-w-md max-h-[calc(100dvh-2rem)] overflow-y-auto bg-surface-container-lowest border border-outline-variant rounded-xl card-shadow p-stack-md">
         <h3 className="font-headline-md text-headline-md text-on-surface mb-1 flex items-center gap-2">
           <span className="material-symbols-outlined text-primary">edit_note</span>
           Manual Attendance Entry

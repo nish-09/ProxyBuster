@@ -206,7 +206,7 @@ function ScannerContent() {
   if (successResult) {
     const { date, time } = formatMarkedAt(successResult.marked_at);
     return (
-      <main className="flex-1 w-full min-h-screen flex items-center justify-center bg-surface p-container-padding">
+      <main className="flex-1 w-full min-h-dvh flex items-center justify-center bg-surface p-container-padding">
         <div className="w-full max-w-md bg-surface-container-lowest rounded-xl clay-glow-green p-stack-lg flex flex-col items-center text-center">
           <div className="w-16 h-16 rounded-full bg-tertiary-container flex items-center justify-center mb-stack-md clay-glow-green animate-clay-pop">
             <span className="material-symbols-outlined filled text-on-tertiary-container" style={{ fontSize: 36 }}>
@@ -264,7 +264,7 @@ function ScannerContent() {
   }
 
   return (
-    <div className="bg-surface min-h-screen text-on-surface flex flex-col md:flex-row m-0 p-0 overflow-hidden">
+    <div className="bg-surface min-h-dvh text-on-surface flex flex-col md:flex-row m-0 p-0 overflow-hidden">
       <header className="hidden md:flex justify-between items-center w-full px-container-padding h-16 bg-surface border-b border-outline sticky top-0 z-40">
         <span className="font-headline-md text-headline-md font-bold text-on-surface">Proxy Busters</span>
         <span className="font-label-md text-label-md text-on-surface-variant">Scanner</span>
@@ -277,9 +277,9 @@ function ScannerContent() {
         <div className="w-6" />
       </header>
 
-      <main className="flex-1 relative w-full flex flex-col items-center justify-center bg-black min-h-[calc(100vh-64px)]">
-        <div className="absolute top-8 left-0 right-0 z-10 flex flex-col items-center justify-center px-6 text-center">
-          <div className="bg-surface/90 backdrop-blur-sm rounded-xl p-4 border border-outline card-shadow max-w-sm w-full">
+      <main className="flex-1 relative w-full flex flex-col items-center justify-center bg-black min-h-[calc(100dvh-64px)] p-4">
+        <div className="absolute top-4 sm:top-8 left-0 right-0 z-10 flex flex-col items-center justify-center px-4 sm:px-6 text-center">
+          <div className="bg-surface/90 backdrop-blur-sm rounded-xl p-3 sm:p-4 border border-outline card-shadow max-w-sm w-full">
             <span className="material-symbols-outlined text-tertiary mb-2 text-[32px]">qr_code_scanner</span>
             <p className="font-body-md text-body-md text-on-surface mb-1">Point your camera at the QR code on the professor&apos;s screen.</p>
             <p className="font-label-md text-label-md text-tertiary animate-pulse">
@@ -294,7 +294,7 @@ function ScannerContent() {
           </div>
         </div>
 
-        <div className="relative w-[300px] h-[300px] md:w-[400px] md:h-[400px] rounded-xl overflow-hidden bg-black border-4 border-surface shadow-[0_16px_40px_rgba(0,0,0,0.45),0_0_16px_rgba(59,130,246,0.15)]">
+        <div className="relative w-[min(85vw,300px)] h-[min(85vw,300px)] md:w-[400px] md:h-[400px] rounded-xl overflow-hidden bg-black border-4 border-surface shadow-[0_16px_40px_rgba(0,0,0,0.45),0_0_16px_rgba(59,130,246,0.15)]">
           {checkingCooldown && (
             <div className="absolute inset-0 skeleton-shimmer flex items-center justify-center">
               <span className="material-symbols-outlined text-tertiary text-4xl">qr_code_scanner</span>

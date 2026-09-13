@@ -52,7 +52,7 @@ export default function RegisterPage() {
   const labelClass = "block font-label-md text-label-md text-on-surface-variant mb-1";
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-6 py-12">
+    <div className="min-h-dvh flex items-center justify-center bg-background p-6 py-12">
       <div className="w-full max-w-md bg-surface-container-lowest border border-outline rounded-lg card-shadow p-stack-lg">
         <div className="flex items-center gap-3 mb-stack-lg">
           <div className="w-11 h-11 rounded-md bg-primary border border-outline shadow-[inset_0_1px_0_rgba(255,255,255,0.2),0_2px_5px_rgba(0,0,0,0.4)] flex items-center justify-center text-on-primary">

@@ -172,10 +172,20 @@
   --spacing-stack-lg: 32px;
 }
 
+html,
+body {
+  width: 100%;
+  max-width: 100%;
+  /* Safety net only — every genuine overflow source (fixed-size QR/scanner boxes, modals,
+     tables) is fixed at its origin elsewhere; this just guards against anything missed. */
+  overflow-x: hidden;
+}
+
 body {
   background: var(--color-background);
   color: var(--color-on-background);
   color-scheme: light;
+  overflow-wrap: anywhere;
 }
 
 /* ----------------------------------------------------------------------------

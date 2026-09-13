@@ -111,9 +111,9 @@ export function LiveSessionSkeleton({ subject, division }: { subject?: string; d
         </div>
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-gutter flex-1">
-        <div className="lg:col-span-2 bg-surface-container-lowest rounded-lg border border-outline card-shadow flex flex-col items-center justify-center min-h-[420px] gap-3">
-          <div className="w-64 h-64 skeleton-shimmer rounded-lg border border-outline flex items-center justify-center">
-            <span className="font-label-md text-label-md text-on-surface-variant font-bold uppercase">Generating QR</span>
+        <div className="lg:col-span-2 bg-surface-container-lowest rounded-lg border border-outline card-shadow flex flex-col items-center justify-center min-h-[420px] gap-3 p-4">
+          <div className="w-full max-w-64 aspect-square skeleton-shimmer rounded-lg border border-outline flex items-center justify-center">
+            <span className="font-label-md text-label-md text-on-surface-variant font-bold uppercase text-center px-2">Generating QR</span>
           </div>
         </div>
         <div className="flex flex-col gap-gutter h-full">

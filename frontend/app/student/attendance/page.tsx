@@ -177,14 +177,14 @@ function AttendanceContent() {
             <h3 className="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider mb-6 border-b border-outline pb-2">
               Overview
             </h3>
-            <div className="grid grid-cols-4 gap-4 divide-x divide-surface-variant">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 divide-y sm:divide-y-0 sm:divide-x divide-surface-variant">
               {[
                 { label: "Present", value: summary.present, icon: "check_circle", bg: "bg-primary-container", fg: "text-on-primary-container" },
                 { label: "Absent", value: summary.absent, icon: "cancel", bg: "bg-error-container", fg: "text-on-error-container" },
                 { label: "Late", value: summary.late, icon: "schedule", bg: "bg-surface-container-high", fg: "text-on-surface-variant" },
                 { label: "Manual", value: summary.manual, icon: "edit_note", bg: "bg-tertiary-container", fg: "text-on-tertiary-container" },
               ].map((stat) => (
-                <div key={stat.label} className="flex flex-col items-center justify-center text-center px-2">
+                <div key={stat.label} className="flex flex-col items-center justify-center text-center px-2 py-2">
                   <div className={`w-12 h-12 rounded-full ${stat.bg} ${stat.fg} flex items-center justify-center mb-3`}>
                     <span className="material-symbols-outlined text-[24px]">{stat.icon}</span>
                   </div>
@@ -239,7 +239,8 @@ function AttendanceContent() {
                       setViewYear((y) => y - 1);
                     } else setViewMonth(m);
                   }}
-                  className="text-on-surface-variant hover:text-primary transition-colors"
+                  aria-label="Previous month"
+                  className="flex items-center justify-center w-9 h-9 text-on-surface-variant hover:text-primary transition-colors"
                 >
                   <span className="material-symbols-outlined text-[16px]">chevron_left</span>
                 </button>
@@ -251,7 +252,8 @@ function AttendanceContent() {
                       setViewYear((y) => y + 1);
                     } else setViewMonth(m);
                   }}
-                  className="text-on-surface-variant hover:text-primary transition-colors"
+                  aria-label="Next month"
+                  className="flex items-center justify-center w-9 h-9 text-on-surface-variant hover:text-primary transition-colors"
                 >
                   <span className="material-symbols-outlined text-[16px]">chevron_right</span>
                 </button>

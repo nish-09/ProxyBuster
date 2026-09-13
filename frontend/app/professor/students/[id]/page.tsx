@@ -206,19 +206,19 @@ function StudentDetailContent({ studentId }: { studentId: string }) {
                 ) : (
                   <div className="space-y-3">
                     {detail.recent_security_events.map((ev) => (
-                      <div key={ev.id} className="flex items-start justify-between p-4 border border-outline-variant rounded-lg">
-                        <div className="flex items-center gap-4">
-                          <div className="w-8 h-8 rounded bg-surface-container-high flex items-center justify-center text-on-surface-variant">
+                      <div key={ev.id} className="flex items-start justify-between gap-3 flex-wrap sm:flex-nowrap p-4 border border-outline-variant rounded-lg">
+                        <div className="flex items-start gap-4 min-w-0">
+                          <div className="w-8 h-8 rounded bg-surface-container-high flex items-center justify-center text-on-surface-variant flex-shrink-0">
                             <span className="material-symbols-outlined text-[18px]">
                               {ev.severity === "high" ? "warning" : "info"}
                             </span>
                           </div>
-                          <div>
+                          <div className="min-w-0">
                             <div className="font-label-md text-label-md text-on-surface capitalize">{ev.event_type.replace(/_/g, " ")}</div>
                             <div className="font-label-sm text-label-sm text-outline mt-0.5">{ev.description}</div>
                           </div>
                         </div>
-                        <span className="font-label-sm text-label-sm text-outline whitespace-nowrap">
+                        <span className="font-label-sm text-label-sm text-outline whitespace-nowrap flex-shrink-0">
                           {new Date(ev.created_at).toLocaleDateString()}
                         </span>
                       </div>

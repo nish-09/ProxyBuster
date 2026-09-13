@@ -293,9 +293,9 @@ function SessionContent({ sessionId }: { sessionId: string }) {
               </div>
               {/* Physical "display housing" around the QR — the QR module itself stays plain
                   dark-on-white for maximum scan contrast; only the frame around it is themed. */}
-              <div className="flex-1 flex flex-col items-center justify-center p-stack-lg z-10 bg-surface-container-low">
-                <div className="bg-surface-container-high p-5 rounded-xl clay-recessed-glow-blue relative">
-                  <div className="w-64 h-64 bg-white rounded-lg flex items-center justify-center relative overflow-hidden shadow-[0_2px_10px_rgba(80,70,60,0.15)]">
+              <div className="flex-1 flex flex-col items-center justify-center p-4 sm:p-stack-lg z-10 bg-surface-container-low">
+                <div className="bg-surface-container-high p-3 sm:p-5 rounded-xl clay-recessed-glow-blue relative max-w-full">
+                  <div className="w-full max-w-64 aspect-square bg-white rounded-lg flex items-center justify-center relative overflow-hidden shadow-[0_2px_10px_rgba(80,70,60,0.15)]">
                     {qrDataUrl ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img src={qrDataUrl} alt="Attendance QR code" className="w-full h-full object-contain" />

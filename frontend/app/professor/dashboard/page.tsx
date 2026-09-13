@@ -302,7 +302,7 @@ function DashboardContent() {
                               <button
                                 disabled={s.has_active_session}
                                 onClick={() => startSession(s.lecture_id)}
-                                className="opacity-0 group-hover:opacity-100 transition-opacity px-4 py-2 bg-primary text-on-primary rounded-lg font-label-md text-label-md shadow-sm disabled:opacity-40 disabled:cursor-not-allowed"
+                                className="opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity px-4 py-2 bg-primary text-on-primary rounded-lg font-label-md text-label-md shadow-sm disabled:opacity-40 disabled:cursor-not-allowed flex-shrink-0"
                                 title={s.has_active_session ? "A session is already active for this lecture" : undefined}
                               >
                                 {s.has_active_session ? "Session Active" : "Start Session"}

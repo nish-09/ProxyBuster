@@ -68,13 +68,13 @@ function StudentsContent() {
           </div>
 
           <div className="flex flex-wrap items-center gap-stack-sm bg-surface-container-lowest border border-outline-variant rounded-xl p-4 shadow-sm">
-            <div className="relative flex items-center">
+            <div className="relative flex items-center w-full sm:w-56">
               <span className="material-symbols-outlined absolute left-3 text-outline text-[18px]">search</span>
               <input
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
                 placeholder="Search name or roll..."
-                className="h-10 pl-9 pr-3 bg-surface-container border border-outline-variant rounded-md font-body-md text-body-md focus:outline-none focus:border-primary outline-none w-56"
+                className="h-10 pl-9 pr-3 bg-surface-container border border-outline-variant rounded-md font-body-md text-body-md focus:outline-none focus:border-primary outline-none w-full"
               />
             </div>
             <select
@@ -123,38 +123,40 @@ function StudentsContent() {
             ) : items.length === 0 ? (
               <div className="p-8 text-center font-body-md text-body-md text-on-surface-variant">No students match these filters.</div>
             ) : (
-              <table className="w-full text-left border-collapse">
-                <thead className="bg-surface-container-lowest border-b border-outline">
-                  <tr>
-                    <th className="py-3 px-4 font-label-md text-label-md text-on-surface-variant">Student</th>
-                    <th className="py-3 px-4 font-label-md text-label-md text-on-surface-variant">Program</th>
-                    <th className="py-3 px-4 font-label-md text-label-md text-on-surface-variant text-right">Attendance</th>
-                  </tr>
-                </thead>
-                <tbody className="font-body-md text-body-md text-on-surface divide-y divide-surface-variant">
-                  {items.map((s) => (
-                    <tr key={s.student_id} className="hover:bg-surface-container-low transition-colors">
-                      <td className="py-3 px-4">
-                        <Link href={`/professor/students/${s.student_id}`} className="flex items-center gap-3 group">
-                          <div className="w-8 h-8 rounded-full bg-tertiary-container text-on-tertiary-container flex items-center justify-center font-label-md">
-                            {initials(s.full_name)}
-                          </div>
-                          <div>
-                            <div className="font-medium group-hover:text-primary transition-colors">{s.full_name}</div>
-                            <div className="font-label-sm text-outline">Roll: {s.roll_number}</div>
-                          </div>
-                        </Link>
-                      </td>
-                      <td className="py-3 px-4 text-on-surface-variant">
-                        {s.program} • Sem {s.semester}
-                      </td>
-                      <td className={`py-3 px-4 text-right font-medium ${s.standing === "warning" ? "text-error" : ""}`}>
-                        {s.overall_percentage.toFixed(0)}%
-                      </td>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse min-w-[480px]">
+                  <thead className="bg-surface-container-lowest border-b border-outline">
+                    <tr>
+                      <th className="py-3 px-4 font-label-md text-label-md text-on-surface-variant">Student</th>
+                      <th className="py-3 px-4 font-label-md text-label-md text-on-surface-variant">Program</th>
+                      <th className="py-3 px-4 font-label-md text-label-md text-on-surface-variant text-right">Attendance</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="font-body-md text-body-md text-on-surface divide-y divide-surface-variant">
+                    {items.map((s) => (
+                      <tr key={s.student_id} className="hover:bg-surface-container-low transition-colors">
+                        <td className="py-3 px-4">
+                          <Link href={`/professor/students/${s.student_id}`} className="flex items-center gap-3 group">
+                            <div className="w-8 h-8 rounded-full bg-tertiary-container text-on-tertiary-container flex items-center justify-center font-label-md flex-shrink-0">
+                              {initials(s.full_name)}
+                            </div>
+                            <div className="min-w-0">
+                              <div className="font-medium group-hover:text-primary transition-colors truncate">{s.full_name}</div>
+                              <div className="font-label-sm text-outline">Roll: {s.roll_number}</div>
+                            </div>
+                          </Link>
+                        </td>
+                        <td className="py-3 px-4 text-on-surface-variant whitespace-nowrap">
+                          {s.program} • Sem {s.semester}
+                        </td>
+                        <td className={`py-3 px-4 text-right font-medium whitespace-nowrap ${s.standing === "warning" ? "text-error" : ""}`}>
+                          {s.overall_percentage.toFixed(0)}%
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             )}
           </div>
         </div>

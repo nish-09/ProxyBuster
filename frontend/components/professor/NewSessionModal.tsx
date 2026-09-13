@@ -51,7 +51,7 @@ export function NewSessionModal({ sessions, subjects, onClose, onStart, onStartA
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-inverse-surface/40 p-4">
-      <div className="w-full max-w-md bg-surface-container-lowest rounded-xl clay-raised-lg p-stack-md">
+      <div className="w-full max-w-md max-h-[calc(100dvh-2rem)] overflow-y-auto bg-surface-container-lowest rounded-xl clay-raised-lg p-stack-md">
         <h3 className="font-headline-md text-headline-md text-on-surface mb-1">Start Attendance</h3>
         <p className="font-body-md text-body-md text-on-surface-variant mb-stack-md">
           Start from a scheduled lecture, or start an ad-hoc session right now.

@@ -74,7 +74,7 @@ function CooldownContent() {
 
   if (loading) {
     return (
-      <main className="flex-1 flex flex-col justify-center items-center w-full min-h-screen">
+      <main className="flex-1 flex flex-col justify-center items-center w-full min-h-dvh">
         <span className="material-symbols-outlined animate-spin text-primary text-4xl">progress_activity</span>
       </main>
     );
@@ -82,7 +82,7 @@ function CooldownContent() {
 
   if (error || remaining === null) {
     return (
-      <main className="flex-1 flex flex-col justify-center items-center w-full min-h-screen p-container-padding text-center">
+      <main className="flex-1 flex flex-col justify-center items-center w-full min-h-dvh p-container-padding text-center">
         <p className="font-body-md text-body-md text-error mb-4">{error ?? "Unable to load cooldown status."}</p>
         <button onClick={() => router.replace("/student/dashboard")} className="px-4 py-2 rounded-md bg-primary text-on-primary font-body-md">
           Return to Dashboard
@@ -95,7 +95,7 @@ function CooldownContent() {
   const progressPct = Math.max(0, Math.min(100, (remaining / totalSeconds) * 100));
 
   return (
-    <main className="flex-1 flex flex-col justify-center items-center w-full min-h-screen p-container-padding relative overflow-hidden bg-background">
+    <main className="flex-1 flex flex-col justify-center items-center w-full min-h-dvh p-container-padding relative overflow-hidden bg-background">
       <div className="w-full max-w-lg z-10 flex flex-col items-center justify-center animate-fade-in-up">
         <div className="bg-surface rounded-xl clay-glow-blue p-stack-lg w-full flex flex-col items-center text-center relative overflow-hidden">
           <div className="absolute top-0 left-0 w-full h-2 bg-surface-container-high border-b border-outline">

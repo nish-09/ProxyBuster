@@ -24,7 +24,7 @@ export function RequireRole({ role, children }: { role: UserRole; children: Reac
 
   if (loading || !user || user.role !== role) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-surface">
+      <div className="flex min-h-dvh items-center justify-center bg-surface">
         <span className="material-symbols-outlined animate-spin text-primary text-4xl">progress_activity</span>
       </div>
     );

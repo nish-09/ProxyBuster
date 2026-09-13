@@ -21,7 +21,10 @@ export function TopNavBar({ avatarInitials, onSearch, showSearch = false }: TopN
             className="hidden sm:block pl-4 pr-4 py-2 bg-surface-container-low border border-outline rounded-md text-body-md font-body-md text-on-surface focus:outline-none focus:border-primary transition-all w-40"
           />
         )}
-        <button className="text-on-surface-variant hover:text-primary transition-all">
+        <button
+          aria-label="Notifications"
+          className="flex items-center justify-center w-11 h-11 -mr-1.5 text-on-surface-variant hover:text-primary transition-all"
+        >
           <span className="material-symbols-outlined">notifications</span>
         </button>
         <div className="w-8 h-8 rounded-md bg-primary-container text-on-primary-container flex items-center justify-center text-label-md font-label-md font-bold clay-raised">
