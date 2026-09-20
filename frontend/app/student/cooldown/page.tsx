@@ -14,7 +14,10 @@ function formatMMSS(totalSeconds: number) {
 
 function CooldownContent() {
   const router = useRouter();
-  const [remaining, setRemaining] = useState<number | null>(null);
+  // Countdown is anchored to a wall-clock deadline (server "remaining_seconds" at fetch time), not a
+  // decrementing counter: a throttled/background tab or a sleeping laptop then can't drift.
+  const [deadlineMs, setDeadlineMs] = useState<number | null>(null);
+  const [nowMs, setNowMs] = useState(() => Date.now());
   const [totalSeconds, setTotalSeconds] = useState(3600);
   const [reason, setReason] = useState<string | null>(null);
   const [reactivatesAt, setReactivatesAt] = useState<string | null>(null);
@@ -32,7 +35,8 @@ function CooldownContent() {
           router.replace("/student/dashboard");
           return;
         }
-        setRemaining(status.remaining_seconds);
+        setDeadlineMs(Date.now() + status.remaining_seconds * 1000);
+        setNowMs(Date.now());
         setReason(status.reason);
         // The progress bar's starting length should match however long this particular
         // cooldown actually runs (a 60s post-scan cooldown vs. a 60min logout penalty —
@@ -56,20 +60,20 @@ function CooldownContent() {
     };
   }, [router]);
 
+  const remaining = deadlineMs === null ? null : Math.max(0, Math.ceil((deadlineMs - nowMs) / 1000));
+
   useEffect(() => {
-    if (remaining === null) return;
-    if (remaining <= 0) {
-      router.replace("/student/dashboard");
-      return;
-    }
-    const tick = setInterval(() => {
-      setRemaining((r) => (r === null ? null : Math.max(0, r - 1)));
-    }, 1000);
+    if (deadlineMs === null) return;
+    const tick = setInterval(() => setNowMs(Date.now()), 500);
     const blinkTimer = setInterval(() => setBlink((b) => !b), 1000);
     return () => {
       clearInterval(tick);
       clearInterval(blinkTimer);
     };
+  }, [deadlineMs]);
+
+  useEffect(() => {
+    if (remaining !== null && remaining <= 0) router.replace("/student/dashboard");
   }, [remaining, router]);
 
   if (loading) {

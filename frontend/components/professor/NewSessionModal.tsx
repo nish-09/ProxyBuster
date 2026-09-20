@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { ActiveSubjectOut, UpcomingSessionOut } from "@/lib/api";
+import { ApiError, type ActiveSubjectOut, type UpcomingSessionOut } from "@/lib/api";
 
 interface NewSessionModalProps {
   sessions: UpcomingSessionOut[];
@@ -31,8 +31,8 @@ export function NewSessionModal({ sessions, subjects, onClose, onStart, onStartA
     setError(null);
     try {
       await onStart(selectedLecture);
-    } catch {
-      setError("Could not start the session. Please try again.");
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Could not start the session. Please try again.");
       setStarting(false);
     }
   }
@@ -43,8 +43,8 @@ export function NewSessionModal({ sessions, subjects, onClose, onStart, onStartA
     setError(null);
     try {
       await onStartAdhoc(selectedDivision, duration);
-    } catch {
-      setError("Could not start the session. Please try again.");
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Could not start the session. Please try again.");
       setStarting(false);
     }
   }
@@ -85,10 +85,11 @@ export function NewSessionModal({ sessions, subjects, onClose, onStart, onStartA
         {tab === "scheduled" ? (
           sessions.length === 0 ? (
             <p className="font-body-md text-body-md text-on-surface-variant py-4 text-center">
-              No upcoming lectures found for today. Use &quot;Ad-hoc Session&quot; instead.
+              No lectures are scheduled right now. Use &quot;Ad-hoc Session&quot; instead.
             </p>
           ) : (
             <select
+              aria-label="Lecture"
               value={selectedLecture}
               onChange={(e) => setSelectedLecture(e.target.value)}
               className="w-full h-10 px-3 bg-surface-container border border-outline-variant rounded-md font-body-md text-body-md focus:outline-none focus:border-primary outline-none mb-stack-md"
@@ -108,8 +109,9 @@ export function NewSessionModal({ sessions, subjects, onClose, onStart, onStartA
         ) : (
           <div className="space-y-stack-sm mb-stack-md">
             <div>
-              <label className="block font-label-md text-label-md text-on-surface-variant mb-1">Subject &amp; Division</label>
+              <label htmlFor="adhoc-division" className="block font-label-md text-label-md text-on-surface-variant mb-1">Subject &amp; Division</label>
               <select
+                id="adhoc-division"
                 value={selectedDivision}
                 onChange={(e) => setSelectedDivision(e.target.value)}
                 className="w-full h-10 px-3 bg-surface-container border border-outline-variant rounded-md font-body-md text-body-md focus:outline-none focus:border-primary outline-none"
@@ -139,7 +141,11 @@ export function NewSessionModal({ sessions, subjects, onClose, onStart, onStartA
           </div>
         )}
 
-        {error && <p className="font-body-md text-body-md text-error mb-stack-sm">{error}</p>}
+        {error && (
+          <p className="font-body-md text-body-md text-error mb-stack-sm" role="alert">
+            {error}
+          </p>
+        )}
 
         <div className="flex gap-2 justify-end">
           <button

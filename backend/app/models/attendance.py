@@ -10,8 +10,17 @@ from app.core.types import GUID
 
 
 class SessionStatus(str, enum.Enum):
+    """Persisted session lifecycle. (NOT_STARTED is not a session state: it is a scheduled
+    Lecture that has no AttendanceSession row yet.)
+
+    ACTIVE  -> EXPIRED  automatically, once the lecture's scheduled_end passes
+    ACTIVE  -> CLOSED   when the professor stops the session
+    Both EXPIRED and CLOSED are terminal and accept no further scans.
+    """
+
     ACTIVE = "active"
     CLOSED = "closed"
+    EXPIRED = "expired"
 
 
 class AttendanceStatus(str, enum.Enum):

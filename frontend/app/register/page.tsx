@@ -70,7 +70,7 @@ export default function RegisterPage() {
               key={r}
               type="button"
               onClick={() => setRole(r)}
-              className={`py-2 rounded font-label-md text-label-md capitalize transition-all ${
+              className={`min-h-11 py-2 rounded font-label-md text-label-md capitalize transition-all ${
                 role === r
                   ? "bg-surface-container-high text-on-surface font-semibold border border-outline shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]"
                   : "text-on-surface-variant border border-transparent"

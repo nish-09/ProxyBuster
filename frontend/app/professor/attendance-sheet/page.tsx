@@ -7,7 +7,8 @@ import { TopNavBar, DesktopTopBar } from "@/components/layout/TopNavBar";
 import { BottomMobileNav } from "@/components/layout/BottomMobileNav";
 import { useAuth } from "@/lib/auth-context";
 import { AttendanceSheetSkeleton } from "@/components/ui/Skeleton";
-import { professorApi, type ActiveSubjectOut, type AttendanceSheetOut } from "@/lib/api";
+import { ApiError, professorApi, type ActiveSubjectOut, type AttendanceSheetColumn, type AttendanceSheetOut } from "@/lib/api";
+import { buildCsv } from "@/lib/csv";
 
 function initials(name: string) {
   return name.split(" ").map((p) => p[0]).join("").slice(0, 2).toUpperCase();
@@ -32,6 +33,12 @@ const CELL_STYLE: Record<string, string> = {
   manual: "bg-surface-variant text-on-surface-variant",
 };
 
+/** Effective status of a cell: a missing record on a lecture that has already started is Absent. */
+function cellStatus(status: string | null | undefined, column: AttendanceSheetColumn): string | null {
+  if (status) return status;
+  return column.started ? "absent" : null;
+}
+
 function SheetContent() {
   const { user } = useAuth();
   const [subjects, setSubjects] = useState<ActiveSubjectOut[]>([]);
@@ -42,13 +49,25 @@ function SheetContent() {
   const [sheet, setSheet] = useState<AttendanceSheetOut | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [subjectsLoaded, setSubjectsLoaded] = useState(false);
+
+  const loadSubjects = useCallback(async () => {
+    setError(null);
+    try {
+      const res = await professorApi.dashboard();
+      setSubjects(res.active_subjects);
+      if (res.active_subjects.length > 0) setClassDivisionId((cur) => cur || res.active_subjects[0].class_division_id);
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Could not load your classes.");
+    } finally {
+      setSubjectsLoaded(true);
+    }
+  }, []);
 
   useEffect(() => {
-    professorApi.dashboard().then((res) => {
-      setSubjects(res.active_subjects);
-      if (res.active_subjects.length > 0) setClassDivisionId(res.active_subjects[0].class_division_id);
-    });
-  }, []);
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- standard fetch-on-mount
+    void loadSubjects();
+  }, [loadSubjects]);
 
   const loadSheet = useCallback(async () => {
     if (!classDivisionId) return;
@@ -57,8 +76,8 @@ function SheetContent() {
     try {
       const res = await professorApi.attendanceSheet({ class_division_id: classDivisionId, date_from: dateFrom, date_to: dateTo });
       setSheet(res);
-    } catch {
-      setError("Could not load the attendance sheet.");
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Could not load the attendance sheet.");
     } finally {
       setLoading(false);
     }
@@ -78,25 +97,36 @@ function SheetContent() {
 
   function exportCsv() {
     if (!sheet) return;
-    const header = ["Student", "Roll Number", ...sheet.columns.map((c) => c.label), "Avg %"];
-    const lines = [header.join(",")];
-    for (const row of filteredRows) {
-      const cells = sheet.columns.map((c) => STATUS_LETTER[row.cells[c.lecture_id]?.status ?? ""] ?? "");
-      lines.push([`"${row.full_name}"`, row.roll_number, ...cells, row.avg_pct.toFixed(0)].join(","));
-    }
-    const blob = new Blob([lines.join("\n")], { type: "text/csv" });
-    const url = URL.createObjectURL(blob);
+    const division = subjects.find((x) => x.class_division_id === classDivisionId);
+    const letter = (row: AttendanceSheetOut["rows"][number], c: AttendanceSheetColumn) => {
+      const status = cellStatus(row.cells[c.lecture_id]?.status, c);
+      return status ? (STATUS_LETTER[status] ?? "") : "";
+    };
+    // Exports the WHOLE sheet for the selected class and dates (not just the rows the on-screen
+    // search box currently shows), so the file is always complete.
+    const csv = buildCsv([
+      ["Class", division ? `${division.subject_name} - ${division.division_name}` : ""],
+      ["From", dateFrom, "To", dateTo],
+      [],
+      ["Student", "Roll Number", ...sheet.columns.map((c) => c.label), "Avg %"],
+      ...sheet.rows.map((row) => [row.full_name, row.roll_number, ...sheet.columns.map((c) => letter(row, c)), Math.round(row.avg_pct)]),
+      [],
+      ["Legend", "P = present, L = late, A = absent, M = manual"],
+    ]);
+    const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
     const a = document.createElement("a");
     a.href = url;
     a.download = `attendance-sheet-${dateFrom}-to-${dateTo}.csv`;
+    document.body.appendChild(a);
     a.click();
-    URL.revokeObjectURL(url);
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
 
   return (
     <div className="bg-background text-on-background font-body-md antialiased flex min-h-screen">
       <SideNavBar role="professor" />
-      <main className="flex-1 md:ml-[280px] min-h-screen bg-surface-container-low flex flex-col">
+      <main className="flex-1 min-w-0 md:ml-[280px] min-h-screen bg-surface-container-low flex flex-col">
         <TopNavBar userName={user?.full_name ?? ""} avatarInitials={user ? initials(user.full_name) : ""} />
         <div className="flex-1 p-container-padding max-w-[1400px] mx-auto w-full flex flex-col gap-gutter pb-24">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-gutter">
@@ -109,6 +139,7 @@ function SheetContent() {
             <div className="flex flex-wrap items-center gap-stack-sm">
               <DesktopTopBar userName={user?.full_name ?? ""} avatarInitials={user ? initials(user.full_name) : ""} />
               <select
+                aria-label="Class"
                 value={classDivisionId}
                 onChange={(e) => setClassDivisionId(e.target.value)}
                 className="h-10 px-3 bg-surface-container-lowest border border-outline-variant rounded-md font-body-md text-body-md focus:outline-none focus:border-primary outline-none min-w-[160px]"
@@ -157,7 +188,17 @@ function SheetContent() {
               table excessively rounded") — this should read as a register, not a card. */}
           {!loading && (
           <div className="flex-1 bg-surface-container-lowest border border-outline-variant rounded-md clay-raised overflow-hidden flex flex-col relative min-h-[300px]">
-            {error && <div className="p-8 text-center font-body-md text-body-md text-error">{error}</div>}
+            {error && (
+              <div className="p-8 text-center font-body-md text-body-md text-error flex flex-col items-center gap-3" role="alert">
+                <span>{error}</span>
+                <button
+                  onClick={() => (subjectsLoaded && subjects.length > 0 ? void loadSheet() : void loadSubjects())}
+                  className="h-11 px-5 rounded-md bg-primary text-on-primary font-label-md text-label-md"
+                >
+                  Try again
+                </button>
+              </div>
+            )}
             {!error && sheet && (
               <>
                 <div className="flex-1 overflow-auto custom-scrollbar relative">
@@ -199,7 +240,7 @@ function SheetContent() {
                           </td>
                           {sheet.columns.map((c) => {
                             const cell = row.cells[c.lecture_id];
-                            const status = cell?.status ?? null;
+                            const status = cellStatus(cell?.status, c);
                             return (
                               <td key={c.lecture_id} className="py-3 px-4 text-center">
                                 {status ? (
@@ -242,7 +283,14 @@ function SheetContent() {
               </>
             )}
             {!error && !sheet && (
-              <div className="p-8 text-center font-body-md text-body-md text-on-surface-variant">Select a subject to view its roster.</div>
+              <div className="p-8 text-center font-body-md text-body-md text-on-surface-variant">
+                {subjectsLoaded && subjects.length === 0
+                  ? "No classes are assigned to you yet. Ask your administrator to set up your subjects and divisions."
+                  : "Select a subject to view its roster."}
+              </div>
+            )}
+            {!error && sheet && sheet.rows.length === 0 && (
+              <div className="p-8 text-center font-body-md text-body-md text-on-surface-variant">No students are enrolled in this class yet.</div>
             )}
           </div>
           )}

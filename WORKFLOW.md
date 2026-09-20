@@ -28,7 +28,7 @@ cd backend
 python -m venv .venv && .venv\Scripts\pip install -r requirements.txt
 copy ..\.env.example ..\.env      # fill in DATABASE_URL + secrets
 .venv\Scripts\alembic upgrade head
-.venv\Scripts\python seed.py      # optional demo data
+.venv\Scripts\python seed.py      # optional demo data (dev/staging ONLY)
 .venv\Scripts\uvicorn app.main:app --reload
 
 # Frontend (new terminal)
@@ -40,7 +40,7 @@ npm run dev
 
 Or `docker compose up --build` to bring up Postgres + backend + frontend together.
 
-Seeded logins (password `Password123!`): professor `meera.nair@college.edu`,
+Seeded logins — *development databases only; the seeder refuses to run when `ENVIRONMENT=production`* (password `Password123!`): professor `meera.nair@college.edu`,
 student `arjun.mehta@college.edu`.
 
 ## End-to-end usage flow

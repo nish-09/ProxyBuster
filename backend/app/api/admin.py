@@ -20,6 +20,7 @@ from app.schemas.admin import (
     AdminProfessorOut,
     AdminStudentOut,
     AdminSubjectOut,
+    AdminSummaryOut,
     AdminUpdateDivisionRequest,
     AdminUpdateLectureRequest,
     AdminUpdateProfessorRequest,
@@ -29,6 +30,14 @@ from app.schemas.admin import (
 from app.services import admin_service
 
 router = APIRouter(prefix="/admin", tags=["admin"], dependencies=[Depends(require_admin)])
+
+
+# ---------- Summary ----------
+
+
+@router.get("/summary", response_model=AdminSummaryOut)
+def summary(db: Session = Depends(get_db)):
+    return admin_service.summary(db)
 
 
 # ---------- Students ----------

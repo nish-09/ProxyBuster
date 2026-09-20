@@ -104,18 +104,18 @@ def dashboard(db: Session, professor_profile: ProfessorProfile) -> ProfessorDash
             Enrollment.class_division_id.in_(owned_ids)
         ).all():
             student_ids_by_cd.setdefault(cd_id_row, []).append(sid)
-    active_cd_ids = (
-        {
-            row[0]
-            for row in db.query(Lecture.class_division_id)
+    # class_division_id -> id of its currently running session. A session whose lecture window
+    # has already passed is "expired", not active, even if nothing has flipped its row yet.
+    active_session_by_cd: dict[uuid.UUID, uuid.UUID] = {}
+    if owned_ids:
+        for cd_id_row, session_id, scheduled_end in (
+            db.query(Lecture.class_division_id, AttendanceSession.id, Lecture.scheduled_end)
             .join(AttendanceSession, AttendanceSession.lecture_id == Lecture.id)
             .filter(Lecture.class_division_id.in_(owned_ids), AttendanceSession.status == SessionStatus.ACTIVE)
-            .distinct()
             .all()
-        }
-        if owned_ids
-        else set()
-    )
+        ):
+            if ensure_utc(scheduled_end) > now:
+                active_session_by_cd[cd_id_row] = session_id
 
     percentages = []
     below_threshold_students: set[uuid.UUID] = set()
@@ -141,7 +141,8 @@ def dashboard(db: Session, professor_profile: ProfessorProfile) -> ProfessorDash
                 subject_name=subject.name,
                 division_name=class_division.name,
                 avg_pct=avg_pct,
-                has_active_session=cd_id in active_cd_ids,
+                has_active_session=cd_id in active_session_by_cd,
+                active_session_id=active_session_by_cd.get(cd_id),
             )
         )
 
@@ -149,7 +150,7 @@ def dashboard(db: Session, professor_profile: ProfessorProfile) -> ProfessorDash
 
     upcoming_lectures = (
         db.query(Lecture)
-        .filter(Lecture.class_division_id.in_(owned_ids), Lecture.scheduled_start >= now)
+        .filter(Lecture.class_division_id.in_(owned_ids), Lecture.scheduled_end >= now)
         .order_by(Lecture.scheduled_start.asc())
         .limit(5)
         .all()
@@ -158,25 +159,23 @@ def dashboard(db: Session, professor_profile: ProfessorProfile) -> ProfessorDash
     )
     # Batched instead of 3 queries per lecture — class_divisions_by_id/subjects_by_id are
     # already built above (every upcoming lecture's division is necessarily in owned_ids).
-    active_lecture_ids = (
+    active_session_by_lecture = (
         {
-            row[0]
-            for row in db.query(AttendanceSession.lecture_id)
-            .filter(
+            lecture_id: session_id
+            for session_id, lecture_id in db.query(AttendanceSession.id, AttendanceSession.lecture_id).filter(
                 AttendanceSession.lecture_id.in_([l.id for l in upcoming_lectures]),
                 AttendanceSession.status == SessionStatus.ACTIVE,
             )
-            .all()
         }
         if upcoming_lectures
-        else set()
+        else {}
     )
 
     upcoming_sessions = []
     for lecture in upcoming_lectures:
         class_division = class_divisions_by_id[lecture.class_division_id]
         subject = subjects_by_id[class_division.subject_id]
-        has_active = lecture.id in active_lecture_ids
+        active_session_id = active_session_by_lecture.get(lecture.id)
         upcoming_sessions.append(
             UpcomingSessionOut(
                 lecture_id=lecture.id,
@@ -186,7 +185,8 @@ def dashboard(db: Session, professor_profile: ProfessorProfile) -> ProfessorDash
                 room=lecture.room,
                 scheduled_start=lecture.scheduled_start,
                 scheduled_end=lecture.scheduled_end,
-                has_active_session=has_active,
+                has_active_session=active_session_id is not None,
+                active_session_id=active_session_id,
             )
         )
 
@@ -430,7 +430,14 @@ def attendance_sheet(
             label = ensure_utc(lecture.scheduled_start).strftime("%b %d %I:%M %p")
         else:
             label = iso_date
-        columns.append({"lecture_id": lecture.id, "date": iso_date, "label": label})
+        columns.append(
+            {
+                "lecture_id": lecture.id,
+                "date": iso_date,
+                "label": label,
+                "started": ensure_utc(lecture.scheduled_start) <= utcnow(),
+            }
+        )
 
     enrollments = db.query(Enrollment).filter(Enrollment.class_division_id == class_division_id).all()
     student_ids = [e.student_id for e in enrollments]

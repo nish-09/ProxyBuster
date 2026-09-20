@@ -23,33 +23,67 @@ export function getToken(): string | null {
   return inMemoryToken;
 }
 
-/** Shape of FastAPI's default error body, and the cooldown-specific 423 body from auth_service.login_user. */
+/** Shape of the structured error bodies the backend returns (see attendance_service.api_error). */
 export interface ApiErrorDetail {
+  code?: string;
   message?: string;
   remaining_seconds?: number;
 }
 
+/** One entry of FastAPI's 422 validation error list. */
+interface ValidationDetail {
+  loc?: (string | number)[];
+  msg?: string;
+}
+
+export const AUTH_EXPIRED_EVENT = "pb:auth-expired";
+
+const GENERIC_SERVER_ERROR = "Something went wrong on our side. Please try again.";
+const NETWORK_ERROR = "Can't reach the server. Check your connection and try again.";
+const REQUEST_TIMEOUT_MS = 20_000;
+
+function messageFromDetail(status: number, detail: unknown): string {
+  if (status >= 500) return GENERIC_SERVER_ERROR;
+  if (typeof detail === "string") return detail;
+  if (Array.isArray(detail)) {
+    const first = detail[0] as ValidationDetail | undefined;
+    const field = first?.loc?.filter((p) => p !== "body").slice(-1)[0];
+    return first?.msg ? `${field ? `${String(field)}: ` : ""}${first.msg}` : "Some of the information you entered is invalid.";
+  }
+  if (detail && typeof detail === "object" && "message" in detail && typeof (detail as ApiErrorDetail).message === "string") {
+    return (detail as ApiErrorDetail).message as string;
+  }
+  return "Request failed";
+}
+
 export class ApiError extends Error {
   status: number;
-  detail: string | ApiErrorDetail;
+  detail: unknown;
+  code?: string;
   remainingSeconds?: number;
 
-  constructor(status: number, detail: string | ApiErrorDetail) {
-    const message = typeof detail === "string" ? detail : detail.message ?? "Request failed";
-    super(message);
+  constructor(status: number, detail: unknown, messageOverride?: string) {
+    super(messageOverride ?? messageFromDetail(status, detail));
     this.status = status;
     this.detail = detail;
-    if (typeof detail === "object" && typeof detail.remaining_seconds === "number") {
-      this.remainingSeconds = detail.remaining_seconds;
+    if (detail && typeof detail === "object" && !Array.isArray(detail)) {
+      const d = detail as ApiErrorDetail;
+      if (typeof d.code === "string") this.code = d.code;
+      if (typeof d.remaining_seconds === "number") this.remainingSeconds = d.remaining_seconds;
     }
+  }
+
+  /** True only for a genuine authentication failure (expired/invalid/revoked token). */
+  get isAuthFailure(): boolean {
+    return this.status === 401;
   }
 }
 
 async function request<T>(
   path: string,
-  options: { method?: string; body?: unknown; auth?: boolean; query?: Record<string, string | number | boolean | undefined> } = {}
+  options: { method?: string; body?: unknown; auth?: boolean; query?: Record<string, string | number | boolean | undefined>; signal?: AbortSignal } = {}
 ): Promise<T> {
-  const { method = "GET", body, auth = true, query } = options;
+  const { method = "GET", body, auth = true, query, signal } = options;
 
   let url = `${API_BASE}/api${path}`;
   if (query) {
@@ -63,16 +97,34 @@ async function request<T>(
 
   const headers: Record<string, string> = {};
   if (body !== undefined) headers["Content-Type"] = "application/json";
+  let sentToken: string | null = null;
   if (auth) {
-    const token = getToken();
-    if (token) headers["Authorization"] = `Bearer ${token}`;
+    sentToken = getToken();
+    if (sentToken) headers["Authorization"] = `Bearer ${sentToken}`;
   }
 
-  const res = await fetch(url, {
-    method,
-    headers,
-    body: body !== undefined ? JSON.stringify(body) : undefined,
-  });
+  // Every request has a deadline so no screen can spin forever on a hung connection, and a
+  // caller-supplied signal (e.g. leaving the scanner) cancels it early.
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+  const onCallerAbort = () => controller.abort();
+  signal?.addEventListener("abort", onCallerAbort);
+
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      method,
+      headers,
+      body: body !== undefined ? JSON.stringify(body) : undefined,
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (signal?.aborted) throw err; // the caller cancelled: let it see a normal AbortError
+    throw new ApiError(0, null, controller.signal.aborted ? "The server took too long to respond. Please try again." : NETWORK_ERROR);
+  } finally {
+    clearTimeout(timer);
+    signal?.removeEventListener("abort", onCallerAbort);
+  }
 
   if (res.status === 204) return undefined as T;
 
@@ -87,13 +139,19 @@ async function request<T>(
   }
 
   if (!res.ok) {
-    if (res.status === 401) setToken(null);
     const detail =
       payload && typeof payload === "object" && "detail" in payload
-        ? (payload as { detail: string | ApiErrorDetail }).detail
+        ? (payload as { detail: unknown }).detail
         : typeof payload === "string"
           ? payload
           : "Request failed";
+    // Only a 401 on a request that actually carried OUR current token means the session is
+    // over. A 500, a 4xx business error, a timeout or a dropped connection must never log
+    // anyone out (that used to happen for any failure of /auth/me).
+    if (res.status === 401 && sentToken && getToken() === sentToken) {
+      setToken(null);
+      if (typeof window !== "undefined") window.dispatchEvent(new Event(AUTH_EXPIRED_EVENT));
+    }
     throw new ApiError(res.status, detail);
   }
 
@@ -242,6 +300,7 @@ export const studentApi = {
     request<AttendanceHistoryOut>("/students/me/attendance", { query: params }),
   subjectAttendance: (subjectId: string) => request<SubjectAttendanceOut>(`/students/me/attendance/${subjectId}`),
   cooldown: () => request<CooldownStatusOut>("/students/me/cooldown"),
+  lastScan: () => request<LastScanOut>("/students/me/last-scan"),
   sessions: () => request<DeviceSessionOut[]>("/students/me/sessions"),
   bunkCalculator: (class_division_id: string, required_pct = 75.0) =>
     request<BunkCalculatorOut>("/students/me/bunk-calculator", { method: "POST", body: { class_division_id, required_pct } }),
@@ -256,6 +315,7 @@ export interface ActiveSubjectOut {
   division_name: string;
   avg_pct: number;
   has_active_session: boolean;
+  active_session_id: string | null;
 }
 
 export interface UpcomingSessionOut {
@@ -267,6 +327,7 @@ export interface UpcomingSessionOut {
   scheduled_start: string;
   scheduled_end: string;
   has_active_session: boolean;
+  active_session_id: string | null;
 }
 
 export interface ActivityFeedItem {
@@ -340,6 +401,8 @@ export interface AttendanceSheetColumn {
   lecture_id: string;
   date: string;
   label: string;
+  /** false for a lecture that hasn't started yet (a blank cell is then not an absence). */
+  started: boolean;
 }
 
 export interface AttendanceSheetRow {
@@ -396,7 +459,7 @@ export const professorApi = {
 
 // ---------- Attendance / QR ----------
 
-export type SessionStatus = "active" | "closed";
+export type SessionStatus = "active" | "closed" | "expired";
 export type AttendanceStatusValue = "present" | "absent" | "late" | "manual" | "suspicious";
 
 export interface AttendanceSessionOut {
@@ -424,6 +487,16 @@ export interface LiveSessionState {
   current_token_expires_at: string | null;
   session_expires_at: string | null;
   qr_payload: string | null;
+  qr_ttl_seconds: number;
+  /** Authoritative server clock, used to correct countdowns for a wrong device clock. */
+  server_time: string;
+  lecture_id: string;
+  class_division_id: string;
+  subject_code: string;
+  subject_name: string;
+  division_name: string;
+  room: string | null;
+  topic: string | null;
   feed: LiveFeedEntry[];
 }
 
@@ -437,6 +510,21 @@ export interface ScanResult {
   session_topic: string | null;
   marked_at: string | null;
   cooldown_seconds: number | null;
+  cooldown_expires_at: string | null;
+  server_time: string | null;
+}
+
+export interface LastScanOut {
+  attendance_status: string;
+  subject_code: string;
+  subject_name: string;
+  division_name: string;
+  session_topic: string | null;
+  marked_at: string;
+  server_time: string;
+  cooldown_active: boolean;
+  cooldown_remaining_seconds: number;
+  cooldown_expires_at: string | null;
 }
 
 export interface ManualAttendanceOut {
@@ -457,7 +545,7 @@ export const attendanceApi = {
   getSession: (sessionId: string) => request<AttendanceSessionOut>(`/attendance/sessions/${sessionId}`),
   closeSession: (sessionId: string) => request<AttendanceSessionOut>(`/attendance/sessions/${sessionId}/close`, { method: "POST" }),
   liveSession: (sessionId: string) => request<LiveSessionState>(`/attendance/sessions/${sessionId}/live`),
-  scan: (token: string) => request<ScanResult>("/attendance/scan", { method: "POST", body: { token } }),
+  scan: (token: string, signal?: AbortSignal) => request<ScanResult>("/attendance/scan", { method: "POST", body: { token }, signal }),
   manual: (payload: { student_id: string; lecture_id: string; status: "present" | "absent" | "late"; reason: string }) =>
     request<ManualAttendanceOut>("/attendance/manual", { method: "POST", body: payload }),
 };
@@ -486,6 +574,7 @@ export interface AdminCreateStudentRequest {
 }
 
 export interface AdminUpdateStudentRequest {
+  password?: string;
   full_name?: string;
   program?: string;
   semester?: number;
@@ -510,6 +599,7 @@ export interface AdminCreateProfessorRequest {
 }
 
 export interface AdminUpdateProfessorRequest {
+  password?: string;
   full_name?: string;
   department?: string;
   is_active?: boolean;
@@ -595,7 +685,21 @@ export interface AdminCreateLectureRequest {
   room?: string;
 }
 
+export interface AdminSummaryOut {
+  students: number;
+  professors: number;
+  subjects: number;
+  divisions: number;
+  lectures: number;
+  enrollments: number;
+}
+
+export function errorMessage(err: unknown, fallback: string): string {
+  return err instanceof ApiError ? err.message : fallback;
+}
+
 export const adminApi = {
+  summary: () => request<AdminSummaryOut>("/admin/summary"),
   students: (q?: string) => request<AdminStudentOut[]>("/admin/students", { query: { q, limit: 500 } }),
   createStudent: (payload: AdminCreateStudentRequest) =>
     request<AdminStudentOut>("/admin/students", { method: "POST", body: payload }),
@@ -636,9 +740,16 @@ export const adminApi = {
   deleteLecture: (id: string) => request<void>(`/admin/lectures/${id}`, { method: "DELETE" }),
 };
 
-/** Builds the WebSocket URL for a session's live feed; token is passed as a query param (browsers can't set WS headers). */
+/**
+ * WebSocket URL for a session's live feed. The JWT is deliberately NOT in the URL (URLs end up
+ * in proxy/server access logs); the client sends it as the first message instead — see
+ * attendanceSocketAuthMessage().
+ */
 export function attendanceSocketUrl(sessionId: string): string {
-  const token = getToken();
   const wsBase = API_BASE.replace(/^http/, "ws");
-  return `${wsBase}/api/ws/attendance/sessions/${sessionId}?token=${encodeURIComponent(token ?? "")}`;
+  return `${wsBase}/api/ws/attendance/sessions/${sessionId}`;
+}
+
+export function attendanceSocketAuthMessage(): string {
+  return JSON.stringify({ type: "auth", token: getToken() ?? "" });
 }

@@ -11,8 +11,10 @@ def _validate_email(value: str) -> str:
     # test_environment=True to explicitly allow those — this only relaxes the reserved-TLD
     # heuristic, it does not accept malformed addresses or skip real syntax validation, and
     # is safe to leave on in production since no real institutional email uses those TLDs.
-    email_validator.validate_email(value, test_environment=True, check_deliverability=False)
-    return value
+    email_validator.validate_email(value.strip(), test_environment=True, check_deliverability=False)
+    # Emails are stored and compared lower-cased: phone keyboards auto-capitalise the first
+    # letter, and "Asha@college.edu" must not be a different account from "asha@college.edu".
+    return value.strip().lower()
 
 
 # Drop-in replacement for pydantic.EmailStr used throughout the app's schemas.

@@ -1,13 +1,15 @@
 import uuid
 
 from fastapi import HTTPException, status
-from sqlalchemy import func
+from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.core.security import hash_password
+from app.core.time import utcnow
 from app.models.academic import ClassDivision, Enrollment, Lecture, Subject
 from app.models.attendance import AttendanceRecord, AttendanceSession
+from app.models.security import DeviceSession, DeviceSessionStatus
 from app.models.user import ProfessorProfile, StudentProfile, User, UserRole
 from app.schemas.admin import (
     AdminBulkEnrollResult,
@@ -23,12 +25,27 @@ from app.schemas.admin import (
     AdminProfessorOut,
     AdminStudentOut,
     AdminSubjectOut,
+    AdminSummaryOut,
     AdminUpdateDivisionRequest,
     AdminUpdateLectureRequest,
     AdminUpdateProfessorRequest,
     AdminUpdateStudentRequest,
     AdminUpdateSubjectRequest,
 )
+
+def _reset_password(db: Session, user: User, new_password: str) -> None:
+    """Sets a new password and revokes every active session so the old credential stops working
+    everywhere immediately."""
+    user.password_hash = hash_password(new_password)
+    now = utcnow()
+    for device_session in (
+        db.query(DeviceSession)
+        .filter(DeviceSession.user_id == user.id, DeviceSession.status == DeviceSessionStatus.ACTIVE)
+        .all()
+    ):
+        device_session.status = DeviceSessionStatus.REVOKED
+        device_session.logout_at = now
+
 
 # ============================= Students =============================
 
@@ -118,6 +135,8 @@ def update_student(db: Session, student_id: uuid.UUID, payload: AdminUpdateStude
         profile.semester = payload.semester
     if payload.is_active is not None:
         user.is_active = payload.is_active
+    if payload.password is not None:
+        _reset_password(db, user, payload.password)
     db.commit()
     db.refresh(profile)
     return _student_out(db, profile)
@@ -141,7 +160,11 @@ def create_professor(db: Session, payload: AdminCreateProfessorRequest) -> Admin
 
     profile = ProfessorProfile(user_id=user.id, department=payload.department)
     db.add(profile)
-    db.commit()
+    try:
+        db.commit()
+    except IntegrityError as exc:
+        db.rollback()
+        raise HTTPException(status.HTTP_409_CONFLICT, "Email already registered") from exc
     db.refresh(profile)
     return _professor_out(db, profile)
 
@@ -198,6 +221,8 @@ def update_professor(db: Session, professor_id: uuid.UUID, payload: AdminUpdateP
         profile.department = payload.department
     if payload.is_active is not None:
         user.is_active = payload.is_active
+    if payload.password is not None:
+        _reset_password(db, user, payload.password)
     db.commit()
     db.refresh(profile)
     return _professor_out(db, profile)
@@ -453,7 +478,12 @@ def bulk_enroll(db: Session, student_ids: list[uuid.UUID], class_division_id: uu
 
     for sid in to_enroll:
         db.add(Enrollment(student_id=sid, class_division_id=class_division_id))
-    db.commit()
+    try:
+        db.commit()
+    except IntegrityError as exc:
+        # Another request enrolled some of these students between our check and insert.
+        db.rollback()
+        raise HTTPException(status.HTTP_409_CONFLICT, "Enrollment changed concurrently — please retry") from exc
 
     return AdminBulkEnrollResult(
         enrolled=to_enroll, already_enrolled=sorted(already_enrolled_ids, key=str), not_found=not_found
@@ -567,3 +597,33 @@ def delete_lecture(db: Session, lecture_id: uuid.UUID) -> None:
         )
     db.delete(lecture)
     db.commit()
+
+
+# ============================= Summary =============================
+
+
+def summary(db: Session) -> AdminSummaryOut:
+    """Row counts for the admin dashboard, in ONE round trip (the dashboard used to download
+    every student/professor/subject/division list just to call len() on them)."""
+
+    def count(model):
+        return select(func.count()).select_from(model).scalar_subquery()
+
+    students, professors, subjects, divisions, lectures, enrollments = db.execute(
+        select(
+            count(StudentProfile),
+            count(ProfessorProfile),
+            count(Subject),
+            count(ClassDivision),
+            count(Lecture),
+            count(Enrollment),
+        )
+    ).one()
+    return AdminSummaryOut(
+        students=students,
+        professors=professors,
+        subjects=subjects,
+        divisions=divisions,
+        lectures=lectures,
+        enrollments=enrollments,
+    )

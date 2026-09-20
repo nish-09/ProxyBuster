@@ -87,6 +87,11 @@ function SubjectCard({ subject }: { subject: SubjectAttendanceOut }) {
   );
 }
 
+function greeting() {
+  const hour = new Date().getHours();
+  return hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
+}
+
 function DashboardContent() {
   const [data, setData] = useState<StudentDashboardOut | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -164,7 +169,7 @@ function DashboardContent() {
     <div className="p-container-padding max-w-7xl mx-auto space-y-gutter pb-24 md:pb-12">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-stack-lg pt-4 md:pt-8">
         <div>
-          <h2 className="font-display-lg text-display-lg text-on-surface">Good morning, {firstName}</h2>
+          <h2 className="font-display-lg text-display-lg text-on-surface">{greeting()}, {firstName}</h2>
           <p className="font-body-lg text-body-lg text-on-surface-variant mt-2">
             {data.program}, Semester {data.semester}
           </p>
@@ -350,7 +355,7 @@ export default function StudentDashboardPage() {
     <RequireRole role="student">
       <div className="flex min-h-screen bg-surface">
         <SideNavBar role="student" />
-        <main className="flex-1 md:ml-[280px] w-full min-h-screen bg-background">
+        <main className="flex-1 min-w-0 md:ml-[280px] w-full min-h-screen bg-background">
           <TopNavBar userName="" avatarInitials="ST" />
           <div className="hidden md:flex justify-end px-container-padding pt-4">
             <DesktopTopBar userName="" avatarInitials={initials("Student")} />

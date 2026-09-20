@@ -7,8 +7,17 @@ from app.core.config import get_settings
 
 settings = get_settings()
 
+_pool_args = {}
+if not settings.database_url.startswith("sqlite"):
+    _pool_args = {
+        "pool_size": settings.db_pool_size,
+        "max_overflow": settings.db_max_overflow,
+        "pool_timeout": settings.db_pool_timeout_seconds,
+    }
+
 engine = create_engine(
     settings.database_url,
+    **_pool_args,
     pool_pre_ping=True,
     # Recycle connections before Supabase's pooler can silently drop an idle one out from
     # under us — pool_pre_ping already catches a dead connection and reconnects, but doing it

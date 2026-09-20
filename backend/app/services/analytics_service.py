@@ -70,7 +70,9 @@ def _counts_for_lectures(db: Session, student_id: uuid.UUID, lecture_ids: list[u
         recorded_lecture_ids = set()
 
     total = len(lecture_ids)
-    absent = total - len(recorded_lecture_ids)
+    # Absent = every lecture the student did not attend. A record whose status is ABSENT (a
+    # professor's manual override) counts as absent too, not as "recorded".
+    absent = total - (present + late + manual)
     return {"present": present, "late": late, "manual": manual, "absent": max(absent, 0), "total": total}
 
 
@@ -132,8 +134,8 @@ def batch_subject_stats(
     result: dict[uuid.UUID, dict] = {}
     for sid in student_ids:
         c = counts[sid]
-        absent = max(total - len(recorded_lectures[sid]), 0)
         attended = c["present"] + c["late"] + c["manual"]
+        absent = max(total - attended, 0)
         pct = attendance_percentage(c["present"], c["late"], c["manual"], total)
         result[sid] = {
             "class_division_id": class_division_id,

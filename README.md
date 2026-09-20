@@ -294,22 +294,47 @@ the in-network service name. All default secrets in `docker-compose.yml` are dev
 (Docker itself wasn't available there) — run `docker compose up --build` end-to-end on a machine
 with Docker before relying on it.*
 
+## Production deployment checklist
+
+1. **Secrets** — set `ENVIRONMENT=production`, and generate *fresh* `JWT_SECRET` and
+   `QR_SIGNING_SECRET` (`python -c "import secrets; print(secrets.token_urlsafe(48))"`). In
+   production the API refuses to start if either is short, still contains placeholder text, or they
+   are equal. Never reuse the values from `.env.example`.
+2. **Database** — `cd backend && alembic upgrade head`. Use the Supabase *session pooler* URL and keep
+   `DB_POOL_SIZE + DB_MAX_OVERFLOW` (default 5 + 4) under the pooler's ~15-client limit.
+3. **First admin** — `python scripts/create_admin.py --email you@college.edu --full-name "Name"`.
+   There is no public admin registration (`POST /auth/register` rejects `role=admin`).
+4. **Onboarding** — Admin: Professors → Subjects → Divisions → Students → Enrol → Lectures. Once
+   students are imported, set `ALLOW_PUBLIC_STUDENT_REGISTRATION=false`.
+5. **CORS / URLs** — `CORS_ORIGINS` = your Vercel origin(s) exactly (no trailing slash);
+   `NEXT_PUBLIC_API_BASE_URL` (Vercel env) = the Render API URL.
+6. **Region** — run the API in the same region as the Supabase project; each request makes several
+   sequential queries, so cross-region latency multiplies.
+7. **Single instance** — WebSocket rooms and QR rotation are in-process; run exactly one API instance.
+8. **Reset to a clean state** (removes all students/professors/academic/attendance data, keeps the
+   admin, schema and migration history): `python scripts/reset_demo_data.py --keep-admins` (dry run) then
+   `--execute`.
+
+## Session lifecycle
+
+`ACTIVE` → `EXPIRED` automatically when the lecture's `scheduled_end` passes (enforced server-side on
+every scan/live read, and by a background sweeper every 60 s, which also resumes QR rotation for
+sessions that were running when the process restarted) · `ACTIVE` → `CLOSED` when the professor stops
+it. Both are terminal and reject scans. A lecture with no session row is "not started". At most one
+session can be active per class at a time.
+
+QR tokens are single-use: a scan atomically consumes the token, and the API immediately issues and
+pushes a fresh QR to the professor's screen, so throughput is roughly one check-in per network round
+trip per session rather than one per rotation interval.
+
 ## Known limitations / follow-ups
 
-- **DB connectivity unverified**: migrations and seed data haven't been run against the real
-  Supabase instance from this build environment (DNS-unreachable) — do this first on a real machine.
-- **Rate limiting is IP-based only**: `/auth/login`, `/auth/register`, and `/attendance/scan` are
-  rate-limited per client IP via `slowapi`. This is a reasonable first layer but not per-account —
-  a determined attacker distributed across IPs isn't slowed by it; a production deployment behind a
-  shared campus NAT should also consider per-account throttling.
-- **Single-process realtime**: the WebSocket `ConnectionManager` and QR-rotation tasks are
-  in-process only; running more than one backend instance would need Redis pub/sub to keep sessions
-  in sync (the spec calls Redis optional infra — not implemented here).
-- **ML anomaly scoring** only activates once ≥30 students each have ≥5 historical records — a
-  freshly seeded database will only ever show rule-based scores, by design.
-- **"Extend Timer"** on the live session screen is intentionally inert: sessions have no
-  auto-expiry to extend (they stay `ACTIVE` until explicitly closed), so there's nothing to wire it
-  to without fabricating a feature.
-- **Account Settings card** (password reset / biometric toggle / notification preferences) from the
-  `student_profile` Stitch screen has no backend feature in this build and was omitted rather than
-  faked with a non-functional control.
+- **Rate limiting** is per-IP (coarse, generous) plus per-account failed-login lockout (8 failures /
+  15 min) and per-user scan limits. Lockout state is in-process (lost on restart).
+- **Single-process realtime**: more than one backend instance would need Redis pub/sub.
+- **Date bucketing uses UTC.** A lecture very close to midnight local time can land on the adjacent
+  calendar day in the attendance sheet / "today" counts.
+- **Auth token is kept in `localStorage`** (standard for this SPA architecture; XSS-sensitive). The
+  backend sets strict security headers and never reflects user input into HTML.
+- **ML anomaly scoring** only activates once >=30 students each have >=5 historical records.
+- **Camera scanning** needs HTTPS (or localhost) and a camera permission grant.

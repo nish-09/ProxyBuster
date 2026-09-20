@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { StudentListItem } from "@/lib/api";
+import { ApiError, type StudentListItem } from "@/lib/api";
 
 interface ManualEntryModalProps {
   students: StudentListItem[];
@@ -25,8 +25,8 @@ export function ManualEntryModal({ students, onClose, onSubmit }: ManualEntryMod
     setError(null);
     try {
       await onSubmit({ student_id: studentId, status, reason: reason.trim() });
-    } catch {
-      setError("Could not save this manual entry. Please try again.");
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Could not save this manual entry. Please try again.");
       setSubmitting(false);
     }
   }

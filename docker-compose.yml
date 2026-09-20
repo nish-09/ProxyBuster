@@ -30,6 +30,7 @@ services:
     environment:
       DATABASE_URL: postgresql+psycopg2://proxybusters:dev_only_change_me@postgres:5432/proxybusters
       JWT_SECRET: dev_only_change_me_jwt_secret
+      ENVIRONMENT: development
       JWT_ALGORITHM: HS256
       ACCESS_TOKEN_EXPIRE_MINUTES: "480"
       QR_SIGNING_SECRET: dev_only_change_me_qr_secret

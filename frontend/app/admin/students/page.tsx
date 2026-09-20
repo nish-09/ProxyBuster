@@ -7,7 +7,8 @@ import { TopNavBar, DesktopTopBar } from "@/components/layout/TopNavBar";
 import { BottomMobileNav } from "@/components/layout/BottomMobileNav";
 import { useAuth } from "@/lib/auth-context";
 import { SkeletonBlock } from "@/components/ui/Skeleton";
-import { adminApi, ApiError, type AdminStudentOut } from "@/lib/api";
+import { PageError } from "@/components/ui/PageError";
+import { adminApi, ApiError, errorMessage, type AdminStudentOut } from "@/lib/api";
 
 const inputClass =
   "w-full h-10 px-3 bg-surface-container border border-outline-variant rounded-md text-body-md font-body-md focus:outline-none focus:border-primary transition-all";
@@ -92,13 +93,17 @@ function StudentsContent() {
   const [students, setStudents] = useState<AdminStudentOut[]>([]);
   const [q, setQ] = useState("");
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [showCreate, setShowCreate] = useState(false);
   const [busyId, setBusyId] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
+    setLoadError(null);
     try {
       setStudents(await adminApi.students(q || undefined));
+    } catch (err) {
+      setLoadError(errorMessage(err, "Could not load this page. Please try again."));
     } finally {
       setLoading(false);
     }
@@ -114,6 +119,8 @@ function StudentsContent() {
     try {
       const updated = await adminApi.updateStudent(s.id, { is_active: !s.is_active });
       setStudents((prev) => prev.map((x) => (x.id === s.id ? updated : x)));
+    } catch (err) {
+      setLoadError(errorMessage(err, "Could not update this account."));
     } finally {
       setBusyId(null);
     }
@@ -122,15 +129,16 @@ function StudentsContent() {
   return (
     <div className="bg-background text-on-background font-body-md antialiased flex min-h-screen">
       <SideNavBar role="admin" />
-      <main className="flex-1 md:ml-[280px] min-h-screen bg-surface-container-low">
+      <main className="flex-1 min-w-0 md:ml-[280px] min-h-screen bg-surface-container-low">
         <TopNavBar userName={user?.full_name ?? ""} avatarInitials={user ? initials(user.full_name) : ""} showSearch onSearch={setQ} />
         <div className="p-container-padding max-w-[1400px] mx-auto space-y-stack-lg pb-24">
+          {loadError && <PageError message={loadError} onRetry={() => void load()} />}
           <header className="flex flex-col md:flex-row md:items-end justify-between gap-4">
             <div>
               <h2 className="font-display-lg text-display-lg text-on-surface mb-1">Students</h2>
               <p className="font-body-lg text-body-lg text-on-surface-variant">{students.length} students</p>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-3">
               <DesktopTopBar userName={user?.full_name ?? ""} avatarInitials={user ? initials(user.full_name) : ""} showSearch onSearch={setQ} />
               <button
                 onClick={() => setShowCreate((v) => !v)}
@@ -202,7 +210,7 @@ function StudentsContent() {
                         <button
                           disabled={busyId === s.id}
                           onClick={() => toggleActive(s)}
-                          className="px-3 py-1.5 rounded-md border border-outline-variant text-on-surface font-label-sm text-label-sm hover:bg-surface-container-high transition-colors disabled:opacity-50"
+                          className="px-3 min-h-9 rounded-md border border-outline-variant text-on-surface font-label-sm text-label-sm hover:bg-surface-container-high transition-colors disabled:opacity-50"
                         >
                           {s.is_active ? "Deactivate" : "Activate"}
                         </button>

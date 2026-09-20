@@ -131,8 +131,13 @@ def test_scan_against_different_lecture_blocked_by_post_scan_cooldown(
     client, db_session, professor_and_token, student_and_token
 ):
     setup = make_class_setup(db_session, professor_and_token["user_id"], student_and_token["user_id"])
-    resp1, _ = _scan(client, professor_and_token, student_and_token, setup["lecture_id"])
+    resp1, first_session_id = _scan(client, professor_and_token, student_and_token, setup["lecture_id"])
     assert resp1.status_code == 200
+    # Only one session can be active per class at a time, so the professor ends the first one.
+    closed = client.post(
+        f"/api/attendance/sessions/{first_session_id}/close", headers=auth_headers(professor_and_token["access_token"])
+    )
+    assert closed.status_code == 200
 
     # A second, different lecture in the same class — the per-lecture unique constraint
     # wouldn't block this on its own; the post-scan cooldown must.
@@ -184,13 +189,7 @@ def test_login_not_blocked_by_post_scan_cooldown(client, db_session, professor_a
 
 
 def test_scan_rejected_after_lecture_scheduled_end(client, db_session, professor_and_token, student_and_token):
-    setup = make_class_setup(
-        db_session,
-        professor_and_token["user_id"],
-        student_and_token["user_id"],
-        lecture_start=datetime.now(timezone.utc) - timedelta(hours=2),
-    )
-    # make_class_setup sets scheduled_end = lecture_start + 1 hour, i.e. already in the past.
+    setup = make_class_setup(db_session, professor_and_token["user_id"], student_and_token["user_id"])
     session_resp = client.post(
         "/api/attendance/sessions",
         json={"lecture_id": str(setup["lecture_id"])},
@@ -202,9 +201,14 @@ def test_scan_rejected_after_lecture_scheduled_end(client, db_session, professor
     from app.core.time import ensure_utc
 
     session_obj = db_session.get(AttendanceSession, session_id)
-    lecture = db_session.get(Lecture, setup["lecture_id"])
     fresh_token = attendance_service.issue_token(db_session, session_obj)
     fresh_payload = attendance_service.encode_qr_payload(fresh_token)
+
+    # Time passes: the lecture's scheduled window ends while the session is still ACTIVE in the
+    # database (nobody touched it). The backend, not a frontend timer, must notice.
+    lecture = db_session.get(Lecture, setup["lecture_id"])
+    lecture.scheduled_end = datetime.now(timezone.utc) - timedelta(minutes=1)
+    db_session.commit()
     assert ensure_utc(lecture.scheduled_end) < datetime.now(timezone.utc)
 
     resp = client.post(
@@ -213,7 +217,24 @@ def test_scan_rejected_after_lecture_scheduled_end(client, db_session, professor
         headers=auth_headers(student_and_token["access_token"]),
     )
     assert resp.status_code == 410
-    assert "expired" in resp.json()["detail"].lower()
+    assert resp.json()["detail"]["code"] == "session_expired"
 
+    db_session.expire_all()
     db_session.refresh(session_obj)
-    assert session_obj.status.value == "closed"
+    assert session_obj.status.value == "expired"
+
+
+def test_cannot_start_session_for_lecture_that_already_ended(client, db_session, professor_and_token, student_and_token):
+    setup = make_class_setup(
+        db_session,
+        professor_and_token["user_id"],
+        student_and_token["user_id"],
+        lecture_start=datetime.now(timezone.utc) - timedelta(hours=2),
+    )
+    resp = client.post(
+        "/api/attendance/sessions",
+        json={"lecture_id": str(setup["lecture_id"])},
+        headers=auth_headers(professor_and_token["access_token"]),
+    )
+    assert resp.status_code == 409
+    assert "already ended" in resp.json()["detail"].lower()

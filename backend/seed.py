@@ -57,6 +57,8 @@ def _confirm_target_database() -> None:
 
 
 def run():
+    if get_settings().is_production:
+        sys.exit("Refusing to seed demo data: ENVIRONMENT=production. Use scripts/create_admin.py for the bootstrap admin.")
     _confirm_target_database()
     db = SessionLocal()
     try:

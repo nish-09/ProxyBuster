@@ -351,7 +351,7 @@ export default function StudentAttendancePage() {
     <RequireRole role="student">
       <div className="flex min-h-screen bg-surface">
         <SideNavBar role="student" />
-        <div className="flex-1 md:ml-[280px] flex flex-col min-h-screen">
+        <div className="flex-1 min-w-0 md:ml-[280px] flex flex-col min-h-screen">
           <TopNavBar userName="" avatarInitials="ST" />
           <div className="hidden md:flex justify-end px-container-padding pt-4">
             <DesktopTopBar userName="" avatarInitials="ST" />

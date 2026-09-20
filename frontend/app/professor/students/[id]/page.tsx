@@ -52,7 +52,7 @@ function StudentDetailContent({ studentId }: { studentId: string }) {
   return (
     <div className="bg-background text-on-background font-body-md min-h-screen flex antialiased">
       <SideNavBar role="professor" />
-      <main className="flex-1 md:ml-[280px] flex flex-col min-h-screen">
+      <main className="flex-1 min-w-0 md:ml-[280px] flex flex-col min-h-screen">
         <TopNavBar userName={user?.full_name ?? ""} avatarInitials={user ? initials(user.full_name) : ""} />
         <div className="flex-1 p-container-padding max-w-7xl mx-auto w-full pb-24">
           <div className="mb-stack-lg flex flex-col sm:flex-row sm:items-end justify-between gap-4">

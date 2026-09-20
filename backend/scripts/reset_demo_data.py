@@ -27,6 +27,10 @@ HOW TO USE:
 
          python scripts/reset_demo_data.py --execute --yes
 
+  Add --keep-admins to preserve every ADMIN user (the production bootstrap account) while still
+  removing all students, professors, academic data and attendance data. Their login sessions are
+  cleared, so they simply sign in again.
+
 TRANSACTION SAFETY: every DELETE runs inside a single database transaction. If any statement
 fails, the whole transaction is rolled back and the database is left exactly as it was —
 this is an all-or-nothing operation, never a partial one.
@@ -67,8 +71,16 @@ TABLES_IN_DELETE_ORDER = [
 ]
 
 
-def _row_counts(db) -> dict[str, int]:
-    return {table: db.execute(text(f"SELECT COUNT(*) FROM {table}")).scalar() for table in TABLES_IN_DELETE_ORDER}
+def _where(table: str, keep_admins: bool) -> str:
+    """WHERE clause selecting the rows this run deletes. Only `users` is ever filtered."""
+    return " WHERE role <> 'ADMIN'" if (keep_admins and table == "users") else ""
+
+
+def _row_counts(db, keep_admins: bool) -> dict[str, int]:
+    return {
+        table: db.execute(text(f"SELECT COUNT(*) FROM {table}{_where(table, keep_admins)}")).scalar()
+        for table in TABLES_IN_DELETE_ORDER
+    }
 
 
 def _print_report(row_counts: dict[str, int], host: str) -> int:
@@ -86,13 +98,13 @@ def _print_report(row_counts: dict[str, int], host: str) -> int:
     return total
 
 
-def run(execute: bool, assume_yes: bool) -> None:
+def run(execute: bool, assume_yes: bool, keep_admins: bool) -> None:
     settings = get_settings()
     host = urlsplit(settings.database_url.replace("postgresql+psycopg2", "postgresql")).hostname or "unknown"
 
     db = SessionLocal()
     try:
-        row_counts = _row_counts(db)
+        row_counts = _row_counts(db, keep_admins)
         total = _print_report(row_counts, host)
 
         if total == 0:
@@ -113,7 +125,7 @@ def run(execute: bool, assume_yes: bool) -> None:
 
         try:
             for table in TABLES_IN_DELETE_ORDER:
-                db.execute(text(f"DELETE FROM {table}"))
+                db.execute(text(f"DELETE FROM {table}{_where(table, keep_admins)}"))
             db.commit()
         except Exception:
             db.rollback()
@@ -129,8 +141,9 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--execute", action="store_true", help="Actually delete data (default is dry-run only).")
     parser.add_argument("--yes", action="store_true", help="Skip the interactive typed confirmation (scripted use only).")
+    parser.add_argument("--keep-admins", action="store_true", help="Keep ADMIN users (the bootstrap account); delete everything else.")
     args = parser.parse_args()
-    run(execute=args.execute, assume_yes=args.yes)
+    run(execute=args.execute, assume_yes=args.yes, keep_admins=args.keep_admins)
 
 
 if __name__ == "__main__":

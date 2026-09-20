@@ -9,12 +9,14 @@ import { useAuth } from "@/lib/auth-context";
 import {
   adminApi,
   ApiError,
+  errorMessage,
   type AdminDivisionOut,
   type AdminEnrollmentOut,
   type AdminProfessorOut,
   type AdminStudentOut,
   type AdminSubjectOut,
 } from "@/lib/api";
+import { PageError } from "@/components/ui/PageError";
 
 const inputClass =
   "w-full h-10 px-3 bg-surface-container border border-outline-variant rounded-md text-body-md font-body-md focus:outline-none focus:border-primary transition-all";
@@ -125,6 +127,8 @@ function EnrollmentManager({ division, allStudents }: { division: AdminDivisionO
     setLoading(true);
     try {
       setEnrollments(await adminApi.enrollments(division.id));
+    } catch (err) {
+      setError(errorMessage(err, "Could not load enrollments."));
     } finally {
       setLoading(false);
     }
@@ -216,11 +220,13 @@ function DivisionsContent() {
   const [professors, setProfessors] = useState<AdminProfessorOut[]>([]);
   const [students, setStudents] = useState<AdminStudentOut[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [showCreate, setShowCreate] = useState(false);
   const [expanded, setExpanded] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
+    setLoadError(null);
     try {
       const [d, s, p, st] = await Promise.all([
         adminApi.divisions(),
@@ -232,6 +238,8 @@ function DivisionsContent() {
       setSubjects(s);
       setProfessors(p);
       setStudents(st);
+    } catch (err) {
+      setLoadError(errorMessage(err, "Could not load this page. Please try again."));
     } finally {
       setLoading(false);
     }
@@ -245,9 +253,10 @@ function DivisionsContent() {
   return (
     <div className="bg-background text-on-background font-body-md antialiased flex min-h-screen">
       <SideNavBar role="admin" />
-      <main className="flex-1 md:ml-[280px] min-h-screen bg-surface-container-low">
+      <main className="flex-1 min-w-0 md:ml-[280px] min-h-screen bg-surface-container-low">
         <TopNavBar userName={user?.full_name ?? ""} avatarInitials={user ? initials(user.full_name) : ""} />
         <div className="p-container-padding max-w-[1400px] mx-auto space-y-stack-lg pb-24">
+          {loadError && <PageError message={loadError} onRetry={() => void load()} />}
           <header className="flex flex-col md:flex-row md:items-end justify-between gap-4">
             <div>
               <h2 className="font-display-lg text-display-lg text-on-surface mb-1">Class Divisions</h2>

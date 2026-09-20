@@ -9,7 +9,7 @@ import { BottomMobileNav } from "@/components/layout/BottomMobileNav";
 import { NewSessionModal } from "@/components/professor/NewSessionModal";
 import { CardSkeleton } from "@/components/ui/Skeleton";
 import { useAuth } from "@/lib/auth-context";
-import { professorApi, attendanceApi, type ProfessorDashboardOut, type ActivityFeedItem } from "@/lib/api";
+import { ApiError, professorApi, attendanceApi, type ProfessorDashboardOut, type ActivityFeedItem } from "@/lib/api";
 
 function initials(name: string) {
   return name
@@ -50,6 +50,7 @@ function DashboardContent() {
   const [feed, setFeed] = useState<ActivityFeedItem[]>([]);
   const [showNewSession, setShowNewSession] = useState(false);
   const [busyEventId, setBusyEventId] = useState<string | null>(null);
+  const [startError, setStartError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -73,21 +74,22 @@ function DashboardContent() {
   async function startSession(lectureId: string) {
     const session = await attendanceApi.createSession(lectureId);
     setShowNewSession(false);
-    const meta = data?.upcoming_sessions.find((s) => s.lecture_id === lectureId);
-    const qs = meta
-      ? `?subject=${encodeURIComponent(meta.subject_name)}&division=${encodeURIComponent(meta.division_name)}&room=${encodeURIComponent(meta.room ?? "")}&cd=${encodeURIComponent(meta.class_division_id)}`
-      : "";
-    router.push(`/professor/session/${session.id}${qs}`);
+    router.push(`/professor/session/${session.id}`);
   }
 
   async function startAdhocSession(classDivisionId: string, durationMinutes: number) {
     const session = await attendanceApi.createAdhocSession({ class_division_id: classDivisionId, duration_minutes: durationMinutes });
     setShowNewSession(false);
-    const meta = data?.active_subjects.find((s) => s.class_division_id === classDivisionId);
-    const qs = meta
-      ? `?subject=${encodeURIComponent(meta.subject_name)}&division=${encodeURIComponent(meta.division_name)}&cd=${encodeURIComponent(meta.class_division_id)}`
-      : "";
-    router.push(`/professor/session/${session.id}${qs}`);
+    router.push(`/professor/session/${session.id}`);
+  }
+
+  async function startFromRow(lectureId: string) {
+    setStartError(null);
+    try {
+      await startSession(lectureId);
+    } catch (err) {
+      setStartError(err instanceof ApiError ? err.message : "Could not start the session. Please try again.");
+    }
   }
 
   async function handleFlag(id: string) {
@@ -113,7 +115,7 @@ function DashboardContent() {
   return (
     <div className="bg-background text-on-background font-body-md antialiased flex min-h-screen">
       <SideNavBar role="professor" />
-      <main className="flex-1 md:ml-[280px] min-h-screen bg-surface-container-low">
+      <main className="flex-1 min-w-0 md:ml-[280px] min-h-screen bg-surface-container-low">
         <TopNavBar userName={user?.full_name ?? ""} avatarInitials={user ? initials(user.full_name) : ""} />
         <div className="p-container-padding max-w-[1400px] mx-auto space-y-stack-lg pb-24">
           <header className="flex flex-col md:flex-row md:items-end justify-between gap-4">
@@ -146,6 +148,15 @@ function DashboardContent() {
           {error && !loading && (
             <div className="bg-error-container/30 border border-error/20 rounded-lg p-4 text-error font-body-md text-body-md">
               {error}
+            </div>
+          )}
+
+          {startError && (
+            <div className="rounded-md border border-outline bg-error-container p-3 flex items-start justify-between gap-3" role="alert">
+              <p className="font-body-md text-body-md text-on-error-container font-medium">{startError}</p>
+              <button onClick={() => setStartError(null)} aria-label="Dismiss" className="material-symbols-outlined text-on-error-container w-8 h-8">
+                close
+              </button>
             </div>
           )}
 
@@ -299,14 +310,21 @@ function DashboardContent() {
                                   {s.room ?? "TBD"} • {s.division_name}
                                 </p>
                               </div>
-                              <button
-                                disabled={s.has_active_session}
-                                onClick={() => startSession(s.lecture_id)}
-                                className="opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity px-4 py-2 bg-primary text-on-primary rounded-lg font-label-md text-label-md shadow-sm disabled:opacity-40 disabled:cursor-not-allowed flex-shrink-0"
-                                title={s.has_active_session ? "A session is already active for this lecture" : undefined}
-                              >
-                                {s.has_active_session ? "Session Active" : "Start Session"}
-                              </button>
+                              {s.has_active_session && s.active_session_id ? (
+                                <button
+                                  onClick={() => router.push(`/professor/session/${s.active_session_id}`)}
+                                  className="px-4 py-2 min-h-11 bg-primary-container text-on-primary-container border border-outline rounded-lg font-label-md text-label-md shadow-sm flex-shrink-0"
+                                >
+                                  Resume Session
+                                </button>
+                              ) : (
+                                <button
+                                  onClick={() => void startFromRow(s.lecture_id)}
+                                  className="opacity-100 md:opacity-0 md:group-hover:opacity-100 focus-visible:opacity-100 transition-opacity px-4 py-2 min-h-11 bg-primary text-on-primary rounded-lg font-label-md text-label-md shadow-sm flex-shrink-0"
+                                >
+                                  Start Session
+                                </button>
+                              )}
                             </div>
                           );
                         })}
@@ -364,7 +382,7 @@ function DashboardContent() {
                                     <button
                                       disabled={busyEventId === item.id}
                                       onClick={() => handleFlag(item.id)}
-                                      className="px-2 py-1 bg-surface border border-outline-variant rounded text-[11px] font-semibold text-on-surface hover:bg-surface-container transition-colors disabled:opacity-50"
+                                      className="px-3 min-h-9 bg-surface border border-outline-variant rounded text-[11px] font-semibold text-on-surface hover:bg-surface-container transition-colors disabled:opacity-50"
                                     >
                                       Flag
                                     </button>

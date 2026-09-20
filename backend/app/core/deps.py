@@ -26,9 +26,12 @@ def authenticate(token: str, db: Session) -> CurrentUser:
     except ValueError as exc:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, str(exc)) from exc
 
-    user_id = payload.get("sub")
+    try:
+        user_id = uuid.UUID(str(payload.get("sub")))
+    except ValueError as exc:
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid or expired token") from exc
     jti = payload.get("jti")
-    user = db.get(User, uuid.UUID(user_id))
+    user = db.get(User, user_id)
     if user is None or not user.is_active:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "User not found or inactive")
 

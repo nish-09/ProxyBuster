@@ -32,7 +32,7 @@ function CooldownsContent() {
   return (
     <div className="bg-background text-on-background font-body-md antialiased flex min-h-screen">
       <SideNavBar role="professor" />
-      <main className="flex-1 md:ml-[280px] min-h-screen bg-surface-container-low flex flex-col">
+      <main className="flex-1 min-w-0 md:ml-[280px] min-h-screen bg-surface-container-low flex flex-col">
         <TopNavBar userName={user?.full_name ?? ""} avatarInitials={user ? initials(user.full_name) : ""} />
         <div className="flex-1 p-container-padding max-w-4xl mx-auto w-full flex flex-col gap-gutter pb-24">
           <div className="flex items-end justify-between gap-gutter">

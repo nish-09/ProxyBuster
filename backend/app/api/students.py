@@ -18,6 +18,7 @@ from app.schemas.student import (
     BunkCalculatorRequest,
     CooldownStatusOut,
     DeviceSessionOut,
+    LastScanOut,
     StudentDashboardOut,
     SubjectAttendanceOut,
     TodayScheduleItem,
@@ -269,7 +270,7 @@ def attendance_history(
             manual += 1
 
     total = len(lectures)
-    absent = total - len(record_by_lecture)
+    absent = total - (present + late + manual)
     percentage = analytics_service.attendance_percentage(present, late, manual, total)
 
     return AttendanceHistoryOut(
@@ -311,6 +312,44 @@ def cooldown_status(student_profile: StudentProfile = Depends(get_student_profil
     remaining = int((ensure_utc(cooldown.expires_at) - utcnow()).total_seconds())
     return CooldownStatusOut(
         active=True, remaining_seconds=max(remaining, 0), expires_at=cooldown.expires_at, reason=cooldown.reason
+    )
+
+
+# How long after a QR check-in the success screen keeps showing that result on refresh.
+LAST_SCAN_WINDOW = timedelta(hours=6)
+
+
+@router.get("/me/last-scan", response_model=LastScanOut)
+def last_scan(student_profile: StudentProfile = Depends(get_student_profile), db: Session = Depends(get_db)):
+    from app.models.attendance import AttendanceMethod, AttendanceRecord
+
+    now = utcnow()
+    row = (
+        db.query(AttendanceRecord, Lecture, ClassDivision, Subject)
+        .join(Lecture, Lecture.id == AttendanceRecord.lecture_id)
+        .join(ClassDivision, ClassDivision.id == Lecture.class_division_id)
+        .join(Subject, Subject.id == ClassDivision.subject_id)
+        .filter(AttendanceRecord.student_id == student_profile.id, AttendanceRecord.method == AttendanceMethod.QR)
+        .order_by(AttendanceRecord.marked_at.desc())
+        .first()
+    )
+    if row is None or now - ensure_utc(row[0].marked_at) > LAST_SCAN_WINDOW:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "No recent attendance found")
+    record, lecture, class_division, subject = row
+
+    cooldown = get_active_cooldown(db, student_profile.id)
+    remaining = max(int((ensure_utc(cooldown.expires_at) - now).total_seconds()), 0) if cooldown else 0
+    return LastScanOut(
+        attendance_status=record.status.value,
+        subject_code=subject.code,
+        subject_name=subject.name,
+        division_name=class_division.name,
+        session_topic=lecture.topic,
+        marked_at=record.marked_at,
+        server_time=now,
+        cooldown_active=cooldown is not None,
+        cooldown_remaining_seconds=remaining,
+        cooldown_expires_at=cooldown.expires_at if cooldown else None,
     )
 
 

@@ -11,14 +11,14 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 
 
 @router.post("/register", response_model=MeResponse, status_code=201)
-@limiter.limit("5/minute")
+@limiter.limit("20/minute")
 def register(request: Request, payload: RegisterRequest, db: Session = Depends(get_db)):
     user = register_user(db, payload)
     return user
 
 
 @router.post("/login", response_model=TokenResponse)
-@limiter.limit("10/minute")
+@limiter.limit("120/minute")
 def login(request: Request, payload: LoginRequest, db: Session = Depends(get_db)):
     ip = request.client.host if request.client else None
     user_agent = request.headers.get("user-agent")

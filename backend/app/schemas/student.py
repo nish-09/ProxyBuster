@@ -73,6 +73,22 @@ class CooldownStatusOut(BaseModel):
     reason: str | None = None
 
 
+class LastScanOut(BaseModel):
+    """The student's most recent QR check-in, straight from the database — what the success
+    screen shows, so a refresh (or reopening the browser) never loses or reverts the result."""
+
+    attendance_status: str
+    subject_code: str
+    subject_name: str
+    division_name: str
+    session_topic: str | None
+    marked_at: datetime
+    server_time: datetime
+    cooldown_active: bool
+    cooldown_remaining_seconds: int
+    cooldown_expires_at: datetime | None = None
+
+
 class DeviceSessionOut(BaseModel):
     device_id: str | None
     ip_address: str | None

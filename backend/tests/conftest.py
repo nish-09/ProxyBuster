@@ -10,9 +10,12 @@ os.environ.setdefault("JWT_SECRET", "test-jwt-secret")
 os.environ.setdefault("QR_SIGNING_SECRET", "test-qr-signing-secret")
 os.environ.setdefault("DATABASE_URL", "sqlite:///./test_unused_placeholder.db")
 os.environ.setdefault("PROFESSOR_INVITE_CODE", "test-professor-invite-code")
+os.environ.setdefault("ENVIRONMENT", "test")
+os.environ.setdefault("ENABLE_BACKGROUND_TASKS", "false")
 
 TEST_INVITE_CODE = os.environ["PROFESSOR_INVITE_CODE"]
 
+from app.core import login_throttle  # noqa: E402
 from app.core.db import Base, get_db  # noqa: E402
 from app.core.rate_limit import limiter  # noqa: E402
 from app.main import app  # noqa: E402
@@ -27,8 +30,10 @@ def _reset_rate_limiter():
     that have nothing to do with what that test is actually checking. Rate limiting
     itself stays real/enforced (see test_rate_limit.py) — this only isolates tests."""
     limiter.reset()
+    login_throttle.reset()
     yield
     limiter.reset()
+    login_throttle.reset()
 
 
 @pytest.fixture()

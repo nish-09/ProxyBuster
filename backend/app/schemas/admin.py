@@ -1,10 +1,22 @@
 import uuid
 from datetime import datetime
 
-from pydantic import BaseModel, Field
+from datetime import timezone
+
+from pydantic import AfterValidator, BaseModel, Field
+from typing import Annotated
 
 from app.core.validation import EmailStr
 from app.models.user import UserRole
+
+
+def _as_utc(value: datetime) -> datetime:
+    """A datetime with no offset is treated as UTC (never silently as server-local time), so
+    comparing/storing lecture times can't raise on naive-vs-aware or drift by the DB session zone."""
+    return value.replace(tzinfo=timezone.utc) if value.tzinfo is None else value.astimezone(timezone.utc)
+
+
+UtcDateTime = Annotated[datetime, AfterValidator(_as_utc)]
 
 
 # ---------- Students ----------
@@ -24,6 +36,8 @@ class AdminUpdateStudentRequest(BaseModel):
     program: str | None = Field(default=None, min_length=1, max_length=255)
     semester: int | None = Field(default=None, ge=1, le=12)
     is_active: bool | None = None
+    # Admin-initiated password reset (a student who forgot theirs). Revokes their sessions.
+    password: str | None = Field(default=None, min_length=8, max_length=128)
 
 
 class AdminStudentOut(BaseModel):
@@ -52,6 +66,7 @@ class AdminUpdateProfessorRequest(BaseModel):
     full_name: str | None = Field(default=None, min_length=1, max_length=255)
     department: str | None = Field(default=None, min_length=1, max_length=255)
     is_active: bool | None = None
+    password: str | None = Field(default=None, min_length=8, max_length=128)
 
 
 class AdminProfessorOut(BaseModel):
@@ -152,15 +167,15 @@ class AdminEnrollmentOut(BaseModel):
 class AdminCreateLectureRequest(BaseModel):
     class_division_id: uuid.UUID
     topic: str | None = Field(default=None, max_length=255)
-    scheduled_start: datetime
-    scheduled_end: datetime
+    scheduled_start: UtcDateTime
+    scheduled_end: UtcDateTime
     room: str | None = Field(default=None, max_length=50)
 
 
 class AdminUpdateLectureRequest(BaseModel):
     topic: str | None = Field(default=None, max_length=255)
-    scheduled_start: datetime | None = None
-    scheduled_end: datetime | None = None
+    scheduled_start: UtcDateTime | None = None
+    scheduled_end: UtcDateTime | None = None
     room: str | None = Field(default=None, max_length=50)
 
 
@@ -177,3 +192,12 @@ class AdminLectureOut(BaseModel):
 
 class AdminUserRoleOut(BaseModel):
     role: UserRole
+
+
+class AdminSummaryOut(BaseModel):
+    students: int
+    professors: int
+    subjects: int
+    divisions: int
+    lectures: int
+    enrollments: int

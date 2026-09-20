@@ -6,7 +6,8 @@ import { SideNavBar } from "@/components/layout/SideNavBar";
 import { TopNavBar, DesktopTopBar } from "@/components/layout/TopNavBar";
 import { BottomMobileNav } from "@/components/layout/BottomMobileNav";
 import { useAuth } from "@/lib/auth-context";
-import { adminApi, ApiError, type AdminSubjectOut } from "@/lib/api";
+import { PageError } from "@/components/ui/PageError";
+import { adminApi, ApiError, errorMessage, type AdminSubjectOut } from "@/lib/api";
 
 const inputClass =
   "w-full h-10 px-3 bg-surface-container border border-outline-variant rounded-md text-body-md font-body-md focus:outline-none focus:border-primary transition-all";
@@ -68,14 +69,18 @@ function SubjectsContent() {
   const { user } = useAuth();
   const [subjects, setSubjects] = useState<AdminSubjectOut[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [showCreate, setShowCreate] = useState(false);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [rowError, setRowError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
+    setLoadError(null);
     try {
       setSubjects(await adminApi.subjects());
+    } catch (err) {
+      setLoadError(errorMessage(err, "Could not load this page. Please try again."));
     } finally {
       setLoading(false);
     }
@@ -102,9 +107,10 @@ function SubjectsContent() {
   return (
     <div className="bg-background text-on-background font-body-md antialiased flex min-h-screen">
       <SideNavBar role="admin" />
-      <main className="flex-1 md:ml-[280px] min-h-screen bg-surface-container-low">
+      <main className="flex-1 min-w-0 md:ml-[280px] min-h-screen bg-surface-container-low">
         <TopNavBar userName={user?.full_name ?? ""} avatarInitials={user ? initials(user.full_name) : ""} />
         <div className="p-container-padding max-w-[1400px] mx-auto space-y-stack-lg pb-24">
+          {loadError && <PageError message={loadError} onRetry={() => void load()} />}
           <header className="flex flex-col md:flex-row md:items-end justify-between gap-4">
             <div>
               <h2 className="font-display-lg text-display-lg text-on-surface mb-1">Subjects</h2>
@@ -167,7 +173,7 @@ function SubjectsContent() {
                         <button
                           disabled={busyId === s.id}
                           onClick={() => handleDelete(s)}
-                          className="px-3 py-1.5 rounded-md border border-error/30 text-error font-label-sm text-label-sm hover:bg-error-container/20 transition-colors disabled:opacity-50"
+                          className="px-3 min-h-9 rounded-md border border-error/30 text-error font-label-sm text-label-sm hover:bg-error-container/20 transition-colors disabled:opacity-50"
                         >
                           Delete
                         </button>

@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/lib/auth-context";
+import { SESSION_ENDED_FLAG, useAuth } from "@/lib/auth-context";
 import { ApiError } from "@/lib/api";
 
 export default function LoginPage() {
@@ -14,6 +14,20 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [cooldownSeconds, setCooldownSeconds] = useState<number | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [sessionEnded, setSessionEnded] = useState(false);
+
+  // Shown once after the server ended the session (token expired or was revoked by a newer login).
+  useEffect(() => {
+    try {
+      if (window.sessionStorage.getItem(SESSION_ENDED_FLAG)) {
+        window.sessionStorage.removeItem(SESSION_ENDED_FLAG);
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time read of a client-only flag
+        setSessionEnded(true);
+      }
+    } catch {
+      /* storage unavailable */
+    }
+  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -27,6 +41,13 @@ export default function LoginPage() {
       if (err instanceof ApiError) {
         if (err.status === 423 && err.remainingSeconds !== undefined) {
           setCooldownSeconds(err.remainingSeconds);
+        } else if (err.status === 429) {
+          const mins = err.remainingSeconds ? Math.ceil(err.remainingSeconds / 60) : null;
+          setError(
+            mins
+              ? `Too many failed sign-in attempts. Please try again in ${mins} minute${mins === 1 ? "" : "s"}.`
+              : "Too many attempts. Please wait a moment and try again."
+          );
         } else {
           setError(err.message);
         }
@@ -60,8 +81,16 @@ export default function LoginPage() {
           </div>
         )}
 
+        {sessionEnded && !error && cooldownSeconds === null && (
+          <div className="mb-stack-md rounded-md border border-outline bg-secondary-container p-3 clay-recessed" role="status">
+            <p className="font-body-md text-body-md text-on-secondary-container">
+              Your session has ended. Please sign in again.
+            </p>
+          </div>
+        )}
+
         {error && (
-          <div className="mb-stack-md rounded-md border border-outline bg-error-container p-3 clay-recessed">
+          <div className="mb-stack-md rounded-md border border-outline bg-error-container p-3 clay-recessed" role="alert">
             <p className="font-body-md text-body-md text-on-error-container font-medium">{error}</p>
           </div>
         )}

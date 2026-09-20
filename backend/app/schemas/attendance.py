@@ -45,6 +45,8 @@ class ScanResult(BaseModel):
     session_topic: str | None = None
     marked_at: datetime | None = None
     cooldown_seconds: int | None = None
+    cooldown_expires_at: datetime | None = None
+    server_time: datetime | None = None
 
 
 class ManualAttendanceRequest(BaseModel):
@@ -82,4 +84,15 @@ class LiveSessionState(BaseModel):
     current_token_expires_at: datetime | None
     session_expires_at: datetime | None = None
     qr_payload: str | None = None
+    qr_ttl_seconds: int
+    # Authoritative server clock, so the professor's countdowns don't drift with a wrong
+    # laptop clock (the client computes offset = server_time - Date.now()).
+    server_time: datetime
+    lecture_id: uuid.UUID
+    class_division_id: uuid.UUID
+    subject_code: str
+    subject_name: str
+    division_name: str
+    room: str | None = None
+    topic: str | None = None
     feed: list[LiveFeedEntry] = []

@@ -14,6 +14,8 @@ class ActiveSubjectOut(BaseModel):
     division_name: str
     avg_pct: float
     has_active_session: bool
+    # Lets the dashboard offer "Resume" for a session that is still running instead of a dead button.
+    active_session_id: uuid.UUID | None = None
 
 
 class UpcomingSessionOut(BaseModel):
@@ -25,6 +27,7 @@ class UpcomingSessionOut(BaseModel):
     scheduled_start: datetime
     scheduled_end: datetime
     has_active_session: bool
+    active_session_id: uuid.UUID | None = None
 
 
 class ActivityFeedItem(BaseModel):
@@ -103,6 +106,9 @@ class AttendanceSheetColumn(BaseModel):
     lecture_id: uuid.UUID
     date: str
     label: str
+    # True once the lecture's scheduled start has passed: a student with no record for such a
+    # column is Absent; for a lecture that hasn't started yet the cell is simply not applicable.
+    started: bool = True
 
 
 class AttendanceSheetRow(BaseModel):
