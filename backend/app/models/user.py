@@ -49,7 +49,7 @@ class StudentProfile(Base):
     semester: Mapped[int] = mapped_column(nullable=False)
 
     user: Mapped["User"] = relationship(back_populates="student_profile")
-    enrollments: Mapped[list["Enrollment"]] = relationship(back_populates="student", cascade="all, delete-orphan")
+    enrollments: Mapped[list["Enrollment"]] = relationship(back_populates="student", cascade="all, delete-orphan")  # noqa: F821
 
 
 class ProfessorProfile(Base):
@@ -62,4 +62,4 @@ class ProfessorProfile(Base):
     department: Mapped[str] = mapped_column(String(255), nullable=False)
 
     user: Mapped["User"] = relationship(back_populates="professor_profile")
-    class_divisions: Mapped[list["ClassDivision"]] = relationship(back_populates="professor")
+    class_divisions: Mapped[list["ClassDivision"]] = relationship(back_populates="professor")  # noqa: F821

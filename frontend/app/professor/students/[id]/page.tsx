@@ -7,7 +7,7 @@ import { SideNavBar } from "@/components/layout/SideNavBar";
 import { TopNavBar, DesktopTopBar } from "@/components/layout/TopNavBar";
 import { BottomMobileNav } from "@/components/layout/BottomMobileNav";
 import { useAuth } from "@/lib/auth-context";
-import { professorApi, type StudentDetailOut } from "@/lib/api";
+import { ApiError, professorApi, verificationApi, type StudentDetailOut, type ViolationOut } from "@/lib/api";
 
 function initials(name: string) {
   return name.split(" ").map((p) => p[0]).join("").slice(0, 2).toUpperCase();
@@ -16,22 +16,41 @@ function initials(name: string) {
 function StudentDetailContent({ studentId }: { studentId: string }) {
   const { user } = useAuth();
   const [detail, setDetail] = useState<StudentDetailOut | null>(null);
+  const [violations, setViolations] = useState<ViolationOut[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [disconnecting, setDisconnecting] = useState(false);
+  const [revokingId, setRevokingId] = useState<string | null>(null);
+  const [violationError, setViolationError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const res = await professorApi.student(studentId);
+      const [res, allViolations] = await Promise.all([professorApi.student(studentId), verificationApi.myViolations()]);
       setDetail(res);
+      setViolations(allViolations.filter((v) => v.student_id === studentId));
     } catch {
       setError("Could not load this student's profile.");
     } finally {
       setLoading(false);
     }
   }, [studentId]);
+
+  async function handleRevoke(violationId: string) {
+    const reason = window.prompt("Reason for revoking this restriction (visible in the audit log):");
+    if (!reason || reason.trim().length < 3) return;
+    setRevokingId(violationId);
+    setViolationError(null);
+    try {
+      const updated = await verificationApi.revokeViolation(violationId, reason.trim());
+      setViolations((prev) => prev.map((v) => (v.id === violationId ? updated : v)));
+    } catch (err) {
+      setViolationError(err instanceof ApiError ? err.message : "Could not revoke this restriction.");
+    } finally {
+      setRevokingId(null);
+    }
+  }
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- standard fetch-on-mount
@@ -221,6 +240,57 @@ function StudentDetailContent({ studentId }: { studentId: string }) {
                         <span className="font-label-sm text-label-sm text-outline whitespace-nowrap flex-shrink-0">
                           {new Date(ev.created_at).toLocaleDateString()}
                         </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="lg:col-span-3 bg-surface-container-lowest border border-outline-variant rounded-xl p-6 soft-shadow">
+                <h3 className="font-headline-md text-headline-md text-on-surface mb-2 flex items-center gap-2">
+                  <span className="material-symbols-outlined text-error filled">gpp_maybe</span>
+                  Attendance Violations
+                </h3>
+                <p className="font-label-sm text-label-sm text-on-surface-variant mb-4">
+                  Created only from an explicit decision during classroom verification review — never automatically by AI.
+                </p>
+                {violationError && <p className="font-body-md text-body-md text-error mb-3">{violationError}</p>}
+                {violations.length === 0 ? (
+                  <p className="font-body-md text-body-md text-on-surface-variant py-4 text-center">No violations recorded.</p>
+                ) : (
+                  <div className="space-y-3">
+                    {violations.map((v) => (
+                      <div key={v.id} className="flex items-start justify-between gap-3 flex-wrap p-4 border border-outline-variant rounded-lg">
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span
+                              className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                                v.status === "active"
+                                  ? "bg-error-container text-on-error-container border border-outline"
+                                  : "bg-surface-container-high text-on-surface-variant border border-outline"
+                              }`}
+                            >
+                              {v.status === "active" ? "Active restriction" : "Revoked"}
+                            </span>
+                            <span className="font-label-md text-label-md text-on-surface capitalize">{v.reason.replace(/_/g, " ")}</span>
+                          </div>
+                          {v.notes && <p className="font-label-sm text-label-sm text-on-surface-variant mb-1">{v.notes}</p>}
+                          <p className="font-label-sm text-label-sm text-outline">
+                            Restricted until {new Date(v.restriction_end).toLocaleString([], { dateStyle: "medium", timeStyle: "short" })}
+                          </p>
+                          {v.status === "revoked" && v.revocation_reason && (
+                            <p className="font-label-sm text-label-sm text-outline mt-1">Revoked: {v.revocation_reason}</p>
+                          )}
+                        </div>
+                        {v.status === "active" && (
+                          <button
+                            onClick={() => handleRevoke(v.id)}
+                            disabled={revokingId === v.id}
+                            className="h-9 px-4 rounded-md border border-outline-variant text-on-surface font-label-sm text-label-sm hover:bg-surface-container-high transition-colors disabled:opacity-50 flex-shrink-0"
+                          >
+                            {revokingId === v.id ? "Revoking..." : "Revoke Restriction"}
+                          </button>
+                        )}
                       </div>
                     ))}
                   </div>

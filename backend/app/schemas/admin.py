@@ -50,6 +50,26 @@ class AdminStudentOut(BaseModel):
     program: str
     semester: int
     created_at: datetime
+    # Whether a classroom-verification reference photo is on file — see
+    # POST /admin/students/{id}/reference-photo. Surfaced here so the admin students list can
+    # flag who still needs one for AI attendance verification to cover them.
+    has_reference_photo: bool = False
+
+
+class AdminReferencePhotoOut(BaseModel):
+    student_id: uuid.UUID
+    has_reference_photo: bool
+    content_type: str | None = None
+    uploaded_at: datetime | None = None
+
+
+class DeviceBindingResetRequest(BaseModel):
+    reason: str | None = Field(default=None, max_length=500)
+
+
+class DeviceBindingResetOut(BaseModel):
+    student_id: uuid.UUID
+    revoked_count: int
 
 
 # ---------- Professors ----------

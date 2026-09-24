@@ -89,6 +89,11 @@ design/          Stitch-exported screens (code.html + screen.png) — the UI sou
 | `cooldowns` | Active 60-minute post-logout lockouts |
 | `security_events` | Concurrent-login, force-logout, and other security-relevant events |
 | `anomaly_scores` | Stored rule-based/ML risk scores + human-readable reasons per student |
+| `student_reference_photos` | One admin-uploaded reference photo per student, used only for classroom AI verification |
+| `classroom_verifications` | One "Verify Classroom" action (session, professor, image count, status) |
+| `classroom_verification_results` | Per-student AI read + discrepancy classification for one verification |
+| `verification_decisions` | The professor's decision on one discrepancy (confirm/ask-to-scan/dismiss/violation) |
+| `attendance_violations` | A professor-confirmed violation — doubles as the restriction record (start/end/status) |
 
 ## Authentication
 
@@ -186,6 +191,62 @@ returns an empty list and the system relies on rule-based scoring only — this 
 an ML confidence score from insufficient data. When it does run, scores are min-max normalized to
 the same 0–100 scale as the rule-based score.
 
+## Classroom AI verification
+
+An optional, additive layer on top of the QR attendance flow above — it never replaces or
+gates it. A professor can, during or after a live session, open **Verify Classroom** and submit
+1-3 classroom photos; the system compares who the AI can visually confirm against who already
+scanned in, and surfaces the differences for the professor to review. **The AI never marks a
+student absent, proxy, or restricted by itself — only a professor's explicit decision does.**
+
+```
+QR Attendance ──┐
+                ├──▶ Comparison Engine ──▶ Discrepancy Report ──▶ Professor Review ──▶ Decision
+Classroom Photos┘        (server-side)                                                    │
+                                                                                            ▼
+                                                                          Confirm Present · Ask to Scan
+                                                                          Dismiss · Mark Attendance Violation
+                                                                                            │
+                                                                                 (violation only) ▼
+                                                                                     Restriction (reversible)
+```
+
+- **Reference photos**: an admin uploads one reference photo per student (Admin → Students →
+  Upload/Replace), stored in its own table (`student_reference_photos`) so it's never pulled by
+  ordinary student queries. A student with no reference photo is simply excluded from that
+  verification's results (`students_excluded_no_reference_photo`) — never guessed at.
+- **Analysis pipeline** (`app/services/verification/`): Person/Face Detection → Identity Matching
+  → Confidence Score, via a swappable `VisionProvider` interface. The bundled implementation
+  (`anthropic_provider.py`) uses Anthropic's Claude vision models with forced tool-use for
+  structured output (`{roll_number, confidence}` per student) — the model is instructed to omit
+  a student entirely rather than guess, and the provider itself drops any roll number it wasn't
+  given a reference photo for. **This system, not the model, buckets confidence** into
+  `CONFIRMED` / `HIGH_CONFIDENCE` / `UNCERTAIN` / `NOT_DETECTED` via `AI_CONFIDENCE_CONFIRMED` /
+  `AI_CONFIDENCE_HIGH`.
+- **Asynchronous**: `POST /verification/sessions/{id}/verify` returns immediately
+  (`status: processing`) and runs the AI call in a background task, since it can take longer than
+  the frontend's normal request timeout; the client polls `GET /verification/{id}` every ~2s.
+- **Discrepancy classification** (comparison of QR presence × AI confidence bucket):
+  `ATTENDED_AND_DETECTED` (no action), `ATTENDED_NOT_DETECTED` (professor can Confirm Present or
+  Mark Attendance Violation), `DETECTED_NOT_ATTENDED` (professor can Ask Student to Scan or
+  Dismiss — never a violation, since not scanning isn't evidence of anything by itself).
+- **Violations & restrictions** (`AttendanceViolation` — doubles as the restriction record):
+  created only via `POST /verification/results/{id}/decision` with `action: violation`, which
+  requires a reason and a restriction duration (1 lecture / 1 day / 3 days / 7 days / custom) —
+  never a single click. Enforced in `attendance_service.scan()` (423 `attendance_restricted`,
+  same place/pattern as the cooldown check) so it's a real backend block, not a hidden button.
+  Always reversible: `POST /verification/violations/{id}/revoke` (by the creating professor) or
+  the equivalent admin endpoint — the original violation row is never deleted, only marked
+  `REVOKED`.
+- **Privacy**: classroom photos are never written to disk or any persistent store — they're read
+  into memory for the single AI call and discarded; only the structured per-student result
+  (status + confidence) is persisted. Reference photos are served only via an authenticated
+  admin-only endpoint, never a public/static URL.
+- **New environment variables**: `ANTHROPIC_API_KEY` (leave empty to run without this feature —
+  requests fail with a clear error instead of the app refusing to start), `ANTHROPIC_VISION_MODEL`,
+  `AI_CONFIDENCE_CONFIRMED`, `AI_CONFIDENCE_HIGH`, `CLASSROOM_VERIFICATION_MAX_IMAGES`,
+  `RESTRICTION_DEFAULT_DAYS`.
+
 ## Local setup
 
 **Backend** (Windows shown; adjust activation for macOS/Linux):
@@ -229,6 +290,11 @@ the seed script, to exercise that flow out of the box.)
 | `QR_TOKEN_TTL_SECONDS` | QR rotation interval, default 10 |
 | `COOLDOWN_MINUTES` | Post-logout lockout duration, default 60 |
 | `CORS_ORIGINS` | Comma-separated list of allowed CORS origins for the backend, e.g. `http://localhost:3000,https://proxy-buster.vercel.app` |
+| `ANTHROPIC_API_KEY` | Classroom AI verification provider key. Empty = feature disabled (fails per-request, not at startup) |
+| `ANTHROPIC_VISION_MODEL` | Vision-capable Claude model id, default `claude-sonnet-5` |
+| `AI_CONFIDENCE_CONFIRMED` / `AI_CONFIDENCE_HIGH` | Confidence thresholds (0-1) for CONFIRMED / HIGH_CONFIDENCE buckets |
+| `CLASSROOM_VERIFICATION_MAX_IMAGES` | Max classroom photos per verification, default 3 |
+| `RESTRICTION_DEFAULT_DAYS` | Default attendance-restriction length for the "7 days" preset |
 | `NEXT_PUBLIC_API_BASE_URL` | Backend base URL the frontend calls (build-time inlined, see Docker) |
 
 ## Migrations
@@ -263,7 +329,7 @@ cd backend
 .venv\Scripts\pytest tests/ -v
 ```
 
-Current status: **49 passed, 0 failed**.
+Current status: **156 passed, 0 failed**.
 
 | File | Covers |
 |---|---|
@@ -275,6 +341,8 @@ Current status: **49 passed, 0 failed**.
 | `test_manual_attendance.py` | Manual mark creates the record + audit row with correct previous/new status |
 | `test_analytics.py` | Attendance-percentage and projection formulas against hand-computed values |
 | `test_anomaly.py` | Rule-based scoring signals, synchronized-pair detection |
+| `test_classroom_verification.py` | Confidence bucketing, discrepancy classification, provider fabrication guard, full verify→decide→violation→restriction→revoke flow, RBAC |
+| `test_admin_reference_photo.py` | Reference photo upload/replace/fetch/delete, RBAC, size/type validation |
 
 ## Docker
 

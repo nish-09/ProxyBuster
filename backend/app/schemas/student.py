@@ -73,6 +73,15 @@ class CooldownStatusOut(BaseModel):
     reason: str | None = None
 
 
+class RestrictionStatusOut(BaseModel):
+    """Whether a professor-confirmed attendance violation currently blocks this student's QR
+    scans — see app/services/violation_service.py."""
+
+    active: bool
+    valid_until: datetime | None = None
+    reason: str | None = None
+
+
 class LastScanOut(BaseModel):
     """The student's most recent QR check-in, straight from the database — what the success
     screen shows, so a refresh (or reopening the browser) never loses or reverts the result."""

@@ -39,7 +39,14 @@ def _reset_rate_limiter():
 @pytest.fixture()
 def db_session_factory(tmp_path):
     db_path = tmp_path / f"test_{uuid.uuid4().hex}.db"
-    engine = create_engine(f"sqlite:///{db_path}", connect_args={"check_same_thread": False})
+    # timeout=30 (sqlite3's default is 5s): SQLite locks the whole file per writer, not per row
+    # like Postgres's MVCC — harmless for the ~190 sequential tests here (a busy-wait timeout
+    # only matters when a second writer is actually waiting), but tests/test_concurrency.py
+    # deliberately fires real concurrent writers at the same file via a thread pool, and under
+    # full-suite load a 5s window occasionally wasn't enough, surfacing a raw "database is
+    # locked" error instead of the request queuing behind the lock as intended. Production never
+    # uses SQLite (see Settings._check_production_safety), so this has no effect there.
+    engine = create_engine(f"sqlite:///{db_path}", connect_args={"check_same_thread": False, "timeout": 30})
     Base.metadata.create_all(engine)
     TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
     yield TestingSessionLocal

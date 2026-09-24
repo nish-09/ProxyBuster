@@ -19,11 +19,12 @@ from app.schemas.student import (
     CooldownStatusOut,
     DeviceSessionOut,
     LastScanOut,
+    RestrictionStatusOut,
     StudentDashboardOut,
     SubjectAttendanceOut,
     TodayScheduleItem,
 )
-from app.services import analytics_service
+from app.services import analytics_service, violation_service
 from app.services.cooldown_service import get_active_cooldown
 
 router = APIRouter(prefix="/students", tags=["students"])
@@ -313,6 +314,17 @@ def cooldown_status(student_profile: StudentProfile = Depends(get_student_profil
     return CooldownStatusOut(
         active=True, remaining_seconds=max(remaining, 0), expires_at=cooldown.expires_at, reason=cooldown.reason
     )
+
+
+@router.get("/me/restriction", response_model=RestrictionStatusOut)
+def restriction_status(student_profile: StudentProfile = Depends(get_student_profile), db: Session = Depends(get_db)):
+    """Lets the scan page redirect away before even opening the camera, the same way it already
+    does for a cooldown — the backend scan() check (app/services/attendance_service.py) is the
+    actual enforcement point either way."""
+    restriction = violation_service.get_active_restriction(db, student_profile.id)
+    if restriction is None:
+        return RestrictionStatusOut(active=False)
+    return RestrictionStatusOut(active=True, valid_until=restriction.restriction_end, reason=restriction.reason.value)
 
 
 # How long after a QR check-in the success screen keeps showing that result on refresh.

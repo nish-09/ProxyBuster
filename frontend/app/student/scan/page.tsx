@@ -147,6 +147,11 @@ function ScannerContent() {
           return;
         }
         switch (err.code ?? String(err.status)) {
+          case "attendance_restricted":
+            setState("COOLDOWN");
+            await stopCamera();
+            router.replace("/student/restricted");
+            return;
           case "cooldown":
           case "423":
             setState("COOLDOWN");
@@ -265,6 +270,16 @@ function ScannerContent() {
     let cancelled = false;
 
     (async () => {
+      try {
+        const restriction = await studentApi.restriction();
+        if (cancelled) return;
+        if (restriction.active) {
+          router.replace("/student/restricted");
+          return;
+        }
+      } catch {
+        // Can't check: continue. The server enforces the restriction on the scan itself anyway.
+      }
       try {
         const status = await studentApi.cooldown();
         if (cancelled) return;

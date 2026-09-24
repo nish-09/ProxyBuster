@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { RequireRole } from "@/components/route-guard";
 import { SideNavBar } from "@/components/layout/SideNavBar";
 import { TopNavBar, DesktopTopBar } from "@/components/layout/TopNavBar";
@@ -96,6 +96,8 @@ function StudentsContent() {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [showCreate, setShowCreate] = useState(false);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [photoBusyId, setPhotoBusyId] = useState<string | null>(null);
+  const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -126,6 +128,32 @@ function StudentsContent() {
     }
   }
 
+  async function resetDevice(s: AdminStudentOut) {
+    if (!window.confirm(`Free up whatever device is currently registered to ${s.full_name}? They (or another student) can bind a fresh device on next login.`)) return;
+    setBusyId(s.id);
+    try {
+      const result = await adminApi.resetDeviceBinding(s.id, "Reset via admin students page");
+      setLoadError(null);
+      window.alert(result.revoked_count > 0 ? "Device binding reset." : "This student had no active device binding.");
+    } catch (err) {
+      setLoadError(errorMessage(err, "Could not reset this student's device binding."));
+    } finally {
+      setBusyId(null);
+    }
+  }
+
+  async function handlePhotoUpload(s: AdminStudentOut, file: File) {
+    setPhotoBusyId(s.id);
+    try {
+      await adminApi.uploadReferencePhoto(s.id, file);
+      setStudents((prev) => prev.map((x) => (x.id === s.id ? { ...x, has_reference_photo: true } : x)));
+    } catch (err) {
+      setLoadError(errorMessage(err, "Could not upload the reference photo. Please try again."));
+    } finally {
+      setPhotoBusyId(null);
+    }
+  }
+
   return (
     <div className="bg-background text-on-background font-body-md antialiased flex min-h-screen">
       <SideNavBar role="admin" />
@@ -137,6 +165,10 @@ function StudentsContent() {
             <div>
               <h2 className="font-display-lg text-display-lg text-on-surface mb-1">Students</h2>
               <p className="font-body-lg text-body-lg text-on-surface-variant">{students.length} students</p>
+              <p className="font-label-sm text-label-sm text-on-surface-variant mt-1 max-w-xl">
+                Reference photo: used only to let classroom AI verification match a face during a professor&apos;s
+                &quot;Verify Classroom&quot; check. Never shown publicly; visible only to admins.
+              </p>
             </div>
             <div className="flex flex-wrap items-center gap-3">
               <DesktopTopBar userName={user?.full_name ?? ""} avatarInitials={user ? initials(user.full_name) : ""} showSearch onSearch={setQ} />
@@ -165,7 +197,7 @@ function StudentsContent() {
               <table className="w-full text-left">
                 <thead className="bg-surface-container-lowest border-b border-outline-variant/50">
                   <tr>
-                    {["Name", "Roll No.", "Email", "Program", "Sem", "Status", ""].map((h) => (
+                    {["Name", "Roll No.", "Email", "Program", "Sem", "Status", "Reference Photo", ""].map((h) => (
                       <th key={h} className="p-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">
                         {h}
                       </th>
@@ -176,7 +208,7 @@ function StudentsContent() {
                   {loading &&
                     Array.from({ length: 6 }).map((_, i) => (
                       <tr key={i}>
-                        {Array.from({ length: 7 }).map((__, c) => (
+                        {Array.from({ length: 8 }).map((__, c) => (
                           <td key={c} className="p-4">
                             <SkeletonBlock className="h-4 w-full" />
                           </td>
@@ -185,7 +217,7 @@ function StudentsContent() {
                     ))}
                   {!loading && students.length === 0 && (
                     <tr>
-                      <td colSpan={7} className="p-6 text-center font-body-md text-body-md text-on-surface-variant">
+                      <td colSpan={8} className="p-6 text-center font-body-md text-body-md text-on-surface-variant">
                         No students yet.
                       </td>
                     </tr>
@@ -206,14 +238,57 @@ function StudentsContent() {
                           {s.is_active ? "Active" : "Inactive"}
                         </span>
                       </td>
+                      <td className="p-4">
+                        <div className="flex items-center gap-2">
+                          <span
+                            className={`px-2 py-0.5 rounded text-[10px] font-bold whitespace-nowrap ${
+                              s.has_reference_photo
+                                ? "bg-tertiary-container text-on-tertiary-container border border-outline"
+                                : "bg-secondary-container text-on-secondary-container border border-outline"
+                            }`}
+                          >
+                            {s.has_reference_photo ? "On file" : "Missing"}
+                          </span>
+                          <input
+                            ref={(el) => {
+                              fileInputRefs.current[s.id] = el;
+                            }}
+                            type="file"
+                            accept="image/jpeg,image/png,image/webp"
+                            className="hidden"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) void handlePhotoUpload(s, file);
+                              e.target.value = "";
+                            }}
+                          />
+                          <button
+                            disabled={photoBusyId === s.id}
+                            onClick={() => fileInputRefs.current[s.id]?.click()}
+                            className="px-3 min-h-9 rounded-md border border-outline-variant text-on-surface font-label-sm text-label-sm hover:bg-surface-container-high transition-colors disabled:opacity-50"
+                          >
+                            {photoBusyId === s.id ? "Uploading..." : s.has_reference_photo ? "Replace" : "Upload"}
+                          </button>
+                        </div>
+                      </td>
                       <td className="p-4 text-right">
-                        <button
-                          disabled={busyId === s.id}
-                          onClick={() => toggleActive(s)}
-                          className="px-3 min-h-9 rounded-md border border-outline-variant text-on-surface font-label-sm text-label-sm hover:bg-surface-container-high transition-colors disabled:opacity-50"
-                        >
-                          {s.is_active ? "Deactivate" : "Activate"}
-                        </button>
+                        <div className="flex justify-end gap-2">
+                          <button
+                            disabled={busyId === s.id}
+                            onClick={() => resetDevice(s)}
+                            title="Free up this student's registered device (e.g. lost/replaced phone)"
+                            className="px-3 min-h-9 rounded-md border border-outline-variant text-on-surface font-label-sm text-label-sm hover:bg-surface-container-high transition-colors disabled:opacity-50"
+                          >
+                            Reset Device
+                          </button>
+                          <button
+                            disabled={busyId === s.id}
+                            onClick={() => toggleActive(s)}
+                            className="px-3 min-h-9 rounded-md border border-outline-variant text-on-surface font-label-sm text-label-sm hover:bg-surface-container-high transition-colors disabled:opacity-50"
+                          >
+                            {s.is_active ? "Deactivate" : "Activate"}
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}

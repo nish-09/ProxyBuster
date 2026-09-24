@@ -38,6 +38,9 @@ services:
       COOLDOWN_MINUTES: "60"
       PROFESSOR_INVITE_CODE: dev_only_change_me_invite_code
       CORS_ORIGINS: http://localhost:3000
+      # Optional: classroom AI verification (see backend/app/services/verification/). Leave
+      # empty to run without it — "Verify Classroom" requests just fail with a clear error.
+      ANTHROPIC_API_KEY: ""
     ports:
       - "8000:8000"
     command: sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000"

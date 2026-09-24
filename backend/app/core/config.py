@@ -73,6 +73,26 @@ class Settings(BaseSettings):
     enable_background_tasks: bool = True
     qr_token_retention_hours: int = 24
 
+    # ---- Classroom AI verification (see app/services/verification/) ----
+    # Anthropic Claude vision powers the default ClassroomVerificationService provider —
+    # see app/services/verification/anthropic_provider.py. Never logged, never returned by
+    # any API response.
+    anthropic_api_key: str = ""
+    anthropic_vision_model: str = "claude-sonnet-5"
+    # Confidence thresholds the comparison engine uses to bucket a provider's raw 0-1 score
+    # into CONFIRMED / HIGH_CONFIDENCE / UNCERTAIN. Anything below ai_confidence_high is
+    # always UNCERTAIN (or NOT_DETECTED near zero) — never reported as a confident match.
+    ai_confidence_confirmed: float = 0.85
+    ai_confidence_high: float = 0.70
+    classroom_verification_max_images: int = 3
+    classroom_verification_max_image_bytes: int = 8 * 1024 * 1024
+    reference_photo_max_bytes: int = 5 * 1024 * 1024
+    # Restriction duration presets (see app/services/violation_service.py). "one_lecture" has
+    # no per-student timetable lookup in this MVP, so it's approximated as a short fixed window
+    # rather than tracking each student's actual next scheduled class.
+    restriction_one_lecture_hours: int = 4
+    restriction_default_days: int = 7
+
     @property
     def cors_origins_list(self) -> list[str]:
         """CORS_ORIGINS is a comma-separated list of allowed origins, e.g.

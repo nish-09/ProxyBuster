@@ -3,7 +3,7 @@ import uuid
 
 from sqlalchemy.orm import Session
 
-from app.core.time import ensure_utc, utcnow
+from app.core.time import utcnow
 from app.models.academic import Enrollment, Lecture
 from app.models.attendance import AttendanceRecord, AttendanceStatus
 
@@ -58,7 +58,6 @@ def _counts_for_lectures(db: Session, student_id: uuid.UUID, lecture_ids: list[u
             .filter(AttendanceRecord.student_id == student_id, AttendanceRecord.lecture_id.in_(lecture_ids))
             .all()
         )
-        recorded_lecture_ids = {r.lecture_id for r in records}
         for r in records:
             if r.status == AttendanceStatus.PRESENT:
                 present += 1
@@ -66,8 +65,6 @@ def _counts_for_lectures(db: Session, student_id: uuid.UUID, lecture_ids: list[u
                 late += 1
             elif r.status == AttendanceStatus.MANUAL:
                 manual += 1
-    else:
-        recorded_lecture_ids = set()
 
     total = len(lecture_ids)
     # Absent = every lecture the student did not attend. A record whose status is ABSENT (a

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import QRCode from "qrcode";
 import { RequireRole } from "@/components/route-guard";
 import { ManualEntryModal } from "@/components/professor/ManualEntryModal";
+import { ClassroomVerificationModal } from "@/components/professor/ClassroomVerificationModal";
 import {
   ApiError,
   attendanceApi,
@@ -130,6 +131,7 @@ function SessionContent({ sessionId }: { sessionId: string }) {
   const [sessionEndsAtMs, setSessionEndsAtMs] = useState<number | null>(null);
   const [connection, setConnection] = useState<Connection>("connecting");
   const [showManual, setShowManual] = useState(false);
+  const [showVerification, setShowVerification] = useState(false);
   const [rosterStudents, setRosterStudents] = useState<StudentListItem[]>([]);
   const [stopping, setStopping] = useState(false);
   const [confirmStop, setConfirmStop] = useState(false);
@@ -454,6 +456,13 @@ function SessionContent({ sessionId }: { sessionId: string }) {
             </p>
             <div className="flex flex-wrap gap-2 justify-center">
               <button
+                onClick={() => setShowVerification(true)}
+                className="h-11 px-5 bg-secondary text-on-secondary border border-outline rounded-md font-label-md text-label-md transition-colors flex items-center gap-2"
+              >
+                <span className="material-symbols-outlined text-[18px]">photo_camera</span>
+                Verify Classroom
+              </button>
+              <button
                 onClick={() => router.push("/professor/attendance-sheet")}
                 className="h-11 px-5 bg-primary text-on-primary border border-outline rounded-md font-label-md text-label-md transition-colors"
               >
@@ -550,6 +559,13 @@ function SessionContent({ sessionId }: { sessionId: string }) {
                   <span className="material-symbols-outlined text-[16px]">edit_note</span>
                   Manual Entry
                 </button>
+                <button
+                  onClick={() => setShowVerification(true)}
+                  className="min-h-11 flex items-center justify-center gap-1 bg-surface-container text-on-surface py-2 rounded-lg font-label-sm text-label-sm border border-outline-variant hover:bg-surface-container-high transition-colors"
+                >
+                  <span className="material-symbols-outlined text-[16px]">photo_camera</span>
+                  Verify Classroom
+                </button>
               </div>
             </div>
           </div>
@@ -558,6 +574,13 @@ function SessionContent({ sessionId }: { sessionId: string }) {
 
       {showManual && (
         <ManualEntryModal students={rosterStudents} onClose={() => setShowManual(false)} onSubmit={submitManual} />
+      )}
+      {showVerification && info && (
+        <ClassroomVerificationModal
+          sessionId={sessionId}
+          subjectLabel={`${info.subject}${info.division ? ` (${info.division})` : ""}`}
+          onClose={() => setShowVerification(false)}
+        />
       )}
     </div>
   );

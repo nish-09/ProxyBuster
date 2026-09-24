@@ -5,12 +5,14 @@ from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from app.core.config import get_settings
 from app.core.security import hash_password
 from app.core.time import utcnow
 from app.models.academic import ClassDivision, Enrollment, Lecture, Subject
 from app.models.attendance import AttendanceRecord, AttendanceSession
 from app.models.security import DeviceSession, DeviceSessionStatus
 from app.models.user import ProfessorProfile, StudentProfile, User, UserRole
+from app.models.verification import StudentReferencePhoto
 from app.schemas.admin import (
     AdminBulkEnrollResult,
     AdminCreateDivisionRequest,
@@ -23,6 +25,7 @@ from app.schemas.admin import (
     AdminEnrollmentOut,
     AdminLectureOut,
     AdminProfessorOut,
+    AdminReferencePhotoOut,
     AdminStudentOut,
     AdminSubjectOut,
     AdminSummaryOut,
@@ -32,6 +35,8 @@ from app.schemas.admin import (
     AdminUpdateStudentRequest,
     AdminUpdateSubjectRequest,
 )
+
+ALLOWED_REFERENCE_PHOTO_TYPES = {"image/jpeg", "image/png", "image/webp"}
 
 def _reset_password(db: Session, user: User, new_password: str) -> None:
     """Sets a new password and revokes every active session so the old credential stops working
@@ -76,8 +81,13 @@ def create_student(db: Session, payload: AdminCreateStudentRequest) -> AdminStud
     return _student_out(db, profile)
 
 
-def _student_out(db: Session, profile: StudentProfile) -> AdminStudentOut:
+def _student_out(db: Session, profile: StudentProfile, has_photo: bool | None = None) -> AdminStudentOut:
     user = db.get(User, profile.user_id)
+    if has_photo is None:
+        has_photo = (
+            db.query(StudentReferencePhoto.id).filter(StudentReferencePhoto.student_id == profile.id).first()
+            is not None
+        )
     return AdminStudentOut(
         id=profile.id,
         user_id=user.id,
@@ -88,6 +98,7 @@ def _student_out(db: Session, profile: StudentProfile) -> AdminStudentOut:
         program=profile.program,
         semester=profile.semester,
         created_at=user.created_at,
+        has_reference_photo=has_photo,
     )
 
 
@@ -98,9 +109,19 @@ def list_students(db: Session, q: str | None = None, limit: int = 100, offset: i
         query = query.filter(func.lower(User.full_name).like(needle) | func.lower(StudentProfile.roll_number).like(needle))
     profiles = query.order_by(User.full_name.asc()).offset(offset).limit(limit).all()
 
-    # Batch the User lookup instead of one db.get() per row (was N+1 — up to `limit` extra
-    # round trips on a list endpoint the admin UI calls on every page load).
+    # Batched instead of one db.get()/query per row (was N+1 — up to `limit` extra round trips
+    # on a list endpoint the admin UI calls on every page load).
     users_by_id = {u.id: u for u in db.query(User).filter(User.id.in_([p.user_id for p in profiles])).all()}
+    photo_student_ids = (
+        {
+            row[0]
+            for row in db.query(StudentReferencePhoto.student_id)
+            .filter(StudentReferencePhoto.student_id.in_([p.id for p in profiles]))
+            .all()
+        }
+        if profiles
+        else set()
+    )
     return [
         AdminStudentOut(
             id=p.id,
@@ -112,6 +133,7 @@ def list_students(db: Session, q: str | None = None, limit: int = 100, offset: i
             program=p.program,
             semester=p.semester,
             created_at=users_by_id[p.user_id].created_at,
+            has_reference_photo=p.id in photo_student_ids,
         )
         for p in profiles
     ]
@@ -597,6 +619,58 @@ def delete_lecture(db: Session, lecture_id: uuid.UUID) -> None:
         )
     db.delete(lecture)
     db.commit()
+
+
+# ============================= Reference photos =============================
+# Used ONLY by the classroom AI verification feature (app/services/verification/) to match a
+# face in a classroom photo to a known student. See app/models/verification.py for storage
+# rationale (its own table, never a column on the hot StudentProfile query path).
+
+
+def upload_reference_photo(
+    db: Session, uploaded_by_user_id, student_id: uuid.UUID, content_type: str | None, data: bytes
+) -> AdminReferencePhotoOut:
+    _student_or_404(db, student_id)
+    if content_type not in ALLOWED_REFERENCE_PHOTO_TYPES:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, f"Unsupported image type: {content_type}")
+    if not data:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "Uploaded file is empty")
+    settings = get_settings()
+    if len(data) > settings.reference_photo_max_bytes:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "Image is too large")
+
+    photo = db.query(StudentReferencePhoto).filter(StudentReferencePhoto.student_id == student_id).first()
+    if photo is None:
+        photo = StudentReferencePhoto(
+            student_id=student_id, image_data=data, content_type=content_type, uploaded_by_user_id=uploaded_by_user_id
+        )
+        db.add(photo)
+    else:
+        photo.image_data = data
+        photo.content_type = content_type
+        photo.uploaded_by_user_id = uploaded_by_user_id
+    db.commit()
+    db.refresh(photo)
+    return AdminReferencePhotoOut(
+        student_id=student_id, has_reference_photo=True, content_type=photo.content_type, uploaded_at=photo.uploaded_at
+    )
+
+
+def delete_reference_photo(db: Session, student_id: uuid.UUID) -> None:
+    _student_or_404(db, student_id)
+    photo = db.query(StudentReferencePhoto).filter(StudentReferencePhoto.student_id == student_id).first()
+    if photo is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "No reference photo on file for this student")
+    db.delete(photo)
+    db.commit()
+
+
+def get_reference_photo(db: Session, student_id: uuid.UUID) -> StudentReferencePhoto:
+    _student_or_404(db, student_id)
+    photo = db.query(StudentReferencePhoto).filter(StudentReferencePhoto.student_id == student_id).first()
+    if photo is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "No reference photo on file for this student")
+    return photo
 
 
 # ============================= Summary =============================

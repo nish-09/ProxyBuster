@@ -27,6 +27,7 @@ from app.models.attendance import (
 from app.models.security import Cooldown
 from app.models.user import ProfessorProfile, StudentProfile, User, UserRole
 from app.schemas.attendance import ManualAttendanceRequest
+from app.services import violation_service
 from app.services.cooldown_service import get_active_cooldown
 
 settings = get_settings()
@@ -413,6 +414,19 @@ def scan(
     )
     if enrollment is None:
         raise api_error(status.HTTP_403_FORBIDDEN, "not_enrolled", "You are not enrolled in this class.")
+
+    # A professor-confirmed attendance violation (see app/services/violation_service.py) is a
+    # harder block than the cooldown below and is checked first: AI evidence never marks a
+    # student absent/proxy by itself, but a professor's explicit decision does restrict future
+    # scans, and that restriction must be enforced here — not just hidden in the UI.
+    restriction = violation_service.get_active_restriction(db, student_profile.id)
+    if restriction:
+        raise api_error(
+            status.HTTP_423_LOCKED,
+            "attendance_restricted",
+            "You currently have an attendance restriction.",
+            valid_until=ensure_utc(restriction.restriction_end).isoformat(),
+        )
 
     # Checked before the cooldown so re-scanning the *same* lecture's QR (a double tap, a second
     # tab) reports the more specific "already marked" instead of a generic cooldown message.

@@ -10,7 +10,7 @@ from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from app.api import admin, attendance, auth, professor, students, ws
+from app.api import admin, attendance, auth, professor, students, verification, ws
 from app.core.config import get_settings
 from app.core.rate_limit import limiter
 from app.services import realtime
@@ -69,6 +69,7 @@ app.include_router(attendance.router, prefix="/api")
 app.include_router(students.router, prefix="/api")
 app.include_router(professor.router, prefix="/api")
 app.include_router(admin.router, prefix="/api")
+app.include_router(verification.router, prefix="/api")
 app.include_router(ws.router, prefix="/api")
 
 

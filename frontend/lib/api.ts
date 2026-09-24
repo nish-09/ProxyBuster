@@ -28,6 +28,7 @@ export interface ApiErrorDetail {
   code?: string;
   message?: string;
   remaining_seconds?: number;
+  valid_until?: string;
 }
 
 /** One entry of FastAPI's 422 validation error list. */
@@ -61,6 +62,7 @@ export class ApiError extends Error {
   detail: unknown;
   code?: string;
   remainingSeconds?: number;
+  validUntil?: string;
 
   constructor(status: number, detail: unknown, messageOverride?: string) {
     super(messageOverride ?? messageFromDetail(status, detail));
@@ -70,6 +72,7 @@ export class ApiError extends Error {
       const d = detail as ApiErrorDetail;
       if (typeof d.code === "string") this.code = d.code;
       if (typeof d.remaining_seconds === "number") this.remainingSeconds = d.remaining_seconds;
+      if (typeof d.valid_until === "string") this.validUntil = d.valid_until;
     }
   }
 
@@ -148,6 +151,63 @@ async function request<T>(
     // Only a 401 on a request that actually carried OUR current token means the session is
     // over. A 500, a 4xx business error, a timeout or a dropped connection must never log
     // anyone out (that used to happen for any failure of /auth/me).
+    if (res.status === 401 && sentToken && getToken() === sentToken) {
+      setToken(null);
+      if (typeof window !== "undefined") window.dispatchEvent(new Event(AUTH_EXPIRED_EVENT));
+    }
+    throw new ApiError(res.status, detail);
+  }
+
+  return payload as T;
+}
+
+/**
+ * Same auth/timeout/error-handling contract as request(), for multipart bodies (image
+ * uploads). Never sets Content-Type manually — the browser fills in the multipart boundary.
+ */
+async function requestForm<T>(path: string, formData: FormData, options: { method?: string; signal?: AbortSignal } = {}): Promise<T> {
+  const { method = "POST", signal } = options;
+  const url = `${API_BASE}/api${path}`;
+
+  const headers: Record<string, string> = {};
+  const sentToken = getToken();
+  if (sentToken) headers["Authorization"] = `Bearer ${sentToken}`;
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+  const onCallerAbort = () => controller.abort();
+  signal?.addEventListener("abort", onCallerAbort);
+
+  let res: Response;
+  try {
+    res = await fetch(url, { method, headers, body: formData, signal: controller.signal });
+  } catch (err) {
+    if (signal?.aborted) throw err;
+    throw new ApiError(0, null, controller.signal.aborted ? "The server took too long to respond. Please try again." : NETWORK_ERROR);
+  } finally {
+    clearTimeout(timer);
+    signal?.removeEventListener("abort", onCallerAbort);
+  }
+
+  if (res.status === 204) return undefined as T;
+
+  let payload: unknown = null;
+  const text = await res.text();
+  if (text) {
+    try {
+      payload = JSON.parse(text);
+    } catch {
+      payload = text;
+    }
+  }
+
+  if (!res.ok) {
+    const detail =
+      payload && typeof payload === "object" && "detail" in payload
+        ? (payload as { detail: unknown }).detail
+        : typeof payload === "string"
+          ? payload
+          : "Request failed";
     if (res.status === 401 && sentToken && getToken() === sentToken) {
       setToken(null);
       if (typeof window !== "undefined") window.dispatchEvent(new Event(AUTH_EXPIRED_EVENT));
@@ -276,6 +336,12 @@ export interface CooldownStatusOut {
   reason: string | null;
 }
 
+export interface RestrictionStatusOut {
+  active: boolean;
+  valid_until: string | null;
+  reason: string | null;
+}
+
 export interface DeviceSessionOut {
   device_id: string | null;
   ip_address: string | null;
@@ -300,6 +366,7 @@ export const studentApi = {
     request<AttendanceHistoryOut>("/students/me/attendance", { query: params }),
   subjectAttendance: (subjectId: string) => request<SubjectAttendanceOut>(`/students/me/attendance/${subjectId}`),
   cooldown: () => request<CooldownStatusOut>("/students/me/cooldown"),
+  restriction: () => request<RestrictionStatusOut>("/students/me/restriction"),
   lastScan: () => request<LastScanOut>("/students/me/last-scan"),
   sessions: () => request<DeviceSessionOut[]>("/students/me/sessions"),
   bunkCalculator: (class_division_id: string, required_pct = 75.0) =>
@@ -550,6 +617,100 @@ export const attendanceApi = {
     request<ManualAttendanceOut>("/attendance/manual", { method: "POST", body: payload }),
 };
 
+// ---------- Classroom AI verification ----------
+
+export type VerificationStatusValue = "processing" | "completed" | "failed";
+export type DetectionStatusValue = "confirmed" | "high_confidence" | "uncertain" | "not_detected";
+export type DiscrepancyTypeValue = "attended_and_detected" | "attended_not_detected" | "detected_not_attended" | "none";
+export type DecisionActionValue = "confirmed_present" | "asked_to_scan" | "dismissed" | "violation";
+export type ViolationReasonValue = "proxy_attendance" | "not_physically_present" | "unauthorized_attendance" | "other";
+export type RestrictionDurationValue = "one_lecture" | "one_day" | "three_days" | "seven_days" | "custom";
+
+export interface ClassroomVerificationOut {
+  id: string;
+  session_id: string;
+  lecture_id: string;
+  status: VerificationStatusValue;
+  image_count: number;
+  provider: string;
+  error_message: string | null;
+  created_at: string;
+  completed_at: string | null;
+}
+
+export interface VerificationResultOut {
+  id: string;
+  student_id: string;
+  full_name: string;
+  roll_number: string;
+  qr_present: boolean;
+  ai_status: DetectionStatusValue;
+  confidence: number;
+  discrepancy_type: DiscrepancyTypeValue;
+  decision_action: DecisionActionValue | null;
+  decision_notes: string | null;
+  decided_at: string | null;
+}
+
+export interface ClassroomVerificationDetailOut {
+  verification: ClassroomVerificationOut;
+  total_enrolled: number;
+  students_excluded_no_reference_photo: number;
+  present_count: number;
+  confirmed_count: number;
+  discrepancy_count: number;
+  results: VerificationResultOut[];
+}
+
+export interface VerificationDecisionRequest {
+  action: DecisionActionValue;
+  notes?: string;
+  reason?: ViolationReasonValue;
+  restriction_duration?: RestrictionDurationValue;
+  custom_restriction_end?: string;
+}
+
+export interface VerificationDecisionOut {
+  result_id: string;
+  action: string;
+  notes: string | null;
+  created_at: string;
+  violation_id: string | null;
+  restriction_end: string | null;
+}
+
+export interface ViolationOut {
+  id: string;
+  student_id: string;
+  full_name: string;
+  roll_number: string;
+  lecture_id: string;
+  professor_id: string;
+  reason: string;
+  notes: string | null;
+  status: "active" | "revoked";
+  created_at: string;
+  restriction_start: string;
+  restriction_end: string;
+  revoked_at: string | null;
+  revocation_reason: string | null;
+}
+
+export const verificationApi = {
+  start: (sessionId: string, images: File[]) => {
+    const form = new FormData();
+    for (const image of images) form.append("images", image);
+    return requestForm<ClassroomVerificationOut>(`/verification/sessions/${sessionId}/verify`, form);
+  },
+  get: (verificationId: string) => request<ClassroomVerificationDetailOut>(`/verification/${verificationId}`),
+  decide: (resultId: string, payload: VerificationDecisionRequest) =>
+    request<VerificationDecisionOut>(`/verification/results/${resultId}/decision`, { method: "POST", body: payload }),
+  myViolations: (classDivisionId?: string) =>
+    request<ViolationOut[]>("/verification/violations/mine", { query: { class_division_id: classDivisionId } }),
+  revokeViolation: (violationId: string, revocation_reason: string) =>
+    request<ViolationOut>(`/verification/violations/${violationId}/revoke`, { method: "POST", body: { revocation_reason } }),
+};
+
 // ---------- Admin ----------
 
 export interface AdminStudentOut {
@@ -562,6 +723,19 @@ export interface AdminStudentOut {
   program: string;
   semester: number;
   created_at: string;
+  has_reference_photo: boolean;
+}
+
+export interface AdminReferencePhotoOut {
+  student_id: string;
+  has_reference_photo: boolean;
+  content_type: string | null;
+  uploaded_at: string | null;
+}
+
+export interface DeviceBindingResetOut {
+  student_id: string;
+  revoked_count: number;
 }
 
 export interface AdminCreateStudentRequest {
@@ -705,6 +879,15 @@ export const adminApi = {
     request<AdminStudentOut>("/admin/students", { method: "POST", body: payload }),
   updateStudent: (id: string, payload: AdminUpdateStudentRequest) =>
     request<AdminStudentOut>(`/admin/students/${id}`, { method: "PATCH", body: payload }),
+  uploadReferencePhoto: (studentId: string, file: File) => {
+    const form = new FormData();
+    form.append("file", file);
+    return requestForm<AdminReferencePhotoOut>(`/admin/students/${studentId}/reference-photo`, form);
+  },
+  deleteReferencePhoto: (studentId: string) =>
+    request<void>(`/admin/students/${studentId}/reference-photo`, { method: "DELETE" }),
+  resetDeviceBinding: (studentId: string, reason?: string) =>
+    request<DeviceBindingResetOut>(`/admin/students/${studentId}/device-binding/reset`, { method: "POST", body: { reason } }),
 
   professors: (q?: string) => request<AdminProfessorOut[]>("/admin/professors", { query: { q, limit: 500 } }),
   createProfessor: (payload: AdminCreateProfessorRequest) =>
@@ -738,6 +921,10 @@ export const adminApi = {
   createLecture: (payload: AdminCreateLectureRequest) =>
     request<AdminLectureOut>("/admin/lectures", { method: "POST", body: payload }),
   deleteLecture: (id: string) => request<void>(`/admin/lectures/${id}`, { method: "DELETE" }),
+
+  violations: () => request<ViolationOut[]>("/admin/violations"),
+  revokeViolation: (violationId: string, revocation_reason: string) =>
+    request<ViolationOut>(`/admin/violations/${violationId}/revoke`, { method: "POST", body: { revocation_reason } }),
 };
 
 /**

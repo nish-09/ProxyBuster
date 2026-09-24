@@ -13,6 +13,7 @@ from app.core.time import ensure_utc, utcnow
 from app.models.security import Cooldown, DeviceSession, DeviceSessionStatus, SecurityEvent, SecurityEventSeverity
 from app.models.user import ProfessorProfile, StudentProfile, User, UserRole
 from app.schemas.auth import LoginRequest, RegisterRequest
+from app.services import device_binding_service
 from app.services.cooldown_service import get_active_cooldown
 
 settings = get_settings()
@@ -125,6 +126,11 @@ def login_user(db: Session, payload: LoginRequest, ip_address: str | None, user_
                 status.HTTP_423_LOCKED,
                 {"message": "Account is in cooldown after logout", "remaining_seconds": max(remaining, 0)},
             )
+        # Anti-proxy-sharing device binding (see app/services/device_binding_service.py) — a
+        # different student can't claim a device already bound to this one. Checked before any
+        # session/DeviceSession bookkeeping below so a rejected login never revokes the
+        # legitimate owner's existing session.
+        device_binding_service.check_and_bind(db, profile, payload.device_id)
 
     # Enforce one active session per account: invalidate any prior active sessions.
     prior_active = db.query(DeviceSession).filter(

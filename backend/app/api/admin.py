@@ -1,10 +1,12 @@
 import uuid
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
+from fastapi.responses import Response
 from sqlalchemy.orm import Session
 
 from app.core.db import get_db
-from app.core.deps import require_admin
+from app.core.deps import CurrentUser, get_current_user, require_admin
+from app.models.verification import AttendanceViolation
 from app.schemas.admin import (
     AdminBulkEnrollRequest,
     AdminBulkEnrollResult,
@@ -18,6 +20,7 @@ from app.schemas.admin import (
     AdminEnrollmentOut,
     AdminLectureOut,
     AdminProfessorOut,
+    AdminReferencePhotoOut,
     AdminStudentOut,
     AdminSubjectOut,
     AdminSummaryOut,
@@ -26,8 +29,11 @@ from app.schemas.admin import (
     AdminUpdateProfessorRequest,
     AdminUpdateStudentRequest,
     AdminUpdateSubjectRequest,
+    DeviceBindingResetOut,
+    DeviceBindingResetRequest,
 )
-from app.services import admin_service
+from app.schemas.verification import RevokeViolationRequest, ViolationOut
+from app.services import admin_service, device_binding_service, violation_service
 
 router = APIRouter(prefix="/admin", tags=["admin"], dependencies=[Depends(require_admin)])
 
@@ -38,6 +44,30 @@ router = APIRouter(prefix="/admin", tags=["admin"], dependencies=[Depends(requir
 @router.get("/summary", response_model=AdminSummaryOut)
 def summary(db: Session = Depends(get_db)):
     return admin_service.summary(db)
+
+
+# ---------- Attendance violations / restrictions ----------
+# Admin can review and revoke ANY violation (see section 14 of the classroom-verification
+# spec: a restriction must always be reversible); a professor can only revoke one they
+# themselves created (see POST /verification/violations/{id}/revoke in app/api/verification.py).
+
+
+@router.get("/violations", response_model=list[ViolationOut])
+def list_violations(db: Session = Depends(get_db)):
+    return violation_service.list_all(db)
+
+
+@router.post("/violations/{violation_id}/revoke", response_model=ViolationOut)
+def revoke_violation(
+    violation_id: uuid.UUID,
+    payload: RevokeViolationRequest,
+    current: CurrentUser = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    violation = db.get(AttendanceViolation, violation_id)
+    if violation is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Violation not found")
+    return violation_service.revoke(db, violation, current.user.id, payload.revocation_reason)
 
 
 # ---------- Students ----------
@@ -61,6 +91,45 @@ def list_students(
 @router.patch("/students/{student_id}", response_model=AdminStudentOut)
 def update_student(student_id: uuid.UUID, payload: AdminUpdateStudentRequest, db: Session = Depends(get_db)):
     return admin_service.update_student(db, student_id, payload)
+
+
+@router.post("/students/{student_id}/reference-photo", response_model=AdminReferencePhotoOut)
+def upload_reference_photo(
+    student_id: uuid.UUID,
+    file: UploadFile = File(...),
+    current: CurrentUser = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    data = file.file.read()
+    return admin_service.upload_reference_photo(db, current.user.id, student_id, file.content_type, data)
+
+
+@router.delete("/students/{student_id}/reference-photo", status_code=204)
+def delete_reference_photo(student_id: uuid.UUID, db: Session = Depends(get_db)):
+    admin_service.delete_reference_photo(db, student_id)
+    return None
+
+
+@router.get("/students/{student_id}/reference-photo")
+def get_reference_photo(student_id: uuid.UUID, db: Session = Depends(get_db)):
+    """Admin-only, authenticated read — never a public/static URL (this is biometric reference
+    data). The global security-headers middleware already sets Cache-Control: no-store."""
+    photo = admin_service.get_reference_photo(db, student_id)
+    return Response(content=photo.image_data, media_type=photo.content_type)
+
+
+@router.post("/students/{student_id}/device-binding/reset", response_model=DeviceBindingResetOut)
+def reset_device_binding(
+    student_id: uuid.UUID,
+    payload: DeviceBindingResetRequest,
+    current: CurrentUser = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Frees whatever device(s) are currently bound to this student (see
+    app/services/device_binding_service.py) — e.g. a lost/replaced phone, or a binding made by
+    mistake. The next login from any device rebinds fresh."""
+    count = device_binding_service.reset_for_student(db, student_id, current.user.id, payload.reason)
+    return DeviceBindingResetOut(student_id=student_id, revoked_count=count)
 
 
 # ---------- Professors ----------
